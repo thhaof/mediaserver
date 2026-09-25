@@ -1400,28 +1400,22 @@
 
 function togglePlay() {
   const audio = document.getElementById('audioPlayer');
-
-  // Nếu chưa chọn bài hát nào, chọn phát bài đầu tiên
   if (!currentSong) {
     if (songs && songs.length > 0) {
       playSong(songs[0]);
     }
     return;
   }
-
-  // Nếu bài hát đang phát -> tạm dừng
   if (!audio.paused) {
     audio.pause();
     updatePlayIcons(false);
   } 
-  // Nếu bài hát đang tạm dừng -> tiếp tục phát (KHÔNG nạp lại audio.src)
   else {
     audio.play();
     updatePlayIcons(true);
   }
 }
 
-// Hàm cập nhật icon Play / Pause tương ứng ở tất cả các nút
 function updatePlayIcons(isPlaying) {
   const playIcon = document.getElementById('playIcon');
   const overlayPlayIcon = document.getElementById('overlayCurrentPlayIcon');
@@ -1433,7 +1427,6 @@ function updatePlayIcons(isPlaying) {
     if (playIcon) playIcon.className = "fa-solid fa-play text-sm ml-0.5";
     if (overlayPlayIcon) overlayPlayIcon.className = "fa-solid fa-play text-sm";
   }
-}
 
     function nextSong() {
       if (currentQueue.length === 0) return;
