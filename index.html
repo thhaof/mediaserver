@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Music Player</title>
+  <title>♥♥♥♥♥</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -152,7 +152,7 @@
             type="text"
             id="usernameInput"
             class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition normal-case"
-            placeholder="********"
+            placeholder="Username"
             autocomplete="username"
             required
           >
@@ -167,7 +167,7 @@
             type="password"
             id="passwordInput"
             class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition normal-case"
-            placeholder="********"
+            placeholder="Password"
             autocomplete="current-password"
             required
           >
@@ -184,7 +184,7 @@
           id="loginError"
           class="text-red-400 text-xs mt-3 text-center hidden font-medium uppercase"
         >
-          INVALID USERNAME OR PASSWORD! (THHAOF / 300172)
+          INVALID USERNAME OR PASSWORD!
         </p>
       </form>
     </div>
@@ -952,7 +952,7 @@
       const username = document.getElementById('usernameInput').value.trim();
       const password = document.getElementById('passwordInput').value;
 
-      if (username !== 'thhaof' || password !== '300172') {
+      if (username !== 'admin' || password !== '999999') {
         document.getElementById('loginError').classList.remove('hidden');
         return;
       }
@@ -1393,15 +1393,21 @@
     }
 
     function playSongFromList(songId, source) {
+      // If this is the song currently loaded, the list cover button
+      // acts as a true Play/Pause control. Do NOT reload the song,
+      // because setting audio.src again would reset currentTime to 0.
+      const currentSong = currentQueue[currentSongIndex];
+      if (currentSong && currentSong.id === songId && audio.src) {
+        togglePlay();
+        return;
+      }
+
       if (source === 'all') {
         currentQueue = [...songs];
       }
+
       const index = currentQueue.findIndex(s => s.id === songId);
       if (index !== -1) {
-        if (currentSongIndex === index && isPlaying) {
-          togglePlay();
-          return;
-        }
         currentSongIndex = index;
         loadSong(currentQueue[currentSongIndex]);
         audio.play().then(() => {
@@ -1425,15 +1431,17 @@
 function togglePlay() {
       if (currentQueue.length === 0) return;
 
-      // No song has been loaded yet: load the first queued song.
+      // Only load a song when no track is loaded yet.
+      // IMPORTANT: never call loadSong() when resuming a paused track,
+      // because assigning audio.src again resets the playback position.
       if (!audio.src || !currentQueue[currentSongIndex]) {
         currentSongIndex = 0;
         loadSong(currentQueue[currentSongIndex]);
       }
 
-      // IMPORTANT: resume the current audio position when paused.
-      // Do not call loadSong() again here, because that would reset/reload the track.
       if (audio.paused) {
+        // audio.currentTime is intentionally NOT changed here.
+        // HTMLAudioElement.play() resumes from the exact paused position.
         audio.play().then(() => {
           isPlaying = true;
           updatePlayIconsUI();
@@ -1443,6 +1451,7 @@ function togglePlay() {
           updatePlayIconsUI();
         });
       } else {
+        // pause() preserves audio.currentTime.
         audio.pause();
         isPlaying = false;
         updatePlayIconsUI();
