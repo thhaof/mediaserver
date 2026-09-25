@@ -629,7 +629,7 @@
        JAVASCRIPT APPLICATION LOGIC
   ========================================================== -->
   <script>
-    /* =========================================================
+/* =========================================================
        SONG DATABASE (Unchanged titles, artists, and albums)
     ========================================================== */
     const songs = [
@@ -652,8 +652,8 @@
       { id: 17, title: "Tây Thi", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/17.%20T%C3%A2y%20Thi.mp3" },
       { id: 18, title: "Hút và Hút", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/18.%20H%C3%BAt%20v%C3%A0%20H%C3%BAt.mp3" },
       { id: 19, title: "Dưa Chua", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/20. D%C6%B0a%20Chua.mp3" },
-      { id: 20, title: "Xa Xôi (feat. Obito)", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/20.%20Xa%20X%C3%B4i%20(feat.%20Obito).mp3" }
-      { id: 21, title: "Che Phủ", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/21.%20Che%20Ph%E1%BB%A7.mp3" }
+      { id: 20, title: "Xa Xôi (feat. Obito)", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/20.%20Xa%20X%C3%B4i%20(feat.%20Obito).mp3" },
+      { id: 21, title: "Che Phủ", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/21.%20Che%20Ph%E1%BB%A7.mp3" },
       { id: 22, title: "Oanh M = Thuoc", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/22.%20Oanh%20M%20%3D%20Thuoc.mp3" },
       { id: 23, title: "Ghet Xog Lai Thik", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/23.%20Ghet%20Xog%20Lai%20Thik.mp3" },
       { id: 24, title: "Nhìn Kẻ Thù Của Tao", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/24.%20Nh%C3%ACn%20K%E1%BA%BB%20Th%C3%B9%20C%E1%BB%A7a%20Tao.mp3" },
@@ -664,8 +664,7 @@
       { id: 29, title: "Nguyễn Văn Mười", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/29.%20Nguy%E1%BB%85n%20V%C4%83n%20M%C6%B0%E1%BB%9Di.mp3" },
       { id: 30, title: "Thịt Lợn", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/30.%20Th%E1%BB%8Bt%20L%E1%BB%A3n.mp3" },
       { id: 31, title: "xương rồng (intro)", artist: "dangrangto", album: "trái tim băng bó", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/31.%20x%C6%B0%C6%A1ng%20r%E1%BB%93ng%20(intro).mp3" },
-      { id: 32, title: "my lil b*tch (feat. TeuYungBoy)", artist: "dangrangto", album: "trái tim băng bó", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/32.%20my%20lil%20bitch%20(feat.%20TeuYungBoy).mp3" },
-        
+      { id: 32, title: "my lil b*tch (feat. TeuYungBoy)", artist: "dangrangto", album: "trái tim băng bó", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/32.%20my%20lil%20bitch%20(feat.%20TeuYungBoy).mp3" }
     ];
 
     /* =========================================================
