@@ -124,374 +124,146 @@
 
 <body class="h-screen flex flex-col select-none uppercase">
 
-  <!-- =========================================================
-       AUTH MODAL
-  ========================================================== -->
-  <div
-    id="authModal"
-    class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center backdrop-blur-md"
-  >
-    <div
-      class="bg-[#181922] p-8 rounded-2xl w-96 border border-gray-800 shadow-2xl view-transition"
-    >
-      <h2 class="text-3xl font-extrabold mb-1 text-center bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-       WELCOME!
-      </h2>
-
-      <p class="text-xs text-gray-400 text-center mb-6 tracking-wide uppercase font-medium">
-        LOGIN TO CONTINUE
-      </p>
-
+  <!-- AUTH MODAL -->
+  <div id="authModal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center backdrop-blur-md">
+    <div class="bg-[#181922] p-8 rounded-2xl w-96 border border-gray-800 shadow-2xl view-transition">
+      <h2 class="text-3xl font-extrabold mb-1 text-center bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">WELCOME!</h2>
+      <p class="text-xs text-gray-400 text-center mb-6 tracking-wide uppercase font-medium">LOGIN TO CONTINUE</p>
       <form id="loginForm" onsubmit="handleLogin(event)">
-        <!-- Username -->
         <div class="mb-4">
-          <label class="block text-xs text-gray-400 mb-1 font-semibold uppercase">
-            USERNAME
-          </label>
-          <input
-            type="text"
-            id="usernameInput"
-            class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition normal-case"
-            placeholder="Username"
-            autocomplete="username"
-            required
-          >
+          <label class="block text-xs text-gray-400 mb-1 font-semibold uppercase">USERNAME</label>
+          <input type="text" id="usernameInput" class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition normal-case" placeholder="Username" autocomplete="username" required>
         </div>
-
-        <!-- Password -->
         <div class="mb-6">
-          <label class="block text-xs text-gray-400 mb-1 font-semibold uppercase">
-            PASSWORD
-          </label>
-          <input
-            type="password"
-            id="passwordInput"
-            class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition normal-case"
-            placeholder="Password"
-            autocomplete="current-password"
-            required
-          >
+          <label class="block text-xs text-gray-400 mb-1 font-semibold uppercase">PASSWORD</label>
+          <input type="password" id="passwordInput" class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition normal-case" placeholder="Password" autocomplete="current-password" required>
         </div>
-
-        <button
-          type="submit"
-          class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg shadow-blue-600/20 active:scale-[0.98] uppercase"
-        >
-          LOGIN
-        </button>
-
-        <p
-          id="loginError"
-          class="text-red-400 text-xs mt-3 text-center hidden font-medium uppercase"
-        >
-          INVALID USERNAME OR PASSWORD!
-        </p>
+        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg shadow-blue-600/20 active:scale-[0.98] uppercase">LOGIN</button>
+        <p id="loginError" class="text-red-400 text-xs mt-3 text-center hidden font-medium uppercase">INVALID USERNAME OR PASSWORD!</p>
       </form>
     </div>
   </div>
 
-
-  <!-- =========================================================
-       ACCOUNT CREDENTIALS MODAL
-  ========================================================== -->
-  <div
-    id="accountSettingsModal"
-    class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden backdrop-blur-sm"
-  >
+  <!-- ACCOUNT CREDENTIALS MODAL -->
+  <div id="accountSettingsModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden backdrop-blur-sm">
     <div class="bg-[#181922] p-6 rounded-2xl w-96 border border-gray-800 shadow-2xl view-transition">
-      <h3 class="text-lg font-bold mb-4 text-white uppercase">
-        CHANGE ACCOUNT DETAILS
-      </h3>
-
+      <h3 class="text-lg font-bold mb-4 text-white uppercase">CHANGE ACCOUNT DETAILS</h3>
       <div class="mb-4">
         <label class="block text-xs text-gray-400 mb-1 font-semibold uppercase">NEW USERNAME</label>
-        <input
-          type="text"
-          id="newUsernameInput"
-          class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition normal-case"
-          placeholder="New Username"
-        >
+        <input type="text" id="newUsernameInput" class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition normal-case" placeholder="New Username">
       </div>
-
       <div class="mb-6">
         <label class="block text-xs text-gray-400 mb-1 font-semibold uppercase">NEW PASSWORD</label>
-        <input
-          type="password"
-          id="newPasswordInput"
-          class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition normal-case"
-          placeholder="New Password"
-        >
+        <input type="password" id="newPasswordInput" class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition normal-case" placeholder="New Password">
       </div>
-
       <div class="flex justify-end gap-3">
-        <button
-          onclick="closeModal('accountSettingsModal')"
-          class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-xl font-medium transition text-gray-300 uppercase"
-        >
-          CANCEL
-        </button>
-        <button
-          onclick="updateAccountCredentials()"
-          class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-xs rounded-xl font-bold transition shadow-md shadow-blue-600/30 uppercase"
-        >
-          SAVE CHANGES
-        </button>
+        <button onclick="closeModal('accountSettingsModal')" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-xl font-medium transition text-gray-300 uppercase">CANCEL</button>
+        <button onclick="updateAccountCredentials()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-xs rounded-xl font-bold transition shadow-md shadow-blue-600/30 uppercase">SAVE CHANGES</button>
       </div>
     </div>
   </div>
 
-
-  <!-- =========================================================
-       CREATE PLAYLIST MODAL
-  ========================================================== -->
-  <div
-    id="createPlaylistModal"
-    class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden backdrop-blur-sm"
-  >
-    <div
-      class="bg-[#181922] p-6 rounded-2xl w-96 border border-gray-800 shadow-2xl view-transition"
-    >
-      <h3 class="text-lg font-bold mb-4 text-white uppercase">
-        CREATE NEW PLAYLIST
-      </h3>
-
-      <input
-        type="text"
-        id="playlistNameInput"
-        class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 mb-4 transition uppercase"
-        placeholder="MY PLAYLIST #1"
-      >
-
+  <!-- CREATE PLAYLIST MODAL -->
+  <div id="createPlaylistModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden backdrop-blur-sm">
+    <div class="bg-[#181922] p-6 rounded-2xl w-96 border border-gray-800 shadow-2xl view-transition">
+      <h3 class="text-lg font-bold mb-4 text-white uppercase">CREATE NEW PLAYLIST</h3>
+      <input type="text" id="playlistNameInput" class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 mb-4 transition uppercase" placeholder="MY PLAYLIST #1">
       <div class="flex items-center gap-2 mb-6">
         <input type="checkbox" id="isSharedCheckbox" class="w-4 h-4 accent-blue-600 cursor-pointer">
-        <label for="isSharedCheckbox" class="text-xs text-gray-300 font-semibold cursor-pointer uppercase">
-          SHARE PLAYLIST WITH OTHER ACCOUNTS
-        </label>
+        <label for="isSharedCheckbox" class="text-xs text-gray-300 font-semibold cursor-pointer uppercase">SHARE PLAYLIST WITH OTHER ACCOUNTS</label>
       </div>
-
       <div class="flex justify-end gap-3">
-        <button
-          onclick="closeModal('createPlaylistModal')"
-          class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-xl font-medium transition text-gray-300 uppercase"
-        >
-          CANCEL
-        </button>
-        <button
-          onclick="saveNewPlaylist()"
-          class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-xs rounded-xl font-bold transition shadow-md shadow-blue-600/30 uppercase"
-        >
-          CREATE
-        </button>
+        <button onclick="closeModal('createPlaylistModal')" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-xl font-medium transition text-gray-300 uppercase">CANCEL</button>
+        <button onclick="saveNewPlaylist()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-xs rounded-xl font-bold transition shadow-md shadow-blue-600/30 uppercase">CREATE</button>
       </div>
     </div>
   </div>
 
-
-  <!-- =========================================================
-       ADD TO PLAYLIST MODAL
-  ========================================================== -->
-  <div
-    id="addToPlaylistModal"
-    class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden backdrop-blur-sm"
-  >
-    <div
-      class="bg-[#181922] p-6 rounded-2xl w-96 border border-gray-800 shadow-2xl view-transition"
-    >
-      <h3 class="text-lg font-bold mb-1 text-white uppercase">
-        ADD TO PLAYLIST
-      </h3>
-      <p
-        id="targetSongTitle"
-        class="text-xs text-blue-400 font-semibold mb-4 truncate normal-case"
-      ></p>
-
-      <div
-        id="playlistSelectList"
-        class="max-h-60 overflow-y-auto flex flex-col gap-2 mb-6 pr-1"
-      ></div>
-
+  <!-- ADD TO PLAYLIST MODAL -->
+  <div id="addToPlaylistModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden backdrop-blur-sm">
+    <div class="bg-[#181922] p-6 rounded-2xl w-96 border border-gray-800 shadow-2xl view-transition">
+      <h3 class="text-lg font-bold mb-1 text-white uppercase">ADD TO PLAYLIST</h3>
+      <p id="targetSongTitle" class="text-xs text-blue-400 font-semibold mb-4 truncate normal-case"></p>
+      <div id="playlistSelectList" class="max-h-60 overflow-y-auto flex flex-col gap-2 mb-6 pr-1"></div>
       <div class="flex justify-end gap-3">
-        <button
-          onclick="closeModal('addToPlaylistModal')"
-          class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-xs rounded-xl font-bold transition shadow-md shadow-blue-600/30 uppercase"
-        >
-          DONE
-        </button>
+        <button onclick="closeModal('addToPlaylistModal')" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-xs rounded-xl font-bold transition shadow-md shadow-blue-600/30 uppercase">DONE</button>
       </div>
     </div>
   </div>
 
-
-  <!-- =========================================================
-       MAIN LAYOUT CONTAINER
-  ========================================================== -->
+  <!-- MAIN LAYOUT -->
   <div class="flex flex-1 overflow-hidden relative">
 
-    <!-- SIDEBAR NAVIGATION -->
-    <aside
-      class="w-64 bg-[#12131b] flex flex-col justify-between border-r border-gray-800/60 z-20 flex-shrink-0"
-    >
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-[#12131b] flex flex-col justify-between border-r border-gray-800/60 z-20 flex-shrink-0">
       <div>
-        <!-- Logo / Welcome Banner -->
         <div class="p-6 flex items-center gap-3">
-          <div
-            class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-extrabold text-lg shadow-lg shadow-blue-500/30 text-white flex-shrink-0"
-          >
-            T
-          </div>
-          <span
-            id="welcomeHeader"
-            class="font-extrabold text-sm tracking-wider bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent break-words leading-tight"
-          >
-            WELCOME, GUEST
-          </span>
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-extrabold text-lg shadow-lg shadow-blue-500/30 text-white flex-shrink-0">T</div>
+          <span id="welcomeHeader" class="font-extrabold text-sm tracking-wider bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent break-words leading-tight">WELCOME, GUEST</span>
         </div>
 
-        <!-- Navigation Links -->
         <nav class="px-3 flex flex-col gap-1.5 font-medium">
-          <a
-            href="#"
-            onclick="switchView('discover'); return false;"
-            id="nav-discover"
-            class="nav-item active-nav flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase"
-          >
-            <i class="fa-solid fa-music text-lg w-5 text-center text-blue-400"></i>
-            ALL SONGS
+          <a href="#" onclick="switchView('discover'); return false;" id="nav-discover" class="nav-item active-nav flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
+            <i class="fa-solid fa-music text-lg w-5 text-center text-blue-400"></i> ALL SONGS
           </a>
-          <a
-            href="#"
-            onclick="switchView('albums'); return false;"
-            id="nav-albums"
-            class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase"
-          >
-            <i class="fa-solid fa-compact-disc text-lg w-5 text-center text-indigo-400"></i>
-            ALBUMS
+          <a href="#" onclick="switchView('albums'); return false;" id="nav-albums" class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
+            <i class="fa-solid fa-compact-disc text-lg w-5 text-center text-indigo-400"></i> ALBUMS
           </a>
-          <a
-            href="#"
-            onclick="switchView('artists'); return false;"
-            id="nav-artists"
-            class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase"
-          >
-            <i class="fa-solid fa-microphone-lines text-lg w-5 text-center text-purple-400"></i>
-            ARTISTS
+          <a href="#" onclick="switchView('artists'); return false;" id="nav-artists" class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
+            <i class="fa-solid fa-microphone-lines text-lg w-5 text-center text-purple-400"></i> ARTISTS
           </a>
         </nav>
 
         <hr class="border-gray-800/80 my-4 mx-4">
 
-        <!-- Playlists Header & Export/Import Controls -->
         <div class="px-6 flex items-center justify-between mb-2">
-          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">
-            PLAYLISTS
-          </span>
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">PLAYLISTS</span>
           <div class="flex items-center gap-1.5">
-            <button
-              onclick="exportPlaylistsToFile()"
-              title="BACKUP / EXPORT PLAYLISTS"
-              class="text-gray-400 hover:text-blue-400 text-xs w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-gray-700 flex items-center justify-center transition"
-            >
+            <button onclick="exportPlaylistsToFile()" title="BACKUP / EXPORT PLAYLISTS" class="text-gray-400 hover:text-blue-400 text-xs w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-gray-700 flex items-center justify-center transition">
               <i class="fa-solid fa-download text-xs"></i>
             </button>
-            <button
-              onclick="triggerImportPlaylist()"
-              title="RESTORE / IMPORT PLAYLISTS"
-              class="text-gray-400 hover:text-green-400 text-xs w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-gray-700 flex items-center justify-center transition"
-            >
+            <button onclick="triggerImportPlaylist()" title="RESTORE / IMPORT PLAYLISTS" class="text-gray-400 hover:text-green-400 text-xs w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-gray-700 flex items-center justify-center transition">
               <i class="fa-solid fa-upload text-xs"></i>
             </button>
-            <button
-              onclick="openModal('createPlaylistModal')"
-              title="CREATE PLAYLIST"
-              class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition"
-            >
+            <button onclick="openModal('createPlaylistModal')" title="CREATE PLAYLIST" class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition">
               <i class="fa-solid fa-plus text-xs"></i>
             </button>
           </div>
         </div>
 
-        <!-- Hidden Input for Importing File -->
         <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importPlaylistsFromFile(event)">
-
-        <!-- Playlists Container -->
-        <div
-          id="sidebarPlaylists"
-          class="px-3 flex flex-col gap-1 max-h-48 overflow-y-auto pr-1"
-        ></div>
+        <div id="sidebarPlaylists" class="px-3 flex flex-col gap-1 max-h-48 overflow-y-auto pr-1"></div>
       </div>
 
-      <!-- User Profile Footer -->
-      <div
-        class="p-4 border-t border-gray-800/60 flex items-center justify-between bg-[#151620]"
-      >
+      <div class="p-4 border-t border-gray-800/60 flex items-center justify-between bg-[#151620]">
         <div class="flex items-center gap-3 overflow-hidden cursor-pointer hover:opacity-80 transition" onclick="openModal('accountSettingsModal')" title="CLICK TO EDIT USERNAME/PASSWORD">
-          <div
-            class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-sm font-extrabold flex-shrink-0"
-            id="userAvatar"
-          >
-            G
-          </div>
+          <div class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-sm font-extrabold flex-shrink-0" id="userAvatar">G</div>
           <div class="overflow-hidden">
-            <p
-              class="text-xs font-bold text-white truncate uppercase"
-              id="userNameDisplay"
-            >
-              GUEST
-            </p>
-            <p
-              class="text-[11px] text-gray-400 truncate uppercase"
-              id="userStatus"
-            >
-              FREE ACCOUNT
-            </p>
+            <p class="text-xs font-bold text-white truncate uppercase" id="userNameDisplay">GUEST</p>
+            <p class="text-[11px] text-gray-400 truncate uppercase" id="userStatus">FREE ACCOUNT</p>
           </div>
         </div>
-
-        <button
-          onclick="logout()"
-          title="LOGOUT"
-          class="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition"
-        >
+        <button onclick="logout()" title="LOGOUT" class="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition">
           <i class="fa-solid fa-right-from-bracket text-sm"></i>
         </button>
       </div>
     </aside>
 
-
-    <!-- MAIN CONTENT AREA -->
-    <main
-      class="flex-1 bg-gradient-to-b from-[#161722] to-[#0f1016] overflow-y-auto p-8 lg:p-10 transition-all duration-300"
-    >
-      <!-- Top Bar / Header -->
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 bg-gradient-to-b from-[#161722] to-[#0f1016] overflow-y-auto p-8 lg:p-10 transition-all duration-300">
       <header class="flex items-center justify-between mb-8 gap-4 flex-wrap">
-        <div
-          class="flex items-center gap-3 w-full md:w-96 bg-[#1f202e] px-4 py-2.5 rounded-2xl border border-gray-700/50 shadow-inner focus-within:border-blue-500 transition"
-        >
+        <div class="flex items-center gap-3 w-full md:w-96 bg-[#1f202e] px-4 py-2.5 rounded-2xl border border-gray-700/50 shadow-inner focus-within:border-blue-500 transition">
           <i class="fa-solid fa-magnifying-glass text-gray-400 text-sm"></i>
-          <input
-            type="text"
-            id="searchInput"
-            onkeyup="filterSongs()"
-            placeholder="SEARCH SONGS, ARTISTS..."
-            class="bg-transparent text-sm w-full text-white focus:outline-none placeholder-gray-400 uppercase"
-          >
+          <input type="text" id="searchInput" onkeyup="filterSongs()" placeholder="SEARCH SONGS, ARTISTS..." class="bg-transparent text-sm w-full text-white focus:outline-none placeholder-gray-400 uppercase">
         </div>
-
         <div class="flex items-center gap-3">
-          <button
-            onclick="openModal('createPlaylistModal')"
-            class="bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-600/25 transition active:scale-95 uppercase"
-          >
-            <i class="fa-solid fa-plus"></i>
-            CREATE PLAYLIST
+          <button onclick="openModal('createPlaylistModal')" class="bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-600/25 transition active:scale-95 uppercase">
+            <i class="fa-solid fa-plus"></i> CREATE PLAYLIST
           </button>
         </div>
       </header>
 
-
-      <!-- Dynamic Views Container -->
       <div id="contentView" class="view-transition">
-
         <!-- ALL SONGS VIEW -->
         <div id="discoverView">
           <div class="flex items-center justify-between mb-6">
@@ -499,10 +271,7 @@
             <span id="totalSongsCount" class="text-xs text-gray-400 font-medium uppercase">0 SONGS</span>
           </div>
           <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
-            <div
-              class="flex flex-col gap-2"
-              id="songList"
-            ></div>
+            <div class="flex flex-col gap-2" id="songList"></div>
           </div>
         </div>
 
@@ -520,6 +289,11 @@
 
         <!-- ALBUM / ARTIST DETAIL VIEW -->
         <div id="groupDetailView" class="hidden">
+          <!-- Back Button -->
+          <button onclick="goBackFromDetail()" class="mb-4 bg-gray-800/80 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition active:scale-95 uppercase border border-gray-700">
+            <i class="fa-solid fa-arrow-left text-xs"></i> BACK
+          </button>
+
           <div class="flex flex-col sm:flex-row items-start sm:items-end gap-6 mb-8 bg-gradient-to-r from-blue-950/40 via-transparent to-transparent p-6 rounded-2xl border border-white/5">
             <img id="groupDetailCover" src="" class="w-44 h-44 rounded-2xl object-cover shadow-2xl border border-white/10" alt="Cover">
             <div class="flex-1">
@@ -566,12 +340,10 @@
             <div id="playlistSongsList" class="flex flex-col gap-2"></div>
           </div>
         </div>
-
       </div>
     </main>
 
-
-    <!-- PLAYING QUEUE SIDEBAR (RIGHT) -->
+    <!-- PLAYING QUEUE SIDEBAR -->
     <aside id="queueSidebar" class="w-80 bg-[#12131b] border-l border-gray-800/60 p-5 hidden flex flex-col justify-between z-20 flex-shrink-0">
       <div>
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-800">
@@ -585,167 +357,69 @@
         <div id="queueListContainer" class="flex flex-col gap-2 max-h-[calc(100vh-140px)] overflow-y-auto pr-1"></div>
       </div>
     </aside>
-
   </div>
 
-
-  <!-- =========================================================
-       PLAYER FOOTER CONTROLS
-  ========================================================== -->
-  <footer
-    class="h-24 px-6 flex items-center justify-between z-40 footer-player-glow relative"
-  >
-    <!-- Song Info -->
+  <!-- PLAYER FOOTER CONTROLS -->
+  <footer class="h-24 px-6 flex items-center justify-between z-40 footer-player-glow relative">
     <div class="flex items-center gap-4 w-1/4">
       <div class="relative group flex-shrink-0">
-        <img
-          id="currentCover"
-          src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100&h=100&fit=crop"
-          class="w-14 h-14 rounded-xl object-cover shadow-lg border border-white/10"
-          alt="Album cover"
-        >
-        <button
-          onclick="togglePlay()"
-          class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-xl flex items-center justify-center text-white"
-        >
+        <img id="currentCover" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100&h=100&fit=crop" class="w-14 h-14 rounded-xl object-cover shadow-lg border border-white/10" alt="Album cover">
+        <button onclick="togglePlay()" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-xl flex items-center justify-center text-white">
           <i id="overlayCurrentPlayIcon" class="fa-solid fa-play text-sm"></i>
         </button>
       </div>
 
       <div class="overflow-hidden cursor-pointer" onclick="togglePlay()" title="PLAY / PAUSE">
-        <h4
-          id="currentTitle"
-          class="text-sm font-bold truncate text-white hover:text-blue-400 transition normal-case"
-        >
-          SELECT A SONG
-        </h4>
-        <p
-          id="currentArtist"
-          class="text-xs text-gray-400 truncate font-medium normal-case"
-        >
-          THHAOF PLAYER
-        </p>
+        <h4 id="currentTitle" class="text-sm font-bold truncate text-white hover:text-blue-400 transition normal-case">SELECT A SONG</h4>
+        <p id="currentArtist" class="text-xs text-gray-400 truncate font-medium normal-case">THHAOF PLAYER</p>
       </div>
 
-      <button
-        onclick="openAddToPlaylistCurrent()"
-        title="ADD TO PLAYLIST"
-        class="text-gray-400 hover:text-blue-400 text-sm ml-2 w-8 h-8 rounded-lg hover:bg-gray-800/80 flex items-center justify-center transition flex-shrink-0"
-      >
+      <button onclick="openAddToPlaylistCurrent()" title="ADD TO PLAYLIST" class="text-gray-400 hover:text-blue-400 text-sm ml-2 w-8 h-8 rounded-lg hover:bg-gray-800/80 flex items-center justify-center transition flex-shrink-0">
         <i class="fa-solid fa-plus"></i>
       </button>
     </div>
 
-
-    <!-- Playback Controls & Progress -->
     <div class="flex flex-col items-center gap-2 w-1/2 max-w-xl">
       <div class="flex items-center justify-center gap-6">
-        <!-- Shuffle Button -->
         <button onclick="toggleShuffle()" title="SHUFFLE" id="shuffleBtn" class="text-gray-400 hover:text-white text-sm transition p-2">
           <i class="fa-solid fa-shuffle"></i>
         </button>
-
-        <!-- Previous Song -->
-        <button
-          onclick="prevSong()"
-          class="text-gray-300 hover:text-white text-sm transition p-2"
-          title="PREVIOUS SONG"
-        >
+        <button onclick="prevSong()" class="text-gray-300 hover:text-white text-sm transition p-2" title="PREVIOUS SONG">
           <i class="fa-solid fa-backward-step text-base"></i>
         </button>
-
-        <!-- Play / Pause Button -->
-        <button
-          onclick="togglePlay()"
-          class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 text-white flex items-center justify-center hover:scale-105 transition shadow-lg shadow-blue-500/30 active:scale-95"
-          title="PLAY / PAUSE"
-        >
-          <i
-            id="playIcon"
-            class="fa-solid fa-play text-sm ml-0.5"
-          ></i>
+        <button onclick="togglePlay()" class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 text-white flex items-center justify-center hover:scale-105 transition shadow-lg shadow-blue-500/30 active:scale-95" title="PLAY / PAUSE">
+          <i id="playIcon" class="fa-solid fa-play text-sm ml-0.5"></i>
         </button>
-
-        <!-- Next Song -->
-        <button
-          onclick="nextSong()"
-          class="text-gray-300 hover:text-white text-sm transition p-2"
-          title="NEXT SONG"
-        >
+        <button onclick="nextSong()" class="text-gray-300 hover:text-white text-sm transition p-2" title="NEXT SONG">
           <i class="fa-solid fa-forward-step text-base"></i>
         </button>
-
-        <!-- Repeat Button -->
         <button onclick="toggleRepeat()" title="REPEAT MODE" id="repeatBtn" class="text-gray-400 hover:text-white text-sm transition relative p-2">
           <i class="fa-solid fa-repeat"></i>
           <span id="repeatOneBadge" class="absolute -top-1 -right-1 text-[9px] font-extrabold bg-blue-600 text-white px-1.5 py-0.2 rounded-full hidden">1</span>
         </button>
       </div>
 
-      <!-- Progress Bar -->
       <div class="flex items-center gap-3 w-full">
-        <span
-          id="currentTime"
-          class="text-xs text-gray-400 w-10 text-right font-medium"
-        >
-          0:00
-        </span>
-
-        <input
-          type="range"
-          id="progressBar"
-          value="0"
-          min="0"
-          max="100"
-          step="0.1"
-          oninput="seekAudio()"
-          class="w-full h-1.5 rounded-lg appearance-none cursor-pointer"
-        >
-
-        <span
-          id="durationTime"
-          class="text-xs text-gray-400 w-10 font-medium"
-        >
-          0:00
-        </span>
+        <span id="currentTime" class="text-xs text-gray-400 w-10 text-right font-medium">0:00</span>
+        <input type="range" id="progressBar" value="0" min="0" max="100" step="0.1" oninput="seekAudio()" class="w-full h-1.5 rounded-lg appearance-none cursor-pointer">
+        <span id="durationTime" class="text-xs text-gray-400 w-10 font-medium">0:00</span>
       </div>
     </div>
 
-
-    <!-- Volume & Queue Toggle -->
     <div class="flex items-center gap-4 w-1/4 justify-end">
       <button onclick="toggleQueueSidebar()" title="PLAYING QUEUE" id="queueToggleBtn" class="text-gray-400 hover:text-white text-sm transition p-2.5 rounded-xl hover:bg-gray-800">
         <i class="fa-solid fa-list-check"></i>
       </button>
-
       <div class="flex items-center gap-2.5">
-        <i
-          id="volumeIcon"
-          class="fa-solid fa-volume-high text-gray-400 text-sm cursor-pointer"
-          onclick="toggleMute()"
-        ></i>
-
-        <input
-          type="range"
-          id="volumeBar"
-          value="80"
-          min="0"
-          max="100"
-          oninput="setVolume()"
-          class="w-24 h-1.5 rounded-lg appearance-none cursor-pointer"
-        >
+        <i id="volumeIcon" class="fa-solid fa-volume-high text-gray-400 text-sm cursor-pointer" onclick="toggleMute()"></i>
+        <input type="range" id="volumeBar" value="80" min="0" max="100" oninput="setVolume()" class="w-24 h-1.5 rounded-lg appearance-none cursor-pointer">
       </div>
     </div>
   </footer>
 
-
-  <!-- AUDIO ELEMENT -->
   <audio id="audioPlayer" preload="metadata"></audio>
 
-
-  <!-- =========================================================
-       JAVASCRIPT APPLICATION LOGIC
-  ========================================================== -->
+  <!-- JAVASCRIPT LOGIC -->
   <script>
     /* SONG DATABASE */
     const rawSongs = [
@@ -767,7 +441,7 @@
       { id: 16, title: "Intenpol", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/16.%20Intenpol.mp3" },
       { id: 17, title: "Tây Thi", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/17.%20T%C3%A2y%20Thi.mp3" },
       { id: 18, title: "Hút và Hút", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/18.%20H%C3%BAt%20v%C3%A0%20H%C3%BAt.mp3" },
-      { id: 19, title: "Dưa Chua", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/20. D%C6%B0a%20Chua.mp3" },
+      { id: 19, title: "Dưa Chua", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/20.%20D%C6%B0a%20Chua.mp3" },
       { id: 20, title: "Xa Xôi (feat. Obito)", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/20.%20Xa%20X%C3%B4i%20(feat.%20Obito).mp3" },
       { id: 21, title: "Che Phủ", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/21.%20Che%20Ph%E1%BB%A7.mp3" },
       { id: 22, title: "Oanh M = Thuoc", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/22.%20Oanh%20M%20%3D%20Thuoc.mp3" },
@@ -779,7 +453,6 @@
       { id: 28, title: "Huh (feat. RPT Orijinn & THANHDRAW)", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/28.%20Huh%20(feat.%20RPT%20Orijinn%20%26%20THANHDRAW).mp3" },
       { id: 29, title: "Nguyễn Văn Mười", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/29.%20Nguy%E1%BB%85n%20V%C4%83n%20M%C6%B0%E1%BB%9Di.mp3" },
       { id: 30, title: "Thịt Lợn", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/30.%20Th%E1%BB%8Bt%20L%E1%BB%A3n.mp3" },
-     
       { id: 31, title: "xương rồng (intro)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/31.%20x%C6%B0%C6%A1ng%20r%E1%BB%93ng%20(intro).mp3" },
       { id: 32, title: "my lil b*tch (feat. TeuYungBoy)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/32.%20my%20lil%20bitch%20(feat.%20TeuYungBoy).mp3" },
       { id: 33, title: "cây màu đen (feat. MR LANH, LWKI)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/33.%20c%C3%A2y%20m%C3%A0u%20%C4%91en%20(feat.%20MR%20LANH%2C%20LWKI).mp3" },
@@ -794,11 +467,9 @@
       { id: 42, title: "quenvaonhau", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/42.%20quenvaonhau.mp3" },
       { id: 43, title: "món quà", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/43.%20m%C3%B3n%20qu%C3%A0.mp3" },
       { id: 44, title: "đắm say trong tình yêu", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/44.%20%C4%91%E1%BA%AFm%20say%20trong%20t%C3%ACnh%20y%C3%AAu.mp3" },
- 
       { id: 45, title: "để dành cho em", artist: "dangrangto", album: "để dành cho em (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/45.%20%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em.mp3" },
       { id: 46, title: "thế giới của anh", artist: "dangrangto", album: "để dành cho em (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/46.%20th%E1%BA%BF%20gi%E1%BB%9Bi%20c%E1%BB%A7a%20anh.mp3" },
       { id: 47, title: "hãy đến đây bên anh trong một chiều mùa thu...", artist: "dangrangto", album: "để dành cho em (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/47.%20h%C3%A3y%20%C4%91%E1%BA%BFn%20%C4%91%C3%A2y%20b%C3%AAn%20anh%20trong%20m%E1%BB%99t%20chi%E1%BB%81u%20m%C3%B9a%20thu....mp3" },
-  
       { id: 48, title: "cà phê phin (feat. flames)", artist: "Dfoxie37", album: "Lợi Khuẩn (feat. Tuann)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/48.%20c%C3%A0%20ph%C3%AA%20phin%20(feat.%20flames).mp3" },
       { id: 49, title: "bụi sao", artist: "Dfoxie37", album: "Lợi Khuẩn (feat. Tuann)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/49.%20b%E1%BB%A5i%20sao.mp3" },
       { id: 50, title: "tất cả là một (feat. Hale)", artist: "Dfoxie37", album: "Lợi Khuẩn (feat. Tuann)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/50.%20t%E1%BA%A5t%20c%E1%BA%A3%20l%C3%A0%20m%E1%BB%99t%20(feat.%20Hale).mp3" },
@@ -816,7 +487,8 @@
       { id: 61, title: "Người Dưng", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/2.%20NG%C6%AF%E1%BB%9CI%20D%C6%AFNG.mp3" },
       { id: 62, title: "Anh Yêu Em (我爱你)", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/3.%20ANH%20YE%CC%82U%20EM%20(%E6%88%91%E7%88%B1%E4%BD%A0).mp3" },
       { id: 63, title: "Lưu Niên", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/4.%20L%C6%AFU%20NI%C3%8AN.mp3" },
-      { id: 64, title: "Nếu Phải Giữ Cho Em", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/5.%20N%E1%BA%BFU%20PH%E1%BA%A2I%20GI%E1%BB%AE%20CHO%20EM.mp3" },
+      /* ĐÃ SỬA LỖI ĐƯỜNG DẪN TẠI ĐÂY (thay %20PH%E1%BA%A2I thành %20PHAI) */
+      { id: 64, title: "Nếu Phải Giữ Cho Em", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/5.%20NEU%20PHAI%20GIU%20CHO%20EM.mp3" },
       { id: 65, title: "Mỗi Lần Nhớ Em Là Một Ngày Mưa", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/6.%20M%E1%BB%96I%20L%E1%BA%A6N%20NH%E1%BB%9A%20EM%20L%C3%80%20M%E1%BB%98T%20NG%C3%80Y%20M%C6%AFA.mp3" },
       { id: 66, title: "Nát Tan Cõi Lòng", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/7.%20N%C3%81T%20TAN%20C%C3%95I%20L%C3%92NG.mp3" },
       { id: 67, title: "Hào Hoa", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/8.%20H%C3%80O%20HOA.mp3" },
@@ -843,333 +515,424 @@
       { id: 86, title: "Nobody But You", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/10.%20Nobody%20But%20You.mp3" },
       { id: 87, title: "Giấc Du Miên (feat. NeeNee, GREY D)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/11.%20Gi%E1%BA%A5c%20Du%20Mi%C3%AAn%20(feat.%20NeeNee%2C%20GreyD).mp3" },
       { id: 88, title: "Một Khi Nói Yêu Mọi Chuyện Chấm Hết (feat. WOKEUP, Vũ Phụng Tiên)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/12.%20M%E1%BB%99t%20Khi%20N%C3%B3i%20Y%C3%AAu%20M%E1%BB%8Di%20Chuy%E1%BB%87n%20Ch%E1%BA%A5m%20H%E1%BA%BFt%20(feat.%20WOKEUP%2C%20V%C5%A9%20Ph%E1%BB%A5ng%20Ti%C3%AAn).mp3" },
-      { id: 89, title: "Ngừi Đẹp Ơii (feat. tlinh)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/13.%20Ng%E1%BB%ABi%20%C4%90%E1%BA%B9p%20%C6%A0ii%20(feat.%20tlinh).mp3" },
-      { id: 90, title: "Chẳng Ai Vậy (feat. Kay Châu Anh)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/14.%20Ch%E1%BA%B3ng%20Ai%20V%E1%BA%ADy%20(feat.%20Kay%20Ch%C3%A2u%20Anh).mp3" },
-      
-      { id: 91, title: "Risk It All", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Risk%20It%20All.mp3" },
-      { id: 92, title: "Cha Cha Cha", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Cha%20Cha%20Cha.mp3" },
-      { id: 93, title: "I Just Might", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/I%20Just%20Might.mp3" },
-      { id: 94, title: "God Was Showing Off", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/God%20Was%20Showing%20Off.mp3" },
-      { id: 95, title: "Why You Wanna Fight?", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Why%20You%20Wanna%20Fight_.mp3" },
-      { id: 96, title: "On My Soul", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/On%20My%20Soul.mp3" },
-      { id: 97, title: "Something Serious", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Something%20Serious.mp3" },
-      { id: 98, title: "Nothing Left", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Nothing%20Left.mp3" },
-      { id: 99, title: "Dance With Me", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Dance%20With%20Me.mp3" },
-      
-      { id: 100, title: "Body to Body", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Body%20to%20Body.mp3" },
-      { id: 101, title: "Hooligan", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Hooligan.mp3" },
-      { id: 102, title: "Aliens", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Aliens.mp3" },
-      { id: 103, title: "FYA", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/FYA.mp3" },
-      { id: 104, title: "2.0", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/2.0.mp3" },
-      { id: 105, title: "No. 29", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/No.%2029.mp3" },
-      { id: 106, title: "SWIM", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/SWIM.mp3" },
-      { id: 107, title: "Merry Go Round", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Merry%20Go%20Round.mp3" },
-      { id: 108, title: "NORMAL (Explicit Ver.)", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/NORMAL%20(Explicit%20Ver.).mp3" },
-      { id: 109, title: "Like Animals", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Like%20Animals.mp3" },
-      { id: 110, title: "they don't know 'bout us", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/they%20don't%20know%20'bout%20us.mp3" },
-      { id: 111, title: "One More Night", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/One%20More%20Night.mp3" },
-      { id: 112, title: "Please", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Please.mp3" },
-      { id: 113, title: "Into The Sun", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Into%20the%20Sun.mp3" },
-      
-      { id: 114, title: "1000 Ánh Mắt (feat. Obito)", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/1000%20%C3%81nh%20M%E1%BA%AFt.mp3" },
-      { id: 115, title: "Anh Vẫn Đợi", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/Anh%20V%E1%BA%ABn%20%C4%90%E1%BB%A3i.mp3" },
-      { id: 116, title: "Có Đôi Điều", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/C%C3%B3%20%C4%90%C3%B4i%20%C4%90i%E1%BB%81u.mp3" },
-      { id: 117, title: "Lặng", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/L%E1%BA%B7ng.mp3" },
-      { id: 118, title: "Night Time", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/Night%20Time.mp3" },
-      { id: 119, title: "Perfect (feat. Tyronee)", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/Perfect.mp3" },
-      { id: 120, title: "Take Off Your Hands (feat. Obito)", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/Take%20Off%20Your%20Hands.mp3" },
-      
-      { id: 121, title: "tình yêu có nghĩa là gì?", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/t%C3%ACnh%20y%C3%AAu%20c%C3%B3%20ngh%C4%A9a%20l%C3%A0%20g%C3%AC_.mp3" },
-      { id: 122, title: "người đẹp ngủ", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/ng%C6%B0%E1%BB%9Di%20%C4%91%E1%BA%B9p%20ng%E1%BB%A7.mp3" },
-      { id: 123, title: "người điên", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/ng%C6%B0%E1%BB%9Di%20%C4%91i%C3%AAn.mp3" },
-      { id: 124, title: "kho báu đánh rơi (feat. GREY D)", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/kho%20b%C3%A1u%20%C4%91%C3%A1nh%20r%C6%A1i%20(feat.%20GREY%20D).mp3" },
-      { id: 125, title: "ái", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/%C3%A1i.mp3" },
-      { id: 126, title: "làm lành chữa tình", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/l%C3%A0m%20l%C3%A0nh%20ch%E1%BB%AFa%20t%C3%ACnh.mp3" },
-      { id: 127, title: "thế giới thần tiên", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/th%E1%BA%BF%20gi%E1%BB%9Bi%20th%E1%BA%A7n%20ti%C3%AAn.mp3" },
-      { id: 128, title: "những đốm sáng", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/nh%E1%BB%AFng%20%C4%91%E1%BB%91m%20s%C3%A1ng.mp3" },
-      { id: 129, title: "nữ siêu anh hùng", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/n%E1%BB%AF%20si%C3%AAu%20anh%20h%C3%B9ng.mp3" },
-      { id: 130, title: "ghệ iu dấu của em ơi", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/gh%E1%BB%87%20iu%20d%E1%BA%A5u%20c%E1%BB%A7a%20em%20%C6%A1i.mp3" },
-      { id: 131, title: "nếu lúc đó", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/n%E1%BA%BFu%20l%C3%BAc%20%C4%91%C3%B3.mp3" },
-      { id: 132, title: "kết thúc = mở đầu", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/k%E1%BA%BFt%20th%C3%BAc%20%3D%20m%E1%BB%9F%20%C4%91%E1%BA%A7u.mp3" },
-      
-      { id: 133, title: "Suit & Tie (feat. Hoàng Tôn)", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/SUIT%20%26%20TIE.mp3" },
-      { id: 134, title: "Va Vào Giai Điệu Này", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/VA%20V%C3%80O%20GIAI%20%C4%90I%E1%BB%86U%20N%C3%80Y.mp3" },
-      { id: 135, title: "Tối Nay Ta Đi Đâu Nhờ", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/T%E1%BB%90I%20NAY%20TA%20%C4%90I%20%C4%90%C3%82U%20NH%E1%BB%9C.mp3" },
-      { id: 136, title: "Chỉ Một Đêm Nữa Thôi (feat. tlinh)", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/CH%E1%BB%88%20M%E1%BB%98T%20%C4%90%C3%8AM%20N%E1%BB%AEA%20TH%C3%94I.mp3" },
-      { id: 137, title: "Thôi Em Đừng Đi (feat. Trung Trần)", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/TH%C3%94I%20EM%20%C4%90%E1%BB%AANG%20%C4%90I.mp3" },
-      { id: 138, title: "50/50 (Interlude)", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/50_50%20(INTERLUDE).mp3" },
-      { id: 139, title: "Show Me Love", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/SHOW%20ME%20LOVE.mp3" },
-      { id: 140, title: "Thờ Er", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/TH%E1%BB%9C%20ER.mp3" },
-      { id: 141, title: "Ai Mới Là Kẻ Xấu Xa", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/AI%20M%E1%BB%9AI%20L%C3%80%20K%E1%BA%BA%20X%E1%BA%A4U%20XA.mp3" },
-      { id: 142, title: "Anh Đã Ổn Hơn", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/ANH%20%C4%90%C3%83%20%E1%BB%94N%20H%C6%A0N.mp3" },
-      { id: 143, title: "Badtrip", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/BADTRIP.mp3" },
-      { id: 144, title: "99", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/99.mp3" },
-      
-      { id: 145, title: "Phóng Đổ Tim Em", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/Ph%C3%B3ng%20%C4%90%E1%BB%95%20Tim%20Em.mp3" },
-      { id: 146, title: "Call Me", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/Call%20Me.mp3" },
-      { id: 147, title: "Cầu Vĩnh Tuy", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/C%E1%BA%A7u%20V%C4%A9nh%20Tuy.mp3" },
-      { id: 148, title: "Từng Quen", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/T%E1%BB%ABng%20Quen.mp3" },
-      { id: 149, title: "bé ơi từ từ", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/b%C3%A9%20%C6%A1i%20t%E1%BB%AB%20t%E1%BB%AB.mp3" },
-      { id: 150, title: "Lối Chơi (Interlude)", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/L%E1%BB%91i%20Ch%C6%A1i%20(Interlude).mp3" },
-      { id: 151, title: "Tình Yêu Vĩ Mô", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/T%C3%ACnh%20Y%C3%AAu%20V%C4%A9%20M%C3%B4.mp3" },
-      { id: 152, title: "Việt Kiều", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/Vi%E1%BB%87t%20Ki%E1%BB%81u.mp3" },
-      { id: 153, title: "ĐĐĐ", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/%C4%90%C4%90%C4%90.mp3" },
-      { id: 154, title: "Quyền Anh", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/Quy%E1%BB%81n%20Anh.mp3" },
-      { id: 155, title: "Tò Te Tí", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/T%C3%B2%20Te%20T%C3%AD.mp3" },
-      
-      { id: 156, title: "Thu Đợi", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Thu%20%C4%90%E1%BB%A3i.mp3" },
-      { id: 157, title: "Không Thử Sao Biết", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Kh%C3%B4ng%20Th%E1%BB%AD%20Sao%20Bi%E1%BA%BFt.mp3" },
-      { id: 158, title: "Ngủ Quên", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Ng%E1%BB%A7%20Qu%C3%AAn.mp3" },
-      { id: 159, title: "Chờ Trong Trăng", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Ch%E1%BB%9D%20Trong%20Tr%C4%83ng.mp3" },
-      { id: 160, title: "144", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/144.mp3" },
-      { id: 161, title: "gắn bó né tránh sợ hãi (interlude)", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/g%E1%BA%AFn%20b%C3%B3%20n%C3%A9%20tr%C3%A1nh%20s%E1%BB%A3%20h%C3%A3i%20(interlude).mp3" },
-      { id: 162, title: "Vừa Tìm Thấy Đã Đánh Mất", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/V%E1%BB%ABa%20T%C3%ACm%20Th%E1%BA%A5y%20%C4%90%C3%A3%20%C4%90%C3%A1nh%20M%E1%BA%A5t.mp3" },
-      { id: 163, title: "mưa chưa tạnh (interlude)", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/m%C6%B0a%20ch%C6%B0a%20t%E1%BA%A1nh%20(interlude).mp3" },
-      { id: 164, title: "Gió Đưa Tình", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Gi%C3%B3%20%C4%90%C6%B0a%20T%C3%ACnh.mp3" },
-      { id: 165, title: "Yêu 4 Real", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Y%C3%AAu%204%20Real.mp3" },
-      { id: 166, title: "Nội Bài", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/N%E1%BB%99i%20B%C3%A0i.mp3" },
-      { id: 167, title: "Nổ không?", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/N%E1%BB%95%20kh%C3%B4ng_.mp3" },
-      
-      { id: 168, title: "The Way I Am", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/The%20Way%20I%20Am.mp3" },
-      { id: 169, title: "Attention", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Attention.mp3" },
-      { id: 170, title: "LA Girls", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/LA%20Girls.mp3" },
-      { id: 171, title: "How Long", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/How%20Long.mp3" },
-      { id: 172, title: "Done For Me (feat. Kehlani)", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Done%20for%20Me%20(feat.%20Kehlani).mp3" },
-      { id: 173, title: "Patient", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Patient.mp3" },
-      { id: 174, title: "If You Leave Me Now (feat. Boyz II Men)", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/If%20You%20Leave%20Me%20Now%20(feat.%20Boyz%20II%20Men).mp3" },
-      { id: 175, title: "BOY", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/BOY.mp3" },
-      { id: 176, title: "Slow It Down", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Slow%20It%20Down.mp3" },
-      { id: 177, title: "Change (feat. James Taylor)", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Change%20(feat.%20James%20Taylor).mp3" },
-      { id: 178, title: "Somebody Told Me", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Somebody%20Told%20Me.mp3" },
-      { id: 179, title: "Empty Cups", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Empty%20Cups.mp3" },
-      { id: 180, title: "Through It All", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Through%20It%20All.mp3" }
+      { id: 89, title: "Ngừi Đẹp Ơii (feat. tlinh)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/13.%20Ng%E1%BB%ABi%20%C4%90%E1%BA%B9p%20%C6%A0ii%20(feat.%20tlinh).mp3" }
     ];
 
-    for (let i = 71; i <= 181; i++) {
-      rawSongs.push({ id: i, title: "", artist: "", album: "", cover: "", src: "" });
-    }
-
-    const songs = rawSongs.filter(s => s.title && s.src);
-
-    /* GLOBAL APP STATE */
-    let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || { 'thhaof': '300172' };
-    let currentUser = null;
-    let playlists = [];
-    let currentQueue = [...songs];
-    let currentSongIndex = 0;
+    /* APP STATE */
+    let currentPlaylistQueue = [...rawSongs];
+    let currentSongIndex = -1;
     let isPlaying = false;
-    let currentActivePlaylistId = null;
-
-    let shuffleMode = false;
-    let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
+    let isShuffle = false;
+    let repeatMode = 0; // 0: off, 1: repeat current, 2: repeat queue
+    let currentUser = null;
+    let userPlaylists = [];
+    let selectedSongForPlaylist = null;
+    let currentActiveView = 'discover';
+    let previousDetailView = 'albums'; // Lưu view trước khi vào detail để bấm Back
 
     const audio = document.getElementById('audioPlayer');
-    const songDurations = {};
 
-    function formatTime(seconds) {
-      if (isNaN(seconds) || seconds === Infinity) return "0:00";
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
+    /* INITIALIZATION */
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuthStatus();
+      setupAudioEventListeners();
+    });
 
-    function formatFullDuration(totalSecs) {
-      if (!totalSecs || isNaN(totalSecs)) return "0:00";
-      const hours = Math.floor(totalSecs / 3600);
-      const mins = Math.floor((totalSecs % 3600) / 60);
-      const secs = Math.floor(totalSecs % 60);
-      if (hours > 0) return `${hours} HR ${mins} MIN`;
-      return `${mins} MIN ${secs} SEC`;
-    }
-
-    function preloadDurations() {
-      songs.forEach(song => {
-        const tempAudio = new Audio();
-        tempAudio.preload = "metadata";
-        tempAudio.src = song.src;
-        tempAudio.onloadedmetadata = () => {
-          songDurations[song.id] = tempAudio.duration;
-          updateDurationUI(song.id, tempAudio.duration);
-        };
-      });
-    }
-
-    function updateDurationUI(songId, durationSec) {
-      const formatted = formatTime(durationSec);
-      document.querySelectorAll(`.duration-song-${songId}`).forEach(el => {
-        el.innerText = formatted;
-      });
-    }
-
-    /* =========================================================
-       RANGE SLIDER DYNAMIC FILL COLOR LOGIC
-    ========================================================== */
-    function updateRangeSliderColor(slider) {
-      const min = slider.min ? parseFloat(slider.min) : 0;
-      const max = slider.max ? parseFloat(slider.max) : 100;
-      const val = parseFloat(slider.value);
-      const percentage = ((val - min) / (max - min)) * 100;
-      slider.style.background = `linear-gradient(to right, #3b82f6 ${percentage}%, #374151 ${percentage}%)`;
+    function checkAuthStatus() {
+      const savedUser = localStorage.getItem('thhaof_player_user');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        document.getElementById('authModal').classList.add('hidden');
+        document.getElementById('welcomeHeader').innerText = `WELCOME, ${currentUser.username}`;
+        document.getElementById('userNameDisplay').innerText = currentUser.username;
+        document.getElementById('userAvatar').innerText = currentUser.username.charAt(0).toUpperCase();
+        loadPlaylists();
+        renderAllViews();
+      } else {
+        document.getElementById('authModal').classList.remove('hidden');
+      }
     }
 
     /* AUTHENTICATION */
-    async function handleLogin(e) {
+    function handleLogin(e) {
       e.preventDefault();
-      const username = document.getElementById('usernameInput').value.trim();
-      const password = document.getElementById('passwordInput').value;
+      const userVal = document.getElementById('usernameInput').value.trim();
+      const passVal = document.getElementById('passwordInput').value;
 
-      if (accountsDB[username] && accountsDB[username] === password) {
-        currentUser = username;
-        document.getElementById('authModal').classList.add('hidden');
-        document.getElementById('userNameDisplay').innerText = username.toUpperCase();
-        document.getElementById('welcomeHeader').innerText = `WELCOME, ${username.toUpperCase()}`;
-        document.getElementById('userStatus').innerText = 'Premium Member';
-        document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
-        document.getElementById('loginError').classList.add('hidden');
-        document.getElementById('passwordInput').value = '';
+      if (!userVal || !passVal) return;
 
-        await loadSavedPlaylistsPermanent();
-        switchView('discover');
+      let storedUsers = JSON.parse(localStorage.getItem('thhaof_player_users_db')) || {};
+
+      if (storedUsers[userVal]) {
+        if (storedUsers[userVal].password === passVal) {
+          currentUser = storedUsers[userVal];
+        } else {
+          document.getElementById('loginError').classList.remove('hidden');
+          return;
+        }
       } else {
-        document.getElementById('loginError').classList.remove('hidden');
+        currentUser = { username: userVal, password: passVal };
+        storedUsers[userVal] = currentUser;
+        localStorage.setItem('thhaof_player_users_db', JSON.stringify(storedUsers));
       }
+
+      localStorage.setItem('thhaof_player_user', JSON.stringify(currentUser));
+      document.getElementById('loginError').classList.add('hidden');
+      document.getElementById('authModal').classList.add('hidden');
+      document.getElementById('welcomeHeader').innerText = `WELCOME, ${currentUser.username}`;
+      document.getElementById('userNameDisplay').innerText = currentUser.username;
+      document.getElementById('userAvatar').innerText = currentUser.username.charAt(0).toUpperCase();
+
+      loadPlaylists();
+      renderAllViews();
+    }
+
+    function logout() {
+      localStorage.removeItem('thhaof_player_user');
+      currentUser = null;
+      document.getElementById('authModal').classList.remove('hidden');
+      if (isPlaying) pauseSong();
     }
 
     function updateAccountCredentials() {
-      const newUsername = document.getElementById('newUsernameInput').value.trim();
-      const newPassword = document.getElementById('newPasswordInput').value.trim();
+      const newU = document.getElementById('newUsernameInput').value.trim();
+      const newP = document.getElementById('newPasswordInput').value;
 
-      if (!newUsername || !newPassword) {
-        alert("PLEASE PROVIDE BOTH NEW USERNAME AND PASSWORD!");
-        return;
+      if (!newU && !newP) return;
+
+      let storedUsers = JSON.parse(localStorage.getItem('thhaof_player_users_db')) || {};
+
+      if (newU && newU !== currentUser.username) {
+        delete storedUsers[currentUser.username];
+        currentUser.username = newU;
       }
 
-      if (currentUser && currentUser !== newUsername) {
-        delete accountsDB[currentUser];
+      if (newP) {
+        currentUser.password = newP;
       }
 
-      accountsDB[newUsername] = newPassword;
-      localStorage.setItem('music_player_accounts', JSON.stringify(accountsDB));
+      storedUsers[currentUser.username] = currentUser;
+      localStorage.setItem('thhaof_player_users_db', JSON.stringify(storedUsers));
+      localStorage.setItem('thhaof_player_user', JSON.stringify(currentUser));
 
-      currentUser = newUsername;
-      document.getElementById('userNameDisplay').innerText = newUsername.toUpperCase();
-      document.getElementById('welcomeHeader').innerText = `WELCOME, ${newUsername.toUpperCase()}`;
-      document.getElementById('userAvatar').innerText = newUsername.charAt(0).toUpperCase();
+      document.getElementById('userNameDisplay').innerText = currentUser.username;
+      document.getElementById('welcomeHeader').innerText = `WELCOME, ${currentUser.username}`;
+      document.getElementById('userAvatar').innerText = currentUser.username.charAt(0).toUpperCase();
 
       closeModal('accountSettingsModal');
       document.getElementById('newUsernameInput').value = '';
       document.getElementById('newPasswordInput').value = '';
-      alert("ACCOUNT DETAILS UPDATED SUCCESSFULLY!");
     }
 
-    function logout() {
-      audio.pause();
-      audio.currentTime = 0;
-      isPlaying = false;
-      updatePlayIconsUI();
-      currentUser = null;
-      playlists = [];
-      document.getElementById('welcomeHeader').innerText = 'WELCOME, GUEST';
-      renderSidebarPlaylists();
-      document.getElementById('authModal').classList.remove('hidden');
-      document.getElementById('usernameInput').value = '';
-      document.getElementById('passwordInput').value = '';
-      document.getElementById('loginError').classList.add('hidden');
-    }
+    /* VIEW SWITCHING & RENDERING */
+    function switchView(viewName) {
+      currentActiveView = viewName;
 
-    /* =========================================================
-       PERMANENT STORAGE & SHARED PLAYLISTS (INDEXEDDB + LOCALSTORAGE)
-    ========================================================== */
-    const DB_NAME = 'thhaof_music_db_v5';
-    const STORE_NAME = 'playlists_store';
-
-    function openIndexedDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 1);
-        request.onupgradeneeded = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME);
-          }
-        };
-        request.onsuccess = (e) => resolve(e.target.result);
-        request.onerror = (e) => reject(e.target.error);
+      ['discoverView', 'albumsView', 'artistsView', 'groupDetailView', 'playlistDetailView'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
       });
-    }
 
-    async function savePlaylistsPermanent() {
-      if (!currentUser) return;
-      
-      const myPlaylists = playlists.filter(p => p.owner === currentUser);
-      const accountKey = `user_playlists_${currentUser}`;
+      ['nav-discover', 'nav-albums', 'nav-artists'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active-nav');
+      });
 
-      try {
-        const db = await openIndexedDB();
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        tx.objectStore(STORE_NAME).put(myPlaylists, accountKey);
-      } catch (err) {
-        console.warn('IndexedDB save failed', err);
-      }
-
-      try {
-        localStorage.setItem(accountKey, JSON.stringify(myPlaylists));
-        
-        let sharedGlobal = JSON.parse(localStorage.getItem('shared_playlists_global')) || [];
-        sharedGlobal = sharedGlobal.filter(p => p.owner !== currentUser);
-        const myShared = myPlaylists.filter(p => p.isShared);
-        sharedGlobal.push(...myShared);
-        localStorage.setItem('shared_playlists_global', JSON.stringify(sharedGlobal));
-      } catch (err) {
-        console.error('localStorage save failed', err);
+      if (viewName === 'discover') {
+        document.getElementById('discoverView').classList.remove('hidden');
+        document.getElementById('nav-discover').classList.add('active-nav');
+      } else if (viewName === 'albums') {
+        document.getElementById('albumsView').classList.remove('hidden');
+        document.getElementById('nav-albums').classList.add('active-nav');
+      } else if (viewName === 'artists') {
+        document.getElementById('artistsView').classList.remove('hidden');
+        document.getElementById('nav-artists').classList.add('active-nav');
+      } else if (viewName === 'groupDetail') {
+        document.getElementById('groupDetailView').classList.remove('hidden');
+      } else if (viewName === 'playlistDetail') {
+        document.getElementById('playlistDetailView').classList.remove('hidden');
       }
     }
 
-    async function loadSavedPlaylistsPermanent() {
-      if (!currentUser) return;
-      const accountKey = `user_playlists_${currentUser}`;
-      let loadedOwnPlaylists = [];
-
-      try {
-        const db = await openIndexedDB();
-        loadedOwnPlaylists = await new Promise((resolve, reject) => {
-          const tx = db.transaction(STORE_NAME, 'readonly');
-          const req = tx.objectStore(STORE_NAME).get(accountKey);
-          req.onsuccess = () => resolve(req.result || []);
-          req.onerror = () => reject([]);
-        });
-      } catch (e) {
-        loadedOwnPlaylists = [];
-      }
-
-      if (!loadedOwnPlaylists || loadedOwnPlaylists.length === 0) {
-        try {
-          const localData = localStorage.getItem(accountKey);
-          loadedOwnPlaylists = localData ? JSON.parse(localData) : [];
-        } catch (err) {
-          loadedOwnPlaylists = [];
-        }
-      }
-
-      loadedOwnPlaylists.forEach(p => p.owner = currentUser);
-
-      let globalShared = JSON.parse(localStorage.getItem('shared_playlists_global')) || [];
-      let otherShared = globalShared.filter(p => p.owner !== currentUser);
-
-      playlists = [...loadedOwnPlaylists, ...otherShared];
+    function renderAllViews() {
+      renderSongList(rawSongs, 'songList');
+      document.getElementById('totalSongsCount').innerText = `${rawSongs.length} SONGS`;
+      renderAlbums();
+      renderArtists();
       renderSidebarPlaylists();
+      renderQueueList();
     }
 
-    /* EXPORT & IMPORT PLAYLIST LOGIC FOR PERMANENT BACKUP */
-    function exportPlaylistsToFile() {
-      const myPlaylists = playlists.filter(p => p.owner === currentUser);
-      if (myPlaylists.length === 0) {
-        alert("BẠN CHƯA CÓ PLAYLIST NÀO ĐỂ XUẤT!");
+    /* RENDER SONG ITEM - SỬA ĐỔI: NÚT PLAY/PAUSE Ở ẢNH COVER */
+    function renderSongList(songsArray, containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      if (songsArray.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-500 py-4 text-center">NO SONGS AVAILABLE</p>`;
         return;
       }
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(myPlaylists, null, 2));
+
+      container.innerHTML = songsArray.map((song, idx) => {
+        const isCurrent = currentSongIndex !== -1 && currentPlaylistQueue[currentSongIndex]?.id === song.id;
+        const itemPlaying = isCurrent && isPlaying;
+
+        return `
+          <div class="glass-card rounded-xl p-3 flex items-center justify-between gap-4 group ${isCurrent ? 'playing-item' : ''}">
+            <div class="flex items-center gap-4 min-w-0 flex-1">
+              <!-- STT -->
+              <span class="text-xs font-bold text-gray-500 w-6 text-center flex-shrink-0">${idx + 1}</span>
+
+              <!-- Cover Image & Play/Pause Overlay -->
+              <div class="relative w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 group/cover cursor-pointer" onclick="playSongFromList(${song.id})">
+                <img src="${song.cover}" class="w-full h-full object-cover" alt="Cover">
+                <div class="absolute inset-0 bg-black/50 ${itemPlaying ? 'opacity-100' : 'opacity-0 group-hover/cover:opacity-100'} transition flex items-center justify-center text-white">
+                  <i class="fa-solid ${itemPlaying ? 'fa-pause' : 'fa-play'} text-xs"></i>
+                </div>
+              </div>
+
+              <!-- Song Info -->
+              <div class="min-w-0 flex-1 cursor-pointer" onclick="playSongFromList(${song.id})">
+                <h4 class="text-sm font-bold text-white truncate normal-case group-hover:text-blue-400 transition">${song.title}</h4>
+                <p class="text-xs text-gray-400 truncate normal-case">${song.artist} • ${song.album}</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button onclick="openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-400 hover:text-blue-400 w-8 h-8 rounded-lg hover:bg-gray-800 flex items-center justify-center transition">
+                <i class="fa-solid fa-plus text-xs"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* RENDER ALBUMS & ARTISTS */
+    function renderAlbums() {
+      const albumsMap = {};
+      rawSongs.forEach(song => {
+        if (!albumsMap[song.album]) {
+          albumsMap[song.album] = { name: song.album, artist: song.artist, cover: song.cover, count: 0 };
+        }
+        albumsMap[song.album].count++;
+      });
+
+      const container = document.getElementById('albumList');
+      container.innerHTML = Object.values(albumsMap).map(album => `
+        <div class="glass-card rounded-2xl p-4 flex items-center gap-4 cursor-pointer group" onclick="openGroupDetail('album', '${album.name.replace(/'/g, "\\'")}')">
+          <img src="${album.cover}" class="w-20 h-20 rounded-xl object-cover shadow-md flex-shrink-0 group-hover:scale-105 transition" alt="Cover">
+          <div class="overflow-hidden">
+            <h3 class="font-bold text-sm text-white group-hover:text-blue-400 transition normal-case truncate">${album.name}</h3>
+            <p class="text-xs text-gray-400 normal-case truncate mb-1">${album.artist}</p>
+            <span class="text-[11px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md font-semibold">${album.count} TRACKS</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderArtists() {
+      const artistsMap = {};
+      rawSongs.forEach(song => {
+        if (!artistsMap[song.artist]) {
+          artistsMap[song.artist] = { name: song.artist, cover: song.cover, count: 0 };
+        }
+        artistsMap[song.artist].count++;
+      });
+
+      const container = document.getElementById('artistList');
+      container.innerHTML = Object.values(artistsMap).map(artist => `
+        <div class="glass-card rounded-2xl p-4 flex items-center gap-4 cursor-pointer group" onclick="openGroupDetail('artist', '${artist.name.replace(/'/g, "\\'")}')">
+          <img src="${artist.cover}" class="w-20 h-20 rounded-full object-cover shadow-md flex-shrink-0 group-hover:scale-105 transition" alt="Artist">
+          <div class="overflow-hidden">
+            <h3 class="font-bold text-sm text-white group-hover:text-blue-400 transition normal-case truncate">${artist.name}</h3>
+            <span class="text-[11px] text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md font-semibold mt-1 inline-block">${artist.count} SONGS</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* DETAIL VIEWS & BACK BUTTON LOGIC */
+    function openGroupDetail(type, name) {
+      previousDetailView = currentActiveView; // Lưu lại tab cha (albums/artists) để quay lại
+
+      let filtered = [];
+      let coverImg = '';
+
+      if (type === 'album') {
+        filtered = rawSongs.filter(s => s.album === name);
+        coverImg = filtered[0]?.cover || '';
+        document.getElementById('groupDetailType').innerText = 'ALBUM';
+      } else {
+        filtered = rawSongs.filter(s => s.artist === name);
+        coverImg = filtered[0]?.cover || '';
+        document.getElementById('groupDetailType').innerText = 'ARTIST';
+      }
+
+      document.getElementById('groupDetailTitle').innerText = name;
+      document.getElementById('groupDetailCover').src = coverImg;
+      document.getElementById('groupDetailCount').innerText = `${filtered.length} SONGS`;
+
+      document.getElementById('groupPlayAllBtn').onclick = () => {
+        currentPlaylistQueue = [...filtered];
+        playSongAtIndex(0);
+      };
+
+      renderSongList(filtered, 'groupSongsList');
+      switchView('groupDetail');
+    }
+
+    function goBackFromDetail() {
+      switchView(previousDetailView || 'discover');
+    }
+
+    /* PLAYLIST MANAGEMENT */
+    function loadPlaylists() {
+      if (!currentUser) return;
+      const allPlaylists = JSON.parse(localStorage.getItem('thhaof_player_playlists')) || [];
+      userPlaylists = allPlaylists.filter(p => p.owner === currentUser.username || p.isShared);
+    }
+
+    function savePlaylistsToStorage(playlists) {
+      localStorage.setItem('thhaof_player_playlists', JSON.stringify(playlists));
+    }
+
+    function renderSidebarPlaylists() {
+      const container = document.getElementById('sidebarPlaylists');
+      if (userPlaylists.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-500 px-3 py-2">NO PLAYLISTS</p>`;
+        return;
+      }
+
+      container.innerHTML = userPlaylists.map(pl => `
+        <button onclick="openPlaylistDetail('${pl.id}')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white hover:bg-gray-800/60 transition truncate flex items-center justify-between group">
+          <span class="truncate uppercase"><i class="fa-solid fa-list-ul text-blue-400 mr-2"></i>${pl.name}</span>
+          ${pl.isShared ? '<i class="fa-solid fa-share-nodes text-[10px] text-blue-400" title="Shared"></i>' : ''}
+        </button>
+      `).join('');
+    }
+
+    function saveNewPlaylist() {
+      const nameInput = document.getElementById('playlistNameInput').value.trim();
+      if (!nameInput) return;
+
+      const isShared = document.getElementById('isSharedCheckbox').checked;
+      const allPlaylists = JSON.parse(localStorage.getItem('thhaof_player_playlists')) || [];
+
+      const newPl = {
+        id: 'pl_' + Date.now(),
+        name: nameInput,
+        owner: currentUser.username,
+        isShared: isShared,
+        songIds: []
+      };
+
+      allPlaylists.push(newPl);
+      savePlaylistsToStorage(allPlaylists);
+      loadPlaylists();
+      renderSidebarPlaylists();
+
+      document.getElementById('playlistNameInput').value = '';
+      document.getElementById('isSharedCheckbox').checked = false;
+      closeModal('createPlaylistModal');
+    }
+
+    function openPlaylistDetail(playlistId) {
+      const allPlaylists = JSON.parse(localStorage.getItem('thhaof_player_playlists')) || [];
+      const pl = allPlaylists.find(p => p.id === playlistId);
+      if (!pl) return;
+
+      document.getElementById('playlistDetailTitle').innerText = pl.name;
+      document.getElementById('playlistDetailCount').innerText = `${pl.songIds.length} SONGS`;
+
+      const shareBadge = document.getElementById('playlistShareBadge');
+      if (pl.isShared) shareBadge.classList.remove('hidden');
+      else shareBadge.classList.add('hidden');
+
+      const songsInPl = rawSongs.filter(s => pl.songIds.includes(s.id));
+
+      document.getElementById('playAllBtn').onclick = () => {
+        if (songsInPl.length > 0) {
+          currentPlaylistQueue = [...songsInPl];
+          playSongAtIndex(0);
+        }
+      };
+
+      document.getElementById('toggleShareBtn').onclick = () => {
+        pl.isShared = !pl.isShared;
+        savePlaylistsToStorage(allPlaylists);
+        loadPlaylists();
+        openPlaylistDetail(playlistId);
+      };
+
+      document.getElementById('deletePlaylistBtn').onclick = () => {
+        const updated = allPlaylists.filter(p => p.id !== playlistId);
+        savePlaylistsToStorage(updated);
+        loadPlaylists();
+        renderSidebarPlaylists();
+        switchView('discover');
+      };
+
+      renderSongList(songsInPl, 'playlistSongsList');
+      switchView('playlistDetail');
+    }
+
+    function openAddToPlaylistModal(songId) {
+      selectedSongForPlaylist = songId;
+      const song = rawSongs.find(s => s.id === songId);
+      document.getElementById('targetSongTitle').innerText = song ? song.title : '';
+
+      const container = document.getElementById('playlistSelectList');
+      const allPlaylists = JSON.parse(localStorage.getItem('thhaof_player_playlists')) || [];
+      const userPls = allPlaylists.filter(p => p.owner === currentUser.username);
+
+      if (userPls.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-500 py-2 text-center">NO PLAYLISTS YET. CREATE ONE FIRST!</p>`;
+      } else {
+        container.innerHTML = userPls.map(pl => {
+          const hasSong = pl.songIds.includes(songId);
+          return `
+            <div class="flex items-center justify-between bg-[#222331] p-3 rounded-xl border border-gray-700/60">
+              <span class="text-xs font-bold text-white uppercase">${pl.name}</span>
+              <button onclick="toggleSongInPlaylist('${pl.id}', ${songId})" class="px-3 py-1 rounded-lg text-xs font-bold ${hasSong ? 'bg-red-500/20 text-red-400' : 'bg-blue-600 text-white'} transition">
+                ${hasSong ? 'REMOVE' : 'ADD'}
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      openModal('addToPlaylistModal');
+    }
+
+    function openAddToPlaylistCurrent() {
+      if (currentSongIndex !== -1 && currentPlaylistQueue[currentSongIndex]) {
+        openAddToPlaylistModal(currentPlaylistQueue[currentSongIndex].id);
+      }
+    }
+
+    function toggleSongInPlaylist(playlistId, songId) {
+      const allPlaylists = JSON.parse(localStorage.getItem('thhaof_player_playlists')) || [];
+      const pl = allPlaylists.find(p => p.id === playlistId);
+      if (!pl) return;
+
+      const idx = pl.songIds.indexOf(songId);
+      if (idx > -1) {
+        pl.songIds.splice(idx, 1);
+      } else {
+        pl.songIds.push(songId);
+      }
+
+      savePlaylistsToStorage(allPlaylists);
+      loadPlaylists();
+      openAddToPlaylistModal(songId);
+    }
+
+    function exportPlaylistsToFile() {
+      const allPlaylists = JSON.parse(localStorage.getItem('thhaof_player_playlists')) || [];
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allPlaylists, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `playlists_backup_${currentUser}.json`);
+      downloadAnchor.setAttribute("download", `playlists_backup_${Date.now()}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -1179,40 +942,220 @@
       document.getElementById('importFileInput').click();
     }
 
-    async function importPlaylistsFromFile(event) {
+    function importPlaylistsFromFile(event) {
       const file = event.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = async function(e) {
+      reader.onload = function(e) {
         try {
-          const importedData = JSON.parse(e.target.result);
-          if (Array.isArray(importedData)) {
-            importedData.forEach(p => p.owner = currentUser);
-            
-            // Merge with existing playlists avoiding duplicate IDs
-            const existingIds = new Set(playlists.map(p => p.id));
-            importedData.forEach(p => {
-              if (!existingIds.has(p.id)) {
-                playlists.push(p);
-              }
-            });
-
-            await savePlaylistsPermanent();
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            localStorage.setItem('thhaof_player_playlists', JSON.stringify(imported));
+            loadPlaylists();
             renderSidebarPlaylists();
-            alert("ĐÃ NHẬP PLAYLIST THÀNH CÔNG!");
-          } else {
-            alert("TỆP FILE KHÔNG ĐÚNG ĐỊNH DẠNG PLAYLIST!");
+            alert('PLAYLISTS RESTORED SUCCESSFULLY!');
           }
-        } catch (err) {
-          alert("LỖI ĐỌC TỆP JSON!");
+        } catch(err) {
+          alert('INVALID JSON FILE!');
         }
       };
       reader.readAsText(file);
-      event.target.value = '';
     }
 
-    /* PLAYLIST MANAGEMENT */
+    /* PLAYER CONTROL FUNCTIONS */
+    function playSongFromList(songId) {
+      const idx = currentPlaylistQueue.findIndex(s => s.id === songId);
+      if (idx !== -1) {
+        if (currentSongIndex === idx) {
+          togglePlay();
+        } else {
+          playSongAtIndex(idx);
+        }
+      } else {
+        currentPlaylistQueue = [...rawSongs];
+        const newIdx = currentPlaylistQueue.findIndex(s => s.id === songId);
+        if (newIdx !== -1) playSongAtIndex(newIdx);
+      }
+    }
+
+    function playSongAtIndex(index) {
+      if (index < 0 || index >= currentPlaylistQueue.length) return;
+      currentSongIndex = index;
+      const song = currentPlaylistQueue[currentSongIndex];
+
+      audio.src = song.src;
+      document.getElementById('currentTitle').innerText = song.title;
+      document.getElementById('currentArtist').innerText = `${song.artist} • ${song.album}`;
+      document.getElementById('currentCover').src = song.cover;
+
+      audio.play().then(() => {
+        isPlaying = true;
+        updatePlayerUI();
+      }).catch(e => console.log('Playback blocked or error: ', e));
+
+      renderAllViews();
+    }
+
+    function togglePlay() {
+      if (currentSongIndex === -1 && currentPlaylistQueue.length > 0) {
+        playSongAtIndex(0);
+        return;
+      }
+
+      if (isPlaying) {
+        pauseSong();
+      } else {
+        audio.play();
+        isPlaying = true;
+        updatePlayerUI();
+      }
+      renderAllViews();
+    }
+
+    function pauseSong() {
+      audio.pause();
+      isPlaying = false;
+      updatePlayerUI();
+      renderAllViews();
+    }
+
+    function nextSong() {
+      if (currentPlaylistQueue.length === 0) return;
+
+      if (isShuffle) {
+        const nextIdx = Math.floor(Math.random() * currentPlaylistQueue.length);
+        playSongAtIndex(nextIdx);
+      } else {
+        let nextIdx = currentSongIndex + 1;
+        if (nextIdx >= currentPlaylistQueue.length) nextIdx = 0;
+        playSongAtIndex(nextIdx);
+      }
+    }
+
+    function prevSong() {
+      if (currentPlaylistQueue.length === 0) return;
+      let prevIdx = currentSongIndex - 1;
+      if (prevIdx < 0) prevIdx = currentPlaylistQueue.length - 1;
+      playSongAtIndex(prevIdx);
+    }
+
+    function toggleShuffle() {
+      isShuffle = !isShuffle;
+      const btn = document.getElementById('shuffleBtn');
+      if (isShuffle) btn.classList.add('text-blue-500');
+      else btn.classList.remove('text-blue-500');
+    }
+
+    function toggleRepeat() {
+      repeatMode = (repeatMode + 1) % 3; // 0 -> 1 -> 2 -> 0
+      const btn = document.getElementById('repeatBtn');
+      const badge = document.getElementById('repeatOneBadge');
+
+      if (repeatMode === 0) {
+        btn.classList.remove('text-blue-500');
+        badge.classList.add('hidden');
+      } else if (repeatMode === 1) {
+        btn.classList.add('text-blue-500');
+        badge.classList.remove('hidden');
+      } else if (repeatMode === 2) {
+        btn.classList.add('text-blue-500');
+        badge.classList.add('hidden');
+      }
+    }
+
+    function updatePlayerUI() {
+      const playIcon = document.getElementById('playIcon');
+      const overlayIcon = document.getElementById('overlayCurrentPlayIcon');
+
+      if (isPlaying) {
+        playIcon.className = 'fa-solid fa-pause text-sm';
+        overlayIcon.className = 'fa-solid fa-pause text-sm';
+      } else {
+        playIcon.className = 'fa-solid fa-play text-sm ml-0.5';
+        overlayIcon.className = 'fa-solid fa-play text-sm';
+      }
+    }
+
+    function setupAudioEventListeners() {
+      audio.addEventListener('timeupdate', () => {
+        if (!isNaN(audio.duration)) {
+          const progress = (audio.currentTime / audio.duration) * 100;
+          document.getElementById('progressBar').value = progress;
+          document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+          document.getElementById('durationTime').innerText = formatTime(audio.duration);
+        }
+      });
+
+      audio.addEventListener('ended', () => {
+        if (repeatMode === 1) {
+          audio.currentTime = 0;
+          audio.play();
+        } else {
+          nextSong();
+        }
+      });
+    }
+
+    function seekAudio() {
+      const seekVal = document.getElementById('progressBar').value;
+      if (!isNaN(audio.duration)) {
+        audio.currentTime = (seekVal / 100) * audio.duration;
+      }
+    }
+
+    function setVolume() {
+      const vol = document.getElementById('volumeBar').value;
+      audio.volume = vol / 100;
+      const icon = document.getElementById('volumeIcon');
+      if (vol == 0) icon.className = 'fa-solid fa-volume-xmark text-gray-400 text-sm cursor-pointer';
+      else icon.className = 'fa-solid fa-volume-high text-gray-400 text-sm cursor-pointer';
+    }
+
+    function toggleMute() {
+      if (audio.volume > 0) {
+        audio.volume = 0;
+        document.getElementById('volumeBar').value = 0;
+      } else {
+        audio.volume = 0.8;
+        document.getElementById('volumeBar').value = 80;
+      }
+      setVolume();
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    /* QUEUE SIDEBAR */
+    function toggleQueueSidebar() {
+      const sidebar = document.getElementById('queueSidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
+    function renderQueueList() {
+      const container = document.getElementById('queueListContainer');
+      container.innerHTML = currentPlaylistQueue.map((song, idx) => `
+        <div class="flex items-center gap-3 p-2 rounded-xl bg-gray-800/40 hover:bg-gray-800 transition cursor-pointer ${idx === currentSongIndex ? 'border border-blue-500/50' : ''}" onclick="playSongAtIndex(${idx})">
+          <img src="${song.cover}" class="w-9 h-9 rounded-lg object-cover" alt="Cover">
+          <div class="overflow-hidden min-w-0 flex-1">
+            <h5 class="text-xs font-bold text-white truncate normal-case">${song.title}</h5>
+            <p class="text-[10px] text-gray-400 truncate normal-case">${song.artist}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* SEARCH FILTER */
+    function filterSongs() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      const filtered = rawSongs.filter(s => s.title.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query) || s.album.toLowerCase().includes(query));
+      renderSongList(filtered, 'songList');
+    }
+
+    /* MODALS HELPER */
     function openModal(id) {
       document.getElementById(id).classList.remove('hidden');
     }
@@ -1220,578 +1163,6 @@
     function closeModal(id) {
       document.getElementById(id).classList.add('hidden');
     }
-
-    async function saveNewPlaylist() {
-      const nameInput = document.getElementById('playlistNameInput');
-      const isShared = document.getElementById('isSharedCheckbox').checked;
-      const name = nameInput.value.trim();
-      if (!name) return;
-
-      const newPlaylist = {
-        id: Date.now(),
-        name: name,
-        owner: currentUser,
-        isShared: isShared,
-        songIds: []
-      };
-
-      playlists.push(newPlaylist);
-      await savePlaylistsPermanent();
-      renderSidebarPlaylists();
-      nameInput.value = '';
-      document.getElementById('isSharedCheckbox').checked = false;
-      closeModal('createPlaylistModal');
-    }
-
-    function renderSidebarPlaylists() {
-      const container = document.getElementById('sidebarPlaylists');
-      container.innerHTML = '';
-
-      playlists.forEach(pl => {
-        const isMine = pl.owner === currentUser;
-        const btn = document.createElement('button');
-        btn.onclick = () => openPlaylistDetail(pl.id);
-        btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${currentActivePlaylistId === pl.id ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`;
-        btn.innerHTML = `
-          <span class="truncate uppercase flex items-center gap-1.5">
-            <i class="fa-solid fa-list-ul text-xs text-blue-400"></i>
-            ${pl.name}
-            ${pl.isShared ? '<i class="fa-solid fa-share-nodes text-[10px] text-indigo-400" title="Shared"></i>' : ''}
-          </span>
-          <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded-full text-gray-400 font-bold">${pl.songIds.length}</span>
-        `;
-        container.appendChild(btn);
-      });
-    }
-
-    let targetSongForPlaylist = null;
-
-    function openAddToPlaylistModal(songId) {
-      targetSongForPlaylist = songs.find(s => s.id === songId);
-      if (!targetSongForPlaylist) return;
-
-      document.getElementById('targetSongTitle').innerText = targetSongForPlaylist.title;
-      const listContainer = document.getElementById('playlistSelectList');
-      listContainer.innerHTML = '';
-
-      const myPlaylists = playlists.filter(p => p.owner === currentUser);
-
-      if (myPlaylists.length === 0) {
-        listContainer.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">NO PLAYLISTS CREATED YET</p>`;
-      } else {
-        myPlaylists.forEach(pl => {
-          const inPlaylist = pl.songIds.includes(songId);
-          const div = document.createElement('div');
-          div.className = "flex items-center justify-between p-3 rounded-xl bg-[#222331] border border-gray-700/60";
-          div.innerHTML = `
-            <span class="text-xs font-bold text-white uppercase truncate">${pl.name}</span>
-            <button onclick="toggleSongInPlaylist(${pl.id}, ${songId})" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${inPlaylist ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-blue-600 text-white hover:bg-blue-500'}">
-              ${inPlaylist ? 'REMOVE' : 'ADD'}
-            </button>
-          `;
-          listContainer.appendChild(div);
-        });
-      }
-
-      openModal('addToPlaylistModal');
-    }
-
-    function openAddToPlaylistCurrent() {
-      if (currentQueue[currentSongIndex]) {
-        openAddToPlaylistModal(currentQueue[currentSongIndex].id);
-      }
-    }
-
-    async function toggleSongInPlaylist(playlistId, songId) {
-      const pl = playlists.find(p => p.id === playlistId);
-      if (!pl) return;
-
-      if (pl.songIds.includes(songId)) {
-        pl.songIds = pl.songIds.filter(id => id !== songId);
-      } else {
-        pl.songIds.push(songId);
-      }
-
-      await savePlaylistsPermanent();
-      openAddToPlaylistModal(songId);
-      renderSidebarPlaylists();
-
-      if (currentActivePlaylistId === playlistId) {
-        openPlaylistDetail(playlistId);
-      }
-    }
-
-    async function togglePlaylistShare(playlistId) {
-      const pl = playlists.find(p => p.id === playlistId);
-      if (!pl || pl.owner !== currentUser) return;
-
-      pl.isShared = !pl.isShared;
-      await savePlaylistsPermanent();
-      openPlaylistDetail(playlistId);
-    }
-
-    async function deletePlaylist(playlistId) {
-      const pl = playlists.find(p => p.id === playlistId);
-      if (!pl || pl.owner !== currentUser) {
-        alert("YOU CAN ONLY DELETE YOUR OWN PLAYLISTS!");
-        return;
-      }
-
-      playlists = playlists.filter(p => p.id !== playlistId);
-      await savePlaylistsPermanent();
-      switchView('discover');
-    }
-
-    /* AUDIO PLAYBACK CONTROL */
-    function playSongFromList(songId, queueSource) {
-      const targetSong = songs.find(s => s.id === songId);
-      if (!targetSong) return;
-
-      const currentPlayingSong = currentQueue[currentSongIndex];
-
-      if (currentPlayingSong && currentPlayingSong.id === songId) {
-        togglePlay();
-        return;
-      }
-
-      if (queueSource === 'all') {
-        currentQueue = [...songs];
-      }
-      
-      currentSongIndex = currentQueue.findIndex(s => s.id === songId);
-      if (currentSongIndex === -1) {
-        currentQueue = [targetSong];
-        currentSongIndex = 0;
-      }
-
-      loadAndPlayCurrentSong();
-    }
-
-    function loadAndPlayCurrentSong() {
-      const song = currentQueue[currentSongIndex];
-      if (!song) return;
-
-      audio.src = song.src;
-      document.getElementById('currentTitle').innerText = song.title;
-      document.getElementById('currentArtist').innerText = `${song.artist} • ${song.album}`;
-      document.getElementById('currentCover').src = song.cover;
-
-      audio.play();
-      isPlaying = true;
-      updatePlayIconsUI();
-      renderQueueSidebar();
-      refreshActiveItemHighlight();
-    }
-
-    function togglePlay() {
-      if (!audio.src || audio.src === window.location.href) {
-        if (currentQueue.length > 0) {
-          loadAndPlayCurrentSong();
-        }
-        return;
-      }
-
-      if (isPlaying) {
-        audio.pause();
-        isPlaying = false;
-      } else {
-        audio.play();
-        isPlaying = true;
-      }
-
-      updatePlayIconsUI();
-      refreshActiveItemHighlight();
-    }
-
-    function updatePlayIconsUI() {
-      const playBtnIcon = document.getElementById('playIcon');
-      const overlayIcon = document.getElementById('overlayCurrentPlayIcon');
-
-      if (isPlaying) {
-        playBtnIcon.className = "fa-solid fa-pause text-sm";
-        if (overlayIcon) overlayIcon.className = "fa-solid fa-pause text-sm";
-      } else {
-        playBtnIcon.className = "fa-solid fa-play text-sm ml-0.5";
-        if (overlayIcon) overlayIcon.className = "fa-solid fa-play text-sm ml-0.5";
-      }
-
-      document.querySelectorAll('.song-item-card').forEach(card => {
-        const songId = parseInt(card.getAttribute('data-song-id'));
-        const currentPlayingSong = currentQueue[currentSongIndex];
-        const icon = card.querySelector('button i');
-        if (icon) {
-          if (currentPlayingSong && currentPlayingSong.id === songId && isPlaying) {
-            icon.className = "fa-solid fa-pause text-sm";
-          } else {
-            icon.className = "fa-solid fa-play text-xs ml-0.5";
-          }
-        }
-      });
-    }
-
-    function refreshActiveItemHighlight() {
-      const currentPlayingSong = currentQueue[currentSongIndex];
-      document.querySelectorAll('.song-item-card').forEach(card => {
-        const songId = parseInt(card.getAttribute('data-song-id'));
-        if (currentPlayingSong && songId === currentPlayingSong.id) {
-          card.classList.add('playing-item');
-        } else {
-          card.classList.remove('playing-item');
-        }
-      });
-    }
-
-    function prevSong() {
-      if (currentQueue.length === 0) return;
-      currentSongIndex = (currentSongIndex - 1 + currentQueue.length) % currentQueue.length;
-      loadAndPlayCurrentSong();
-    }
-
-    function nextSong() {
-      if (currentQueue.length === 0) return;
-      if (shuffleMode) {
-        currentSongIndex = Math.floor(Math.random() * currentQueue.length);
-      } else {
-        currentSongIndex = (currentSongIndex + 1) % currentQueue.length;
-      }
-      loadAndPlayCurrentSong();
-    }
-
-    function toggleShuffle() {
-      shuffleMode = !shuffleMode;
-      const btn = document.getElementById('shuffleBtn');
-      btn.className = shuffleMode ? "text-blue-500 hover:text-blue-400 text-sm transition p-2" : "text-gray-400 hover:text-white text-sm transition p-2";
-    }
-
-    function toggleRepeat() {
-      repeatMode = (repeatMode + 1) % 3;
-      const btn = document.getElementById('repeatBtn');
-      const badge = document.getElementById('repeatOneBadge');
-
-      if (repeatMode === 0) {
-        btn.className = "text-gray-400 hover:text-white text-sm transition relative p-2";
-        badge.classList.add('hidden');
-      } else if (repeatMode === 1) {
-        btn.className = "text-blue-500 hover:text-blue-400 text-sm transition relative p-2";
-        badge.classList.add('hidden');
-      } else {
-        btn.className = "text-blue-500 hover:text-blue-400 text-sm transition relative p-2";
-        badge.classList.remove('hidden');
-      }
-    }
-
-    audio.onended = () => {
-      if (repeatMode === 2) {
-        audio.currentTime = 0;
-        audio.play();
-      } else {
-        nextSong();
-      }
-    };
-
-    /* PROGRESS BAR & VOLUME CONTROL WITH Dynamic Color Track */
-    audio.ontimeupdate = () => {
-      if (!isNaN(audio.duration)) {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        const progressBar = document.getElementById('progressBar');
-        progressBar.value = progress || 0;
-        updateRangeSliderColor(progressBar);
-
-        document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
-        document.getElementById('durationTime').innerText = formatTime(audio.duration);
-      }
-    };
-
-    function seekAudio() {
-      const progressBar = document.getElementById('progressBar');
-      if (audio.duration) {
-        audio.currentTime = (progressBar.value / 100) * audio.duration;
-      }
-      updateRangeSliderColor(progressBar);
-    }
-
-    function setVolume() {
-      const volumeBar = document.getElementById('volumeBar');
-      audio.volume = volumeBar.value / 100;
-      updateRangeSliderColor(volumeBar);
-
-      const volIcon = document.getElementById('volumeIcon');
-      if (audio.volume === 0) {
-        volIcon.className = "fa-solid fa-volume-xmark text-gray-500 text-sm cursor-pointer";
-      } else if (audio.volume < 0.5) {
-        volIcon.className = "fa-solid fa-volume-low text-gray-400 text-sm cursor-pointer";
-      } else {
-        volIcon.className = "fa-solid fa-volume-high text-gray-400 text-sm cursor-pointer";
-      }
-    }
-
-    let lastVolume = 80;
-    function toggleMute() {
-      const volumeBar = document.getElementById('volumeBar');
-      if (audio.volume > 0) {
-        lastVolume = volumeBar.value;
-        volumeBar.value = 0;
-      } else {
-        volumeBar.value = lastVolume || 80;
-      }
-      setVolume();
-    }
-
-    /* RENDER SONG CARDS */
-    function createSongCardHTML(song, index, sourceListStr) {
-      const isCurrent = currentQueue[currentSongIndex] && currentQueue[currentSongIndex].id === song.id;
-      const durationText = songDurations[song.id] ? formatTime(songDurations[song.id]) : '--:--';
-
-      return `
-        <div data-song-id="${song.id}" class="song-item-card flex items-center justify-between p-3.5 rounded-xl hover:bg-white/5 border border-transparent transition group ${isCurrent ? 'playing-item' : ''}">
-          <div class="flex items-center gap-4 overflow-hidden">
-            <span class="text-xs font-bold text-gray-500 w-5 text-center group-hover:hidden">${index + 1}</span>
-            <button onclick="playSongFromList(${song.id}, '${sourceListStr}')" class="hidden group-hover:flex w-5 text-blue-400 items-center justify-center">
-              <i class="${isCurrent && isPlaying ? 'fa-solid fa-pause text-sm' : 'fa-solid fa-play text-xs ml-0.5'}"></i>
-            </button>
-            <img src="${song.cover}" class="w-11 h-11 rounded-lg object-cover flex-shrink-0" alt="Cover">
-            <div class="overflow-hidden">
-              <h5 class="text-sm font-bold text-white truncate hover:text-blue-400 cursor-pointer normal-case" onclick="playSongFromList(${song.id}, '${sourceListStr}')">${song.title}</h5>
-              <p class="text-xs text-gray-400 truncate normal-case">${song.artist} • <span class="text-gray-500">${song.album}</span></p>
-            </div>
-          </div>
-          <div class="flex items-center gap-5">
-            <span class="text-xs text-gray-400 font-medium duration-song-${song.id}">${durationText}</span>
-            <button onclick="openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition">
-              <i class="fa-solid fa-plus text-sm"></i>
-            </button>
-          </div>
-        </div>
-      `;
-    }
-
-    function renderSongsList(listToRender = songs) {
-      const container = document.getElementById('songList');
-      container.innerHTML = '';
-      document.getElementById('totalSongsCount').innerText = `${listToRender.length} SONGS`;
-
-      listToRender.forEach((song, idx) => {
-        container.innerHTML += createSongCardHTML(song, idx, 'all');
-      });
-    }
-
-    function filterSongs() {
-      const query = document.getElementById('searchInput').value.toLowerCase().trim();
-      const filtered = songs.filter(s => s.title.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query) || s.album.toLowerCase().includes(query));
-      renderSongsList(filtered);
-    }
-
-    /* ALBUMS & ARTISTS VIEWS */
-    function renderAlbumsView() {
-      const albumsMap = {};
-      songs.forEach(s => {
-        if (!albumsMap[s.album]) {
-          albumsMap[s.album] = { name: s.album, artist: s.artist, cover: s.cover, songs: [] };
-        }
-        albumsMap[s.album].songs.push(s);
-      });
-
-      const container = document.getElementById('albumList');
-      container.innerHTML = '';
-
-      Object.values(albumsMap).forEach(album => {
-        const div = document.createElement('div');
-        div.className = "glass-card p-4 rounded-2xl cursor-pointer";
-        div.onclick = () => openGroupDetail('album', album);
-        div.innerHTML = `
-          <img src="${album.cover}" class="w-full h-48 object-cover rounded-xl mb-4 shadow-lg" alt="Cover">
-          <h4 class="font-bold text-base text-white truncate normal-case">${album.name}</h4>
-          <p class="text-xs text-gray-400 mt-1 truncate normal-case">${album.artist} • ${album.songs.length} Tracks</p>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function renderArtistsView() {
-      const artistsMap = {};
-      songs.forEach(s => {
-        if (!artistsMap[s.artist]) {
-          artistsMap[s.artist] = { name: s.artist, cover: s.cover, songs: [] };
-        }
-        artistsMap[s.artist].songs.push(s);
-      });
-
-      const container = document.getElementById('artistList');
-      container.innerHTML = '';
-
-      Object.values(artistsMap).forEach(artist => {
-        const div = document.createElement('div');
-        div.className = "glass-card p-4 rounded-2xl cursor-pointer text-center";
-        div.onclick = () => openGroupDetail('artist', artist);
-        div.innerHTML = `
-          <img src="${artist.cover}" class="w-36 h-36 object-cover rounded-full mx-auto mb-4 shadow-xl border-2 border-white/10" alt="Artist">
-          <h4 class="font-bold text-base text-white truncate normal-case">${artist.name}</h4>
-          <p class="text-xs text-gray-400 mt-1 uppercase">${artist.songs.length} SONGS</p>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function openGroupDetail(type, group) {
-      hideAllViews();
-      currentActivePlaylistId = null;
-      renderSidebarPlaylists();
-
-      document.getElementById('groupDetailView').classList.remove('hidden');
-      document.getElementById('groupDetailCover').src = group.cover;
-      document.getElementById('groupDetailType').innerText = type.toUpperCase();
-      document.getElementById('groupDetailTitle').innerText = group.name;
-
-      let totalSecs = 0;
-      group.songs.forEach(s => totalSecs += (songDurations[s.id] || 0));
-
-      document.getElementById('groupDetailCount').innerText = `${group.songs.length} SONGS • ${formatFullDuration(totalSecs)}`;
-
-      const listContainer = document.getElementById('groupSongsList');
-      listContainer.innerHTML = '';
-      group.songs.forEach((song, idx) => {
-        listContainer.innerHTML += createSongCardHTML(song, idx, 'group');
-      });
-
-      document.getElementById('groupPlayAllBtn').onclick = () => {
-        currentQueue = [...group.songs];
-        currentSongIndex = 0;
-        loadAndPlayCurrentSong();
-      };
-    }
-
-    function openPlaylistDetail(playlistId) {
-      const pl = playlists.find(p => p.id === playlistId);
-      if (!pl) return;
-
-      hideAllViews();
-      currentActivePlaylistId = playlistId;
-      renderSidebarPlaylists();
-
-      document.getElementById('playlistDetailView').classList.remove('hidden');
-      document.getElementById('playlistDetailTitle').innerText = pl.name;
-
-      const isMine = pl.owner === currentUser;
-      const shareBadge = document.getElementById('playlistShareBadge');
-
-      if (pl.isShared) {
-        shareBadge.classList.remove('hidden');
-      } else {
-        shareBadge.classList.add('hidden');
-      }
-
-      const playlistSongs = songs.filter(s => pl.songIds.includes(s.id));
-      let totalSecs = 0;
-      playlistSongs.forEach(s => totalSecs += (songDurations[s.id] || 0));
-
-      document.getElementById('playlistDetailCount').innerText = `${playlistSongs.length} SONGS • ${formatFullDuration(totalSecs)}`;
-
-      const listContainer = document.getElementById('playlistSongsList');
-      listContainer.innerHTML = '';
-
-      if (playlistSongs.length === 0) {
-        listContainer.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST YET</p>`;
-      } else {
-        playlistSongs.forEach((song, idx) => {
-          listContainer.innerHTML += createSongCardHTML(song, idx, 'playlist');
-        });
-      }
-
-      document.getElementById('playAllBtn').onclick = () => {
-        if (playlistSongs.length > 0) {
-          currentQueue = [...playlistSongs];
-          currentSongIndex = 0;
-          loadAndPlayCurrentSong();
-        }
-      };
-
-      const shareBtn = document.getElementById('toggleShareBtn');
-      const deleteBtn = document.getElementById('deletePlaylistBtn');
-
-      if (isMine) {
-        shareBtn.classList.remove('hidden');
-        deleteBtn.classList.remove('hidden');
-        shareBtn.onclick = () => togglePlaylistShare(playlistId);
-        deleteBtn.onclick = () => deletePlaylist(playlistId);
-      } else {
-        shareBtn.classList.add('hidden');
-        deleteBtn.classList.add('hidden');
-      }
-    }
-
-    /* QUEUE SIDEBAR */
-    function toggleQueueSidebar() {
-      const sidebar = document.getElementById('queueSidebar');
-      sidebar.classList.toggle('hidden');
-      renderQueueSidebar();
-    }
-
-    function renderQueueSidebar() {
-      const container = document.getElementById('queueListContainer');
-      container.innerHTML = '';
-
-      currentQueue.forEach((song, idx) => {
-        const isCurrent = idx === currentSongIndex;
-        const div = document.createElement('div');
-        div.className = `flex items-center justify-between p-3 rounded-xl border transition ${isCurrent ? 'bg-blue-600/20 border-blue-500/50' : 'bg-[#181922] border-gray-800 hover:bg-gray-800/50'}`;
-        div.innerHTML = `
-          <div class="flex items-center gap-3 overflow-hidden cursor-pointer" onclick="playQueueIndex(${idx})">
-            <img src="${song.cover}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" alt="Cover">
-            <div class="overflow-hidden">
-              <h5 class="text-xs font-bold ${isCurrent ? 'text-blue-400' : 'text-white'} truncate normal-case">${song.title}</h5>
-              <p class="text-[11px] text-gray-400 truncate normal-case">${song.artist}</p>
-            </div>
-          </div>
-          ${isCurrent ? '<i class="fa-solid fa-volume-high text-blue-400 text-xs ml-2"></i>' : ''}
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function playQueueIndex(index) {
-      currentSongIndex = index;
-      loadAndPlayCurrentSong();
-    }
-
-    /* SWITCH VIEW LOGIC */
-    function hideAllViews() {
-      document.getElementById('discoverView').classList.add('hidden');
-      document.getElementById('albumsView').classList.add('hidden');
-      document.getElementById('artistsView').classList.add('hidden');
-      document.getElementById('groupDetailView').classList.add('hidden');
-      document.getElementById('playlistDetailView').classList.add('hidden');
-    }
-
-    function switchView(viewName) {
-      hideAllViews();
-      currentActivePlaylistId = null;
-      renderSidebarPlaylists();
-
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
-
-      if (viewName === 'discover') {
-        document.getElementById('discoverView').classList.remove('hidden');
-        document.getElementById('nav-discover').classList.add('active-nav');
-        renderSongsList();
-      } else if (viewName === 'albums') {
-        document.getElementById('albumsView').classList.remove('hidden');
-        document.getElementById('nav-albums').classList.add('active-nav');
-        renderAlbumsView();
-      } else if (viewName === 'artists') {
-        document.getElementById('artistsView').classList.remove('hidden');
-        document.getElementById('nav-artists').classList.add('active-nav');
-        renderArtistsView();
-      }
-    }
-
-    /* INITIALIZATION */
-    window.onload = () => {
-      preloadDurations();
-      // Initialize dynamic fill colors for inputs
-      updateRangeSliderColor(document.getElementById('progressBar'));
-      updateRangeSliderColor(document.getElementById('volumeBar'));
-      setVolume();
-    };
   </script>
 </body>
 </html>
