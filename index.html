@@ -449,9 +449,10 @@
         </div>
 
         <!-- ALBUM / ARTIST DETAIL VIEW -->
-        <div id="groupDetailView" class="hidden">
-          
-<button 
+<div id="groupDetailView" class="hidden">
+  <!-- Nút Back -->
+  <button 
+    type="button"
     onclick="goBackFromGroupDetail()" 
     class="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white bg-gray-800/60 hover:bg-gray-800 px-4 py-2 rounded-xl transition cursor-pointer"
   >
@@ -1400,12 +1401,16 @@ function togglePlay() {
     if (songs.length > 0) playSongFromList(songs[0].id, 'all');
     return;
   }
-  if (isPlaying) {
+
+  // Kiểm tra trạng thái thực tế của thẻ audio
+  if (!audio.paused && !audio.ended) {
     audio.pause();
     isPlaying = false;
   } else {
-    audio.play();
-    isPlaying = true;
+    audio.play().then(() => {
+      isPlaying = true;
+      updatePlayIconsUI();
+    }).catch(err => console.error("Play error", err));
   }
   updatePlayIconsUI();
 }
