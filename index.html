@@ -5,95 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>thhaof - Web Player</title>
 
-  <script src="https://cdn.tailwindcss.com">
-
-/* ================= FIX PATCH ================= */
-// Prevent IndexedDB errors from breaking buttons
-async function savePlaylists(){
-  try{
-    const db = await openPlaylistDB();
-    const tx = db.transaction('data','readwrite');
-    tx.objectStore('data').put(playlists,'playlists');
-  }catch(e){
-    console.error('Playlist save error:', e);
-    localStorage.setItem('thhaof_playlists', JSON.stringify(playlists));
-  }
-}
-
-async function loadSavedPlaylists(){
-  try{
-    const db = await openPlaylistDB();
-    const tx = db.transaction('data','readonly');
-    const req = tx.objectStore('data').get('playlists');
-    req.onsuccess = ()=>{
-      playlists = req.result || JSON.parse(localStorage.getItem('thhaof_playlists')||'null') || [{id:'p1',name:'My Favorites',songIds:[1,2]}];
-      renderSidebarPlaylists();
-    };
-  }catch(e){
-    playlists = JSON.parse(localStorage.getItem('thhaof_playlists')||'null') || [{id:'p1',name:'My Favorites',songIds:[1,2]}];
-    renderSidebarPlaylists();
-  }
-}
-
-// Safer audio controls
-function playAudio(){
-  if(!audio.src) return;
-  audio.play().catch(err=>console.error('Playback error:',err));
-}
-
-function nextSong(){
-  if(!currentQueue.length) return;
-  if(shuffleMode){
-    currentSongIndex=Math.floor(Math.random()*currentQueue.length);
-  }else{
-    currentSongIndex=(currentSongIndex+1)%currentQueue.length;
-  }
-  loadSong(currentSongIndex);
-  playAudio();
-}
-
-function prevSong(){
-  if(!currentQueue.length) return;
-  currentSongIndex=(currentSongIndex-1+currentQueue.length)%currentQueue.length;
-  loadSong(currentSongIndex);
-  playAudio();
-}
-
-// Add album/artist rendering without unsafe inline strings
-function switchView(view){
-  document.getElementById('discoverView').classList.toggle('hidden',view!=='discover');
-  document.getElementById('albumsView').classList.toggle('hidden',view!=='albums');
-  document.getElementById('artistsView').classList.toggle('hidden',view!=='artists');
-  document.getElementById('playlistDetailView').classList.add('hidden');
-
-  if(view==='albums'){
-    const box=document.getElementById('albumList');
-    const albums=[...new Set(songs.map(s=>s.album||'Singles'))];
-    box.innerHTML='';
-    albums.forEach(album=>{
-      const div=document.createElement('div');
-      div.className='glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition';
-      div.innerHTML=`<h3 class="font-semibold text-white">${album}</h3><p class="text-xs text-gray-400 mt-2">${songs.filter(s=>(s.album||'Singles')===album).length} Songs</p>`;
-      div.onclick=()=>playAlbum(album);
-      box.appendChild(div);
-    });
-  }
-
-  if(view==='artists'){
-    const box=document.getElementById('artistList');
-    const artists=[...new Set(songs.map(s=>s.artist))];
-    box.innerHTML='';
-    artists.forEach(artist=>{
-      const div=document.createElement('div');
-      div.className='glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition';
-      div.innerHTML=`<h3 class="font-semibold text-white">${artist}</h3><p class="text-xs text-gray-400 mt-2">${songs.filter(s=>s.artist===artist).length} Songs</p>`;
-      div.onclick=()=>playArtist(artist);
-      box.appendChild(div);
-    });
-  }
-}
-
-</script>
+  <script src="https://cdn.tailwindcss.com"></script>
 
   <link
     rel="stylesheet"
@@ -350,6 +262,7 @@ function switchView(view){
           <a
             href="#"
             onclick="switchView('albums'); return false;"
+            id="nav-albums"
             class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-lg transition"
           >
             <i class="fa-solid fa-compact-disc text-lg"></i>
@@ -359,6 +272,7 @@ function switchView(view){
           <a
             href="#"
             onclick="switchView('artists'); return false;"
+            id="nav-artists"
             class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-lg transition"
           >
             <i class="fa-solid fa-user text-lg"></i>
@@ -1491,6 +1405,8 @@ function switchView(view){
 
       currentActivePlaylistId = playlistId;
 
+      // Update sidebar nav status
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active-nav'));
 
       const playlist =
         playlists.find(
@@ -1503,16 +1419,10 @@ function switchView(view){
       }
 
 
-      document
-        .getElementById('discoverView')
-        .classList
-        .add('hidden');
-
-
-      document
-        .getElementById('playlistDetailView')
-        .classList
-        .remove('hidden');
+      document.getElementById('discoverView').classList.add('hidden');
+      document.getElementById('albumsView').classList.add('hidden');
+      document.getElementById('artistsView').classList.add('hidden');
+      document.getElementById('playlistDetailView').classList.remove('hidden');
 
 
       document
@@ -1875,45 +1785,58 @@ function switchView(view){
 
     function toggleShuffle() {
       shuffleMode = !shuffleMode;
-      const btn = document.getElementById('shuffleBtn');
-      if (btn) btn.classList.toggle('text-blue-400', shuffleMode);
-      console.log('Shuffle:', shuffleMode);
+      document.getElementById('shuffleBtn').classList.toggle('text-blue-400', shuffleMode);
     }
-
 
     function toggleRepeat() {
       repeatMode = !repeatMode;
-      const btn = document.getElementById('repeatBtn');
-      if (btn) btn.classList.toggle('text-blue-400', repeatMode);
-      console.log('Repeat:', repeatMode);
+      document.getElementById('repeatBtn').classList.toggle('text-blue-400', repeatMode);
     }
 
-
     function prevSong() {
-      if (!currentQueue || currentQueue.length === 0) return;
 
-      currentSongIndex = (currentSongIndex - 1 + currentQueue.length) % currentQueue.length;
+      if (currentQueue.length === 0) {
+        return;
+      }
+
+
+      currentSongIndex =
+        (
+          currentSongIndex -
+          1 +
+          currentQueue.length
+        ) %
+        currentQueue.length;
+
+
       loadSong(currentSongIndex);
+
       playAudio();
+
     }
 
 
     function nextSong() {
-      if (!currentQueue || currentQueue.length === 0) return;
 
-      if (shuffleMode && currentQueue.length > 1) {
-        let next;
-        do {
-          next = Math.floor(Math.random() * currentQueue.length);
-        } while (next === currentSongIndex);
-        currentSongIndex = next;
-      } else {
-        currentSongIndex = (currentSongIndex + 1) % currentQueue.length;
+      if (currentQueue.length === 0) {
+        return;
       }
 
+
+      if (shuffleMode) {
+        currentSongIndex = Math.floor(Math.random() * currentQueue.length);
+      } else {
+        currentSongIndex =
+          (currentSongIndex + 1) % currentQueue.length;
+      }
+
+
       loadSong(currentSongIndex);
+
       playAudio();
+
     }
+
 
     /* =========================================================
        AUDIO EVENTS
@@ -2143,53 +2066,44 @@ function switchView(view){
       document.getElementById('artistsView').classList.toggle('hidden', view !== 'artists');
       document.getElementById('playlistDetailView').classList.add('hidden');
 
-      if (view === 'albums') {
-        const albums = [...new Set(songs.map(s => s.album || 'Singles'))];
+      // Sync Navigation active state
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active-nav'));
+      const activeNav = document.getElementById(`nav-${view}`);
+      if (activeNav) activeNav.classList.add('active-nav');
 
-        document.getElementById('albumList').innerHTML = albums.map(album => {
-          const albumSongs = songs.filter(s => (s.album || 'Singles') === album);
+      if (view === 'albums') {
+        const uniqueAlbums = [...new Set(songs.map(s => s.album || 'Unknown Album'))];
+        document.getElementById('albumList').innerHTML = uniqueAlbums.map(album => {
+          const albumSongs = songs.filter(s => (s.album || 'Unknown Album') === album);
+          const cover = albumSongs[0]?.cover || '';
           return `
-            <div
-              onclick="playAlbum('${album.replace(/'/g, "\'")}')"
-              class="glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition"
-            >
-              <h3 class="font-semibold text-white">${album}</h3>
-              <p class="text-xs text-gray-400 mt-2">${albumSongs.length} Songs</p>
-            </div>`;
+            <div class="glass-card p-4 rounded-xl flex items-center gap-4 hover:bg-white/10 transition">
+              <img src="${cover}" class="w-16 h-16 rounded-lg object-cover" alt="${album}">
+              <div>
+                <h4 class="font-bold text-white">${album}</h4>
+                <p class="text-xs text-gray-400">${albumSongs.length} Songs</p>
+              </div>
+            </div>
+          `;
         }).join('');
       }
 
       if (view === 'artists') {
-        const artists = [...new Set(songs.map(s => s.artist))];
-
-        document.getElementById('artistList').innerHTML = artists.map(artist => {
+        const uniqueArtists = [...new Set(songs.map(s => s.artist))];
+        document.getElementById('artistList').innerHTML = uniqueArtists.map(artist => {
           const artistSongs = songs.filter(s => s.artist === artist);
+          const cover = artistSongs[0]?.cover || '';
           return `
-            <div
-              onclick="playArtist('${artist.replace(/'/g, "\'")}')"
-              class="glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition"
-            >
-              <h3 class="font-semibold text-white">${artist}</h3>
-              <p class="text-xs text-gray-400 mt-2">${artistSongs.length} Songs</p>
-            </div>`;
+            <div class="glass-card p-4 rounded-xl flex items-center gap-4 hover:bg-white/10 transition">
+              <img src="${cover}" class="w-16 h-16 rounded-full object-cover" alt="${artist}">
+              <div>
+                <h4 class="font-bold text-white">${artist}</h4>
+                <p class="text-xs text-gray-400">${artistSongs.length} Songs</p>
+              </div>
+            </div>
+          `;
         }).join('');
       }
-    }
-
-
-    function playAlbum(album) {
-      currentQueue = songs.filter(s => (s.album || 'Singles') === album);
-      currentSongIndex = 0;
-      loadSong(currentSongIndex);
-      playAudio();
-    }
-
-
-    function playArtist(artist) {
-      currentQueue = songs.filter(s => s.artist === artist);
-      currentSongIndex = 0;
-      loadSong(currentSongIndex);
-      playAudio();
     }
 
 
@@ -2283,95 +2197,7 @@ function switchView(view){
     );
 
 
-  
-
-/* ================= FIX PATCH ================= */
-// Prevent IndexedDB errors from breaking buttons
-async function savePlaylists(){
-  try{
-    const db = await openPlaylistDB();
-    const tx = db.transaction('data','readwrite');
-    tx.objectStore('data').put(playlists,'playlists');
-  }catch(e){
-    console.error('Playlist save error:', e);
-    localStorage.setItem('thhaof_playlists', JSON.stringify(playlists));
-  }
-}
-
-async function loadSavedPlaylists(){
-  try{
-    const db = await openPlaylistDB();
-    const tx = db.transaction('data','readonly');
-    const req = tx.objectStore('data').get('playlists');
-    req.onsuccess = ()=>{
-      playlists = req.result || JSON.parse(localStorage.getItem('thhaof_playlists')||'null') || [{id:'p1',name:'My Favorites',songIds:[1,2]}];
-      renderSidebarPlaylists();
-    };
-  }catch(e){
-    playlists = JSON.parse(localStorage.getItem('thhaof_playlists')||'null') || [{id:'p1',name:'My Favorites',songIds:[1,2]}];
-    renderSidebarPlaylists();
-  }
-}
-
-// Safer audio controls
-function playAudio(){
-  if(!audio.src) return;
-  audio.play().catch(err=>console.error('Playback error:',err));
-}
-
-function nextSong(){
-  if(!currentQueue.length) return;
-  if(shuffleMode){
-    currentSongIndex=Math.floor(Math.random()*currentQueue.length);
-  }else{
-    currentSongIndex=(currentSongIndex+1)%currentQueue.length;
-  }
-  loadSong(currentSongIndex);
-  playAudio();
-}
-
-function prevSong(){
-  if(!currentQueue.length) return;
-  currentSongIndex=(currentSongIndex-1+currentQueue.length)%currentQueue.length;
-  loadSong(currentSongIndex);
-  playAudio();
-}
-
-// Add album/artist rendering without unsafe inline strings
-function switchView(view){
-  document.getElementById('discoverView').classList.toggle('hidden',view!=='discover');
-  document.getElementById('albumsView').classList.toggle('hidden',view!=='albums');
-  document.getElementById('artistsView').classList.toggle('hidden',view!=='artists');
-  document.getElementById('playlistDetailView').classList.add('hidden');
-
-  if(view==='albums'){
-    const box=document.getElementById('albumList');
-    const albums=[...new Set(songs.map(s=>s.album||'Singles'))];
-    box.innerHTML='';
-    albums.forEach(album=>{
-      const div=document.createElement('div');
-      div.className='glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition';
-      div.innerHTML=`<h3 class="font-semibold text-white">${album}</h3><p class="text-xs text-gray-400 mt-2">${songs.filter(s=>(s.album||'Singles')===album).length} Songs</p>`;
-      div.onclick=()=>playAlbum(album);
-      box.appendChild(div);
-    });
-  }
-
-  if(view==='artists'){
-    const box=document.getElementById('artistList');
-    const artists=[...new Set(songs.map(s=>s.artist))];
-    box.innerHTML='';
-    artists.forEach(artist=>{
-      const div=document.createElement('div');
-      div.className='glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition';
-      div.innerHTML=`<h3 class="font-semibold text-white">${artist}</h3><p class="text-xs text-gray-400 mt-2">${songs.filter(s=>s.artist===artist).length} Songs</p>`;
-      div.onclick=()=>playArtist(artist);
-      box.appendChild(div);
-    });
-  }
-}
-
-</script>
+  </script>
 
 </body>
 </html>
