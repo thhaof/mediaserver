@@ -450,14 +450,16 @@
 
         <!-- ALBUM / ARTIST DETAIL VIEW -->
         <div id="groupDetailView" class="hidden">
-          <button 
+          
+<button 
     onclick="goBackFromGroupDetail()" 
     class="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white bg-gray-800/60 hover:bg-gray-800 px-4 py-2 rounded-xl transition cursor-pointer"
   >
     <i class="fa-solid fa-arrow-left"></i> BACK
   </button>
-          <div class="flex flex-col sm:flex-row items-start sm:items-end gap-6 mb-8 bg-gradient-to-r from-blue-950/40 via-transparent to-transparent p-6 rounded-2xl border border-white/5">
-            <img id="groupDetailCover" src="" class="w-44 h-44 rounded-2xl object-cover shadow-2xl border border-white/10" alt="Cover">
+
+  <div class="flex flex-col sm:flex-row items-start sm:items-end gap-6 mb-8 bg-gradient-to-r from-blue-950/40 via-transparent to-transparent p-6 rounded-2xl border border-white/5">
+    <img id="groupDetailCover" src="" class="w-44 h-44 rounded-2xl object-cover shadow-2xl border border-white/10" alt="Cover">
             <div class="flex-1">
               <p id="groupDetailType" class="text-xs uppercase font-bold text-blue-400 tracking-wider mb-1"></p>
               <h1 id="groupDetailTitle" class="text-3xl sm:text-4xl font-extrabold mt-1 mb-2 text-white normal-case"></h1>
@@ -1393,20 +1395,20 @@
       }).catch(err => console.error("Play all error", err));
     }
 
-    function togglePlay() {
-      if (currentSongIndex === -1) {
-        if (songs.length > 0) playSong(0);
-        return;
-      }
-      if (isPlaying) {
-        pauseSong();
-      } else {
-        // Tiếp tục phát từ vị trí đang dừng thay vì phát lại từ đầu
-        audioPlayer.play();
-        isPlaying = true;
-        updatePlayIcons();
-      }
-    }
+function togglePlay() {
+  if (currentSongIndex === -1) {
+    if (songs.length > 0) playSongFromList(songs[0].id, 'all');
+    return;
+  }
+  if (isPlaying) {
+    audio.pause();
+    isPlaying = false;
+  } else {
+    audio.play();
+    isPlaying = true;
+  }
+  updatePlayIconsUI();
+}
 
     function nextSong() {
       if (currentQueue.length === 0) return;
