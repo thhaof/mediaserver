@@ -947,24 +947,38 @@
     ========================================================== */
     async function handleLogin(e) {
       e.preventDefault();
+
       const username = document.getElementById('usernameInput').value.trim();
       const password = document.getElementById('passwordInput').value;
 
-      if (username === 'thhaof' && password === '300172') {
-        currentUser = username;
-        document.getElementById('authModal').classList.add('hidden');
-        document.getElementById('userNameDisplay').innerText = username.toUpperCase();
-        document.getElementById('welcomeHeader').innerText = `WELCOME, ${username.toUpperCase()}`;
-        document.getElementById('userStatus').innerText = 'Premium Member';
-        document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
-        document.getElementById('loginError').classList.add('hidden');
-        document.getElementById('passwordInput').value = '';
-
-        await loadSavedPlaylistsPermanent();
-        switchView('discover');
-      } else {
+      if (username !== 'thhaof' || password !== '300172') {
         document.getElementById('loginError').classList.remove('hidden');
+        return;
       }
+
+      // Authenticate first and hide the modal immediately.
+      // Playlist restoration is allowed to fail without blocking login.
+      currentUser = username;
+
+      document.getElementById('authModal').classList.add('hidden');
+      document.getElementById('userNameDisplay').innerText = username.toUpperCase();
+      document.getElementById('welcomeHeader').innerText =
+        `WELCOME, ${username.toUpperCase()}`;
+      document.getElementById('userStatus').innerText = 'Premium Member';
+      document.getElementById('userAvatar').innerText =
+        username.charAt(0).toUpperCase();
+      document.getElementById('loginError').classList.add('hidden');
+      document.getElementById('passwordInput').value = '';
+
+      try {
+        await loadSavedPlaylistsPermanent();
+      } catch (err) {
+        console.error("Could not restore playlists:", err);
+        playlists = playlists || [];
+        renderSidebarPlaylists();
+      }
+
+      switchView('discover');
     }
 
     function logout() {
@@ -1339,9 +1353,13 @@
     async function deletePlaylist(id) {
       playlists = playlists.filter(p => p.id !== id);
       await savePlaylistsPermanent();
-      function goBackFromGroupDetail() {
+      renderSidebarPlaylists();
       switchView('discover');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goBackFromGroupDetail() {
+      switchView('discover');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function filterSongs() {
@@ -1399,51 +1417,88 @@
     }
 
 function togglePlay() {
-  const audio = document.getElementById('audioPlayer');
-  if (!currentSong) {
-    if (songs && songs.length > 0) {
-      playSong(songs[0]);
+      if (currentQueue.length === 0) return;
+
+      // No song has been loaded yet: load the first queued song.
+      if (!audio.src || !currentQueue[currentSongIndex]) {
+        currentSongIndex = 0;
+        loadSong(currentQueue[currentSongIndex]);
+      }
+
+      // IMPORTANT: resume the current audio position when paused.
+      // Do not call loadSong() again here, because that would reset/reload the track.
+      if (audio.paused) {
+        audio.play().then(() => {
+          isPlaying = true;
+          updatePlayIconsUI();
+        }).catch(err => {
+          console.error("Playback error:", err);
+          isPlaying = false;
+          updatePlayIconsUI();
+        });
+      } else {
+        audio.pause();
+        isPlaying = false;
+        updatePlayIconsUI();
+      }
     }
-    return;
-  }
-  if (!audio.paused) {
-    audio.pause();
-    updatePlayIcons(false);
-  } 
-  else {
-    audio.play();
-    updatePlayIcons(true);
-  }
-}
-
-function updatePlayIcons(isPlaying) {
-  const playIcon = document.getElementById('playIcon');
-  const overlayPlayIcon = document.getElementById('overlayCurrentPlayIcon');
-
-  if (isPlaying) {
-    if (playIcon) playIcon.className = "fa-solid fa-pause text-sm";
-    if (overlayPlayIcon) overlayPlayIcon.className = "fa-solid fa-pause text-sm";
-  } else {
-    if (playIcon) playIcon.className = "fa-solid fa-play text-sm ml-0.5";
-    if (overlayPlayIcon) overlayPlayIcon.className = "fa-solid fa-play text-sm";
-  }
 
     function nextSong() {
       if (currentQueue.length === 0) return;
+
       if (shuffleMode) {
-        currentSongIndex = Math.floor(Math.random() * currentQueue.length);
+        // Avoid immediately selecting the same song when possible.
+        if (currentQueue.length > 1) {
+          let nextIndex;
+          do {
+            nextIndex = Math.floor(Math.random() * currentQueue.length);
+          } while (nextIndex === currentSongIndex);
+          currentSongIndex = nextIndex;
+        } else {
+          currentSongIndex = 0;
+        }
       } else {
         currentSongIndex = (currentSongIndex + 1) % currentQueue.length;
       }
+
       loadSong(currentQueue[currentSongIndex]);
-      if (isPlaying) audio.play();
+
+      audio.play().then(() => {
+        isPlaying = true;
+        updatePlayIconsUI();
+      }).catch(err => {
+        console.error("Next song playback error:", err);
+        isPlaying = false;
+        updatePlayIconsUI();
+      });
     }
 
     function prevSong() {
       if (currentQueue.length === 0) return;
-      currentSongIndex = (currentSongIndex - 1 + currentQueue.length) % currentQueue.length;
+
+      // If the current song has played for more than 3 seconds,
+      // BACK behaves like a normal music player and restarts this song.
+      if (audio.currentTime > 3) {
+        audio.currentTime = 0;
+        if (!audio.paused) {
+          audio.play().catch(err => console.error("Replay playback error:", err));
+        }
+        return;
+      }
+
+      currentSongIndex =
+        (currentSongIndex - 1 + currentQueue.length) % currentQueue.length;
+
       loadSong(currentQueue[currentSongIndex]);
-      if (isPlaying) audio.play();
+
+      audio.play().then(() => {
+        isPlaying = true;
+        updatePlayIconsUI();
+      }).catch(err => {
+        console.error("Previous song playback error:", err);
+        isPlaying = false;
+        updatePlayIconsUI();
+      });
     }
 
     function updatePlayIconsUI() {
@@ -1523,6 +1578,16 @@ function updatePlayIcons(isPlaying) {
         icon.className = "fa-solid fa-volume-high text-gray-400 text-sm";
       }
     }
+
+    audio.onplay = () => {
+      isPlaying = true;
+      updatePlayIconsUI();
+    };
+
+    audio.onpause = () => {
+      isPlaying = false;
+      updatePlayIconsUI();
+    };
 
     audio.onended = () => {
       if (repeatMode === 2) {
