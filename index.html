@@ -895,6 +895,7 @@
     let currentSongIndex = 0;
     let isPlaying = false;
     let currentActivePlaylistId = null;
+    let currentGroupDetailType = null;
 
     let shuffleMode = false;
     let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
@@ -1292,6 +1293,7 @@
     }
 
     function openGroupDetail(type, key) {
+      currentGroupDetailType = type;
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
       currentActivePlaylistId = null;
       renderSidebarPlaylists();
@@ -1358,7 +1360,11 @@
     }
 
     function goBackFromGroupDetail() {
-      switchView('discover');
+      // Return to the exact parent category where this detail page was opened.
+      // Album detail -> Albums, Artist detail -> Artists.
+      const parentView = currentGroupDetailType === 'artist' ? 'artists' : 'albums';
+      switchView(parentView);
+      currentGroupDetailType = null;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
