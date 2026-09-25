@@ -5,7 +5,95 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>thhaof - Web Player</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com">
+
+/* ================= FIX PATCH ================= */
+// Prevent IndexedDB errors from breaking buttons
+async function savePlaylists(){
+  try{
+    const db = await openPlaylistDB();
+    const tx = db.transaction('data','readwrite');
+    tx.objectStore('data').put(playlists,'playlists');
+  }catch(e){
+    console.error('Playlist save error:', e);
+    localStorage.setItem('thhaof_playlists', JSON.stringify(playlists));
+  }
+}
+
+async function loadSavedPlaylists(){
+  try{
+    const db = await openPlaylistDB();
+    const tx = db.transaction('data','readonly');
+    const req = tx.objectStore('data').get('playlists');
+    req.onsuccess = ()=>{
+      playlists = req.result || JSON.parse(localStorage.getItem('thhaof_playlists')||'null') || [{id:'p1',name:'My Favorites',songIds:[1,2]}];
+      renderSidebarPlaylists();
+    };
+  }catch(e){
+    playlists = JSON.parse(localStorage.getItem('thhaof_playlists')||'null') || [{id:'p1',name:'My Favorites',songIds:[1,2]}];
+    renderSidebarPlaylists();
+  }
+}
+
+// Safer audio controls
+function playAudio(){
+  if(!audio.src) return;
+  audio.play().catch(err=>console.error('Playback error:',err));
+}
+
+function nextSong(){
+  if(!currentQueue.length) return;
+  if(shuffleMode){
+    currentSongIndex=Math.floor(Math.random()*currentQueue.length);
+  }else{
+    currentSongIndex=(currentSongIndex+1)%currentQueue.length;
+  }
+  loadSong(currentSongIndex);
+  playAudio();
+}
+
+function prevSong(){
+  if(!currentQueue.length) return;
+  currentSongIndex=(currentSongIndex-1+currentQueue.length)%currentQueue.length;
+  loadSong(currentSongIndex);
+  playAudio();
+}
+
+// Add album/artist rendering without unsafe inline strings
+function switchView(view){
+  document.getElementById('discoverView').classList.toggle('hidden',view!=='discover');
+  document.getElementById('albumsView').classList.toggle('hidden',view!=='albums');
+  document.getElementById('artistsView').classList.toggle('hidden',view!=='artists');
+  document.getElementById('playlistDetailView').classList.add('hidden');
+
+  if(view==='albums'){
+    const box=document.getElementById('albumList');
+    const albums=[...new Set(songs.map(s=>s.album||'Singles'))];
+    box.innerHTML='';
+    albums.forEach(album=>{
+      const div=document.createElement('div');
+      div.className='glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition';
+      div.innerHTML=`<h3 class="font-semibold text-white">${album}</h3><p class="text-xs text-gray-400 mt-2">${songs.filter(s=>(s.album||'Singles')===album).length} Songs</p>`;
+      div.onclick=()=>playAlbum(album);
+      box.appendChild(div);
+    });
+  }
+
+  if(view==='artists'){
+    const box=document.getElementById('artistList');
+    const artists=[...new Set(songs.map(s=>s.artist))];
+    box.innerHTML='';
+    artists.forEach(artist=>{
+      const div=document.createElement('div');
+      div.className='glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition';
+      div.innerHTML=`<h3 class="font-semibold text-white">${artist}</h3><p class="text-xs text-gray-400 mt-2">${songs.filter(s=>s.artist===artist).length} Songs</p>`;
+      div.onclick=()=>playArtist(artist);
+      box.appendChild(div);
+    });
+  }
+}
+
+</script>
 
   <link
     rel="stylesheet"
@@ -697,6 +785,7 @@
         id: 1,
         title: "Elegie",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/01.%20Elegie.mp3"
       },
@@ -705,6 +794,7 @@
         id: 2,
         title: "IDK",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/02.%20IDK.mp3"
       },
@@ -713,6 +803,7 @@
         id: 3,
         title: "Wtf Bby I'm Lit",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/03.%20Wtf%20Bby%20I_m%20Lit.mp3"
       },
@@ -721,6 +812,7 @@
         id: 4,
         title: "Anh Không Muốn Nó Dễ Dàng",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/04.%20Anh%20Kh%C3%B4ng%20Mu%E1%BB%91n%20N%C3%B3%20D%E1%BB%85%20D%C3%A0ng.mp3"
       },
@@ -729,6 +821,7 @@
         id: 5,
         title: "Baby (feat. Marzuz)",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/05.%20Baby%20(feat.%20marzuz).mp3"
       },
@@ -737,6 +830,7 @@
         id: 6,
         title: "Yêu Anh Giết Anh",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/06.%20Y%C3%AAu%20Anh%20Gi%E1%BA%BFt%20Anh.mp3"
       },
@@ -745,6 +839,7 @@
         id: 7,
         title: "Mắt Môi Tay Chân (feat. Tage)",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/07.%20M%E1%BA%AFt%20M%C3%B4i%20Tay%20Ch%C3%A2n%20(feat.%20Tage).mp3"
       },
@@ -753,6 +848,7 @@
         id: 8,
         title: "Đao Của Anh Vừa",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/08.%20%C4%90ao%20C%E1%BB%A7a%20Anh%20V%E1%BB%ABa.mp3"
       },
@@ -761,6 +857,7 @@
         id: 9,
         title: "Là Gì Của Nhau",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/09.%20L%C3%A0%20G%C3%AC%20C%E1%BB%A7a%20Nhau.mp3"
       },
@@ -769,6 +866,7 @@
         id: 10,
         title: "Night In Prague",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/10.%20Night%20In%20Prague.mp3"
       },
@@ -777,6 +875,7 @@
         id: 11,
         title: "Một Cái Ôm",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/11.%20M%E1%BB%99t%20C%C3%A1i%20%C3%94m.mp3"
       },
@@ -785,6 +884,7 @@
         id: 12,
         title: "Liệm",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/12.%20Li%E1%BB%87m.mp3"
       },
@@ -793,6 +893,7 @@
         id: 13,
         title: "Nếu Như Ta Chẳng Còn (feat. A$AP Ướt Mi)",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/13.%20N%E1%BA%BFu%20Nh%C6%B0%20Ta%20Ch%E1%BA%B3ng%20C%C3%B2n%20(feat.%20ASAP%20%C6%AF%E1%BB%9At%20Mi).mp3"
       },
@@ -801,6 +902,7 @@
         id: 14,
         title: "Ai Mới Là Kẻ Xấu Xa",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/14.%20Ai%20M%E1%BB%9Bi%20L%C3%A0%20K%E1%BA%BB%20X%E1%BA%A5u%20Xa.mp3"
       },
@@ -809,6 +911,7 @@
         id: 15,
         title: "Slippery (feat. Tùng Dương)",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/15.%20Slippery%20(feat.%20T%C3%B9ng%20D%C6%B0%C6%A1ng).mp3"
       },
@@ -817,6 +920,7 @@
         id: 16,
         title: "Intenpol",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/16.%20Intenpol.mp3"
       },
@@ -825,6 +929,7 @@
         id: 17,
         title: "Tây Thi",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/17.%20T%C3%A2y%20Thi.mp3"
       },
@@ -833,6 +938,7 @@
         id: 18,
         title: "Hút và Hút",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/18.%20H%C3%BAt%20v%C3%A0%20H%C3%BAt.mp3"
       },
@@ -841,6 +947,7 @@
         id: 19,
         title: "Dưa Chua",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/19.%20D%C6%B0a%20Chua.mp3"
       },
@@ -849,6 +956,7 @@
         id: 20,
         title: "Xa Xôi (feat. Obito)",
         artist: "MCK",
+        album: "HVL",
         cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg",
         src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/20.%20Xa%20X%C3%B4i%20(feat.%20Obito).mp3"
       }
@@ -2049,16 +2157,52 @@
       document.getElementById('playlistDetailView').classList.add('hidden');
 
       if (view === 'albums') {
-        document.getElementById('albumList').innerHTML =
-          [...new Set(songs.map(s => s.album || 'Singles'))].map(a =>
-            `<div class="glass-card p-4 rounded-xl">${a}</div>`).join('');
+        const albums = [...new Set(songs.map(s => s.album || 'Singles'))];
+
+        document.getElementById('albumList').innerHTML = albums.map(album => {
+          const albumSongs = songs.filter(s => (s.album || 'Singles') === album);
+          return `
+            <div
+              onclick="playAlbum('${album.replace(/'/g, "\'")}')"
+              class="glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition"
+            >
+              <h3 class="font-semibold text-white">${album}</h3>
+              <p class="text-xs text-gray-400 mt-2">${albumSongs.length} Songs</p>
+            </div>`;
+        }).join('');
       }
 
       if (view === 'artists') {
-        document.getElementById('artistList').innerHTML =
-          [...new Set(songs.map(s => s.artist))].map(a =>
-            `<div class="glass-card p-4 rounded-xl">${a}</div>`).join('');
+        const artists = [...new Set(songs.map(s => s.artist))];
+
+        document.getElementById('artistList').innerHTML = artists.map(artist => {
+          const artistSongs = songs.filter(s => s.artist === artist);
+          return `
+            <div
+              onclick="playArtist('${artist.replace(/'/g, "\'")}')"
+              class="glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition"
+            >
+              <h3 class="font-semibold text-white">${artist}</h3>
+              <p class="text-xs text-gray-400 mt-2">${artistSongs.length} Songs</p>
+            </div>`;
+        }).join('');
       }
+    }
+
+
+    function playAlbum(album) {
+      currentQueue = songs.filter(s => (s.album || 'Singles') === album);
+      currentSongIndex = 0;
+      loadSong(currentSongIndex);
+      playAudio();
+    }
+
+
+    function playArtist(artist) {
+      currentQueue = songs.filter(s => s.artist === artist);
+      currentSongIndex = 0;
+      loadSong(currentSongIndex);
+      playAudio();
     }
 
 
@@ -2152,7 +2296,95 @@
     );
 
 
-  </script>
+  
+
+/* ================= FIX PATCH ================= */
+// Prevent IndexedDB errors from breaking buttons
+async function savePlaylists(){
+  try{
+    const db = await openPlaylistDB();
+    const tx = db.transaction('data','readwrite');
+    tx.objectStore('data').put(playlists,'playlists');
+  }catch(e){
+    console.error('Playlist save error:', e);
+    localStorage.setItem('thhaof_playlists', JSON.stringify(playlists));
+  }
+}
+
+async function loadSavedPlaylists(){
+  try{
+    const db = await openPlaylistDB();
+    const tx = db.transaction('data','readonly');
+    const req = tx.objectStore('data').get('playlists');
+    req.onsuccess = ()=>{
+      playlists = req.result || JSON.parse(localStorage.getItem('thhaof_playlists')||'null') || [{id:'p1',name:'My Favorites',songIds:[1,2]}];
+      renderSidebarPlaylists();
+    };
+  }catch(e){
+    playlists = JSON.parse(localStorage.getItem('thhaof_playlists')||'null') || [{id:'p1',name:'My Favorites',songIds:[1,2]}];
+    renderSidebarPlaylists();
+  }
+}
+
+// Safer audio controls
+function playAudio(){
+  if(!audio.src) return;
+  audio.play().catch(err=>console.error('Playback error:',err));
+}
+
+function nextSong(){
+  if(!currentQueue.length) return;
+  if(shuffleMode){
+    currentSongIndex=Math.floor(Math.random()*currentQueue.length);
+  }else{
+    currentSongIndex=(currentSongIndex+1)%currentQueue.length;
+  }
+  loadSong(currentSongIndex);
+  playAudio();
+}
+
+function prevSong(){
+  if(!currentQueue.length) return;
+  currentSongIndex=(currentSongIndex-1+currentQueue.length)%currentQueue.length;
+  loadSong(currentSongIndex);
+  playAudio();
+}
+
+// Add album/artist rendering without unsafe inline strings
+function switchView(view){
+  document.getElementById('discoverView').classList.toggle('hidden',view!=='discover');
+  document.getElementById('albumsView').classList.toggle('hidden',view!=='albums');
+  document.getElementById('artistsView').classList.toggle('hidden',view!=='artists');
+  document.getElementById('playlistDetailView').classList.add('hidden');
+
+  if(view==='albums'){
+    const box=document.getElementById('albumList');
+    const albums=[...new Set(songs.map(s=>s.album||'Singles'))];
+    box.innerHTML='';
+    albums.forEach(album=>{
+      const div=document.createElement('div');
+      div.className='glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition';
+      div.innerHTML=`<h3 class="font-semibold text-white">${album}</h3><p class="text-xs text-gray-400 mt-2">${songs.filter(s=>(s.album||'Singles')===album).length} Songs</p>`;
+      div.onclick=()=>playAlbum(album);
+      box.appendChild(div);
+    });
+  }
+
+  if(view==='artists'){
+    const box=document.getElementById('artistList');
+    const artists=[...new Set(songs.map(s=>s.artist))];
+    box.innerHTML='';
+    artists.forEach(artist=>{
+      const div=document.createElement('div');
+      div.className='glass-card p-4 rounded-xl cursor-pointer hover:bg-white/10 transition';
+      div.innerHTML=`<h3 class="font-semibold text-white">${artist}</h3><p class="text-xs text-gray-400 mt-2">${songs.filter(s=>s.artist===artist).length} Songs</p>`;
+      div.onclick=()=>playArtist(artist);
+      box.appendChild(div);
+    });
+  }
+}
+
+</script>
 
 </body>
 </html>
