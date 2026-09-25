@@ -81,7 +81,7 @@
       color: #ffffff !important;
     }
 
-    /* Range Input Custom Fill Glow */
+    /* Range Input Custom Fill & Track Styling */
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
@@ -192,7 +192,7 @@
 
 
   <!-- =========================================================
-       ACCOUNT CREDENTIALS MODAL (ĐỔI USERNAME & PASSWORD)
+       ACCOUNT CREDENTIALS MODAL
   ========================================================== -->
   <div
     id="accountSettingsModal"
@@ -327,9 +327,7 @@
   ========================================================== -->
   <div class="flex flex-1 overflow-hidden relative">
 
-    <!-- =======================================================
-         SIDEBAR NAVIGATION
-    ======================================================== -->
+    <!-- SIDEBAR NAVIGATION -->
     <aside
       class="w-64 bg-[#12131b] flex flex-col justify-between border-r border-gray-800/60 z-20 flex-shrink-0"
     >
@@ -380,28 +378,45 @@
           </a>
         </nav>
 
-        <hr class="border-gray-800/80 my-5 mx-4">
+        <hr class="border-gray-800/80 my-4 mx-4">
 
-        <!-- Playlists Header -->
-        <div class="px-6 flex items-center justify-between mb-3">
-          <span
-            class="text-xs font-bold text-gray-400 uppercase tracking-wider"
-          >
+        <!-- Playlists Header & Export/Import Controls -->
+        <div class="px-6 flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">
             PLAYLISTS
           </span>
-          <button
-            onclick="openModal('createPlaylistModal')"
-            title="CREATE PLAYLIST"
-            class="text-gray-400 hover:text-white text-sm w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition"
-          >
-            <i class="fa-solid fa-plus text-xs"></i>
-          </button>
+          <div class="flex items-center gap-1.5">
+            <button
+              onclick="exportPlaylistsToFile()"
+              title="BACKUP / EXPORT PLAYLISTS"
+              class="text-gray-400 hover:text-blue-400 text-xs w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-gray-700 flex items-center justify-center transition"
+            >
+              <i class="fa-solid fa-download text-xs"></i>
+            </button>
+            <button
+              onclick="triggerImportPlaylist()"
+              title="RESTORE / IMPORT PLAYLISTS"
+              class="text-gray-400 hover:text-green-400 text-xs w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-gray-700 flex items-center justify-center transition"
+            >
+              <i class="fa-solid fa-upload text-xs"></i>
+            </button>
+            <button
+              onclick="openModal('createPlaylistModal')"
+              title="CREATE PLAYLIST"
+              class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition"
+            >
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </div>
         </div>
+
+        <!-- Hidden Input for Importing File -->
+        <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importPlaylistsFromFile(event)">
 
         <!-- Playlists Container -->
         <div
           id="sidebarPlaylists"
-          class="px-3 flex flex-col gap-1 max-h-52 overflow-y-auto pr-1"
+          class="px-3 flex flex-col gap-1 max-h-48 overflow-y-auto pr-1"
         ></div>
       </div>
 
@@ -443,9 +458,7 @@
     </aside>
 
 
-    <!-- =======================================================
-         MAIN CONTENT AREA
-    ======================================================== -->
+    <!-- MAIN CONTENT AREA -->
     <main
       class="flex-1 bg-gradient-to-b from-[#161722] to-[#0f1016] overflow-y-auto p-8 lg:p-10 transition-all duration-300"
     >
@@ -558,9 +571,7 @@
     </main>
 
 
-    <!-- =======================================================
-         PLAYING QUEUE SIDEBAR (RIGHT)
-    ======================================================== -->
+    <!-- PLAYING QUEUE SIDEBAR (RIGHT) -->
     <aside id="queueSidebar" class="w-80 bg-[#12131b] border-l border-gray-800/60 p-5 hidden flex flex-col justify-between z-20 flex-shrink-0">
       <div>
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-800">
@@ -710,7 +721,8 @@
       <div class="flex items-center gap-2.5">
         <i
           id="volumeIcon"
-          class="fa-solid fa-volume-high text-gray-400 text-sm"
+          class="fa-solid fa-volume-high text-gray-400 text-sm cursor-pointer"
+          onclick="toggleMute()"
         ></i>
 
         <input
@@ -735,9 +747,7 @@
        JAVASCRIPT APPLICATION LOGIC
   ========================================================== -->
   <script>
-    /* =========================================================
-       SONG DATABASE (Includes 70 Active + 111 Empty Song Slots = 181 Total)
-    ========================================================== */
+    /* SONG DATABASE */
     const rawSongs = [
       { id: 1, title: "Elegie", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/01.%20Elegie.mp3" },
       { id: 2, title: "IDK", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/02.%20IDK.mp3" },
@@ -769,23 +779,26 @@
       { id: 28, title: "Huh (feat. RPT Orijinn & THANHDRAW)", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/28.%20Huh%20(feat.%20RPT%20Orijinn%20%26%20THANHDRAW).mp3" },
       { id: 29, title: "Nguyễn Văn Mười", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/29.%20Nguy%E1%BB%85n%20V%C4%83n%20M%C6%B0%E1%BB%9Di.mp3" },
       { id: 30, title: "Thịt Lợn", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/30.%20Th%E1%BB%8Bt%20L%E1%BB%A3n.mp3" },
-      { id: 31, title: "xương rồng (intro)", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/31.%20x%C6%B0%C6%A1ng%20r%E1%BB%93ng%20(intro).mp3" },
-      { id: 32, title: "my lil b*tch (feat. TeuYungBoy)", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/32.%20my%20lil%20bitch%20(feat.%20TeuYungBoy).mp3" },
-      { id: 33, title: "cây màu đen (feat. MR LANH, LWKI)", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/33.%20c%C3%A2y%20m%C3%A0u%20%C4%91en%20(feat.%20MR%20LANH%2C%20LWKI).mp3" },
-      { id: 34, title: "buổi sáng Khương Đình (feat. BIG WIND)", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/34.%20bu%E1%BB%95i%20s%C3%A1ng%20Kh%C6%B0%C6%A1ng%20%C4%90%C3%ACnh%20(feat.%20BIG%20WIND).mp3" },
-      { id: 35, title: "vùng vẫy (feat. ZEXZEX)", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/35.%20v%C3%B9ng%20v%E1%BA%ABy%20(feat.%20ZEXZEX).mp3" },
-      { id: 36, title: "baby anh đợi có lâu", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/36.%20baby%20anh%20%C4%91%E1%BB%A3i%20c%C3%B3%20l%C3%A2u.mp3" },
-      { id: 37, title: "wrong times (interlude)", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/37.%20wrong%20times%20(interlude).mp3" },
-      { id: 38, title: "bolero buồn (feat. BIG WIND)", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/38.%20bolero%20bu%E1%BB%93n%20(feat.%20BIG%20WIND).mp3" },
-      { id: 39, title: "một ly (feat. Hoàng Tôn)", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/39.%20m%E1%BB%99t%20ly%20(feat.%20Ho%C3%A0ng%20T%C3%B4n).mp3" },
-      { id: 40, title: "đánh rơi (feat. MICKEY)", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/40.%20%C4%91%C3%A1nh%20r%C6%A1i%20(feat.%20MICKEY).mp3" },
-      { id: 41, title: "tốt cho anh", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/41.%20t%E1%BB%91t%20cho%20anh.mp3" },
-      { id: 42, title: "quenvaonhau", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/42.%20quenvaonhau.mp3" },
+     
+      { id: 31, title: "xương rồng (intro)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/31.%20x%C6%B0%C6%A1ng%20r%E1%BB%93ng%20(intro).mp3" },
+      { id: 32, title: "my lil b*tch (feat. TeuYungBoy)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/32.%20my%20lil%20bitch%20(feat.%20TeuYungBoy).mp3" },
+      { id: 33, title: "cây màu đen (feat. MR LANH, LWKI)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/33.%20c%C3%A2y%20m%C3%A0u%20%C4%91en%20(feat.%20MR%20LANH%2C%20LWKI).mp3" },
+      { id: 34, title: "buổi sáng Khương Đình (feat. BIG WIND)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/34.%20bu%E1%BB%95i%20s%C3%A1ng%20Kh%C6%B0%C6%A1ng%20%C4%90%C3%ACnh%20(feat.%20BIG%20WIND).mp3" },
+      { id: 35, title: "vùng vẫy (feat. ZEXZEX)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/35.%20v%C3%B9ng%20v%E1%BA%ABy%20(feat.%20ZEXZEX).mp3" },
+      { id: 36, title: "baby anh đợi có lâu", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/36.%20baby%20anh%20%C4%91%E1%BB%A3i%20c%C3%B3%20l%C3%A2u.mp3" },
+      { id: 37, title: "wrong times (interlude)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/37.%20wrong%20times%20(interlude).mp3" },
+      { id: 38, title: "bolero buồn (feat. BIG WIND)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/38.%20bolero%20bu%E1%BB%93n%20(feat.%20BIG%20WIND).mp3" },
+      { id: 39, title: "một ly (feat. Hoàng Tôn)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/39.%20m%E1%BB%99t%20ly%20(feat.%20Ho%C3%A0ng%20T%C3%B4n).mp3" },
+      { id: 40, title: "đánh rơi (feat. MICKEY)", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/40.%20%C4%91%C3%A1nh%20r%C6%A1i%20(feat.%20MICKEY).mp3" },
+      { id: 41, title: "tốt cho anh", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/41.%20t%E1%BB%91t%20cho%20anh.mp3" },
+      { id: 42, title: "quenvaonhau", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/42.%20quenvaonhau.mp3" },
       { id: 43, title: "món quà", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/43.%20m%C3%B3n%20qu%C3%A0.mp3" },
-      { id: 44, title: "đắm say trong tình yêu", artist: "dangrangto", album: "trái tim băng bó (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/44.%20%C4%91%E1%BA%AFm%20say%20trong%20t%C3%ACnh%20y%C3%AAu.mp3" },
-      { id: 45, title: "để dành cho em", artist: "dangrangto", album: "để dành cho em (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/45.%20%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em.mp3" },
-      { id: 46, title: "thế giới của anh", artist: "dangrangto", album: "để dành cho em (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/46.%20th%E1%BA%BF%20gi%E1%BB%9Bi%20c%E1%BB%A7a%20anh.mp3" },
-      { id: 47, title: "hãy đến đây bên anh trong một chiều mùa thu...", artist: "dangrangto", album: "để dành cho em (feat. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/47.%20h%C3%A3y%20%C4%91%E1%BA%BFn%20%C4%91%C3%A2y%20b%C3%AAn%20anh%20trong%20m%E1%BB%99t%20chi%E1%BB%81u%20m%C3%B9a%20thu....mp3" },
+      { id: 44, title: "đắm say trong tình yêu", artist: "dangrangto", album: "trái tim băng bó (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/44.%20%C4%91%E1%BA%AFm%20say%20trong%20t%C3%ACnh%20y%C3%AAu.mp3" },
+ 
+      { id: 45, title: "để dành cho em", artist: "dangrangto", album: "để dành cho em (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/45.%20%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em.mp3" },
+      { id: 46, title: "thế giới của anh", artist: "dangrangto", album: "để dành cho em (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/46.%20th%E1%BA%BF%20gi%E1%BB%9Bi%20c%E1%BB%A7a%20anh.mp3" },
+      { id: 47, title: "hãy đến đây bên anh trong một chiều mùa thu...", artist: "dangrangto", album: "để dành cho em (prod. DONAL)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C4%91%E1%BB%83%20d%C3%A0nh%20cho%20em%20by%20dangrangto/47.%20h%C3%A3y%20%C4%91%E1%BA%BFn%20%C4%91%C3%A2y%20b%C3%AAn%20anh%20trong%20m%E1%BB%99t%20chi%E1%BB%81u%20m%C3%B9a%20thu....mp3" },
+  
       { id: 48, title: "cà phê phin (feat. flames)", artist: "Dfoxie37", album: "Lợi Khuẩn (feat. Tuann)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/48.%20c%C3%A0%20ph%C3%AA%20phin%20(feat.%20flames).mp3" },
       { id: 49, title: "bụi sao", artist: "Dfoxie37", album: "Lợi Khuẩn (feat. Tuann)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/49.%20b%E1%BB%A5i%20sao.mp3" },
       { id: 50, title: "tất cả là một (feat. Hale)", artist: "Dfoxie37", album: "Lợi Khuẩn (feat. Tuann)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/50.%20t%E1%BA%A5t%20c%E1%BA%A3%20l%C3%A0%20m%E1%BB%99t%20(feat.%20Hale).mp3" },
@@ -798,6 +811,7 @@
       { id: 57, title: "ngày (feat. Myhoa)", artist: "Dfoxie37", album: "Lợi Khuẩn (feat. Tuann)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/57.%20ng%C3%A0y%20(feat.%20Myhoa).mp3" },
       { id: 58, title: "cuối tuần (feat. Tọi, Nuilillaw)", artist: "Dfoxie37", album: "Lợi Khuẩn (feat. Tuann)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/58.%20cu%E1%BB%91i%20tu%E1%BA%A7n%20(feat.%20T%E1%BB%8Di%2C%20Nuilillaw).mp3" },
       { id: 59, title: "thế giới giả lập (feat. luyn)", artist: "Dfoxie37", album: "Lợi Khuẩn (feat. Tuann)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/l%E1%BB%A3i%20khu%E1%BA%A9n%20by%20Dfoxie37/59.%20th%E1%BA%BF%20gi%E1%BB%9Bi%20gi%E1%BA%A3%20l%E1%BA%ADp%20(feat.%20luyn).mp3" },
+
       { id: 60, title: "Hoa Trong Đá", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/1.%20HOA%20TRONG%20%C4%90%C3%81.mp3" },
       { id: 61, title: "Người Dưng", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/2.%20NG%C6%AF%E1%BB%9CI%20D%C6%AFNG.mp3" },
       { id: 62, title: "Anh Yêu Em (我爱你)", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/3.%20ANH%20YE%CC%82U%20EM%20(%E6%88%91%E7%88%B1%E4%BD%A0).mp3" },
@@ -808,36 +822,137 @@
       { id: 67, title: "Hào Hoa", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/8.%20H%C3%80O%20HOA.mp3" },
       { id: 68, title: "Thì Ra Mình Đã Yêu Nhau Xong Rồi", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/9.%20TH%C3%8C%20RA%20M%C3%8CNH%20%C4%90%C3%83%20Y%C3%8AU%20NHAU%20XONG%20R%E1%BB%92I.mp3" },
       { id: 69, title: "Hướng Dương Bất Tức", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/10.%20H%C6%AF%E1%BB%9ANG%20D%C6%AF%C6%A0NG%20B%E1%BA%A4T%20T%E1%BB%A8C.mp3" },
-      { id: 70, title: "Tam Thái Tử", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/11.%20TAM%20TH%C3%81I%20T%E1%BB%AC.mp3" }
+      { id: 70, title: "Tam Thái Tử", artist: "Jack - J97", album: "Tam Thái Tử", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Tam%20Th%C3%A1i%20T%E1%BB%AD%20by%20Jack%20-%20J97/11.%20TAM%20TH%C3%81I%20T%E1%BB%AC.mp3" },
+ 
+      { id: 71, title: "Run To You (feat. Ali Hoàng Dương, Song Luân, IVAN, KIMLONG)", artist: "TINH HÀ 'SAY HI'", album: "TINH HÀ 'SAY HI', TẬP 6 (TRẠM ĐẾN EM)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/RUN%20TO%20YOU%20(Feat.%20Ali%20Ho%C3%A0ng%20D%C6%B0%C6%A1ng%2C%20Song%20Lu%C3%A2n%2C%20IVAN%2C%20KIMLONG).mp3" },
+      { id: 72, title: "Đi Đạo: Interlude (feat. Wren Evans)", artist: "TINH HÀ 'SAY HI'", album: "TINH HÀ 'SAY HI', TẬP 6 (TRẠM ĐẾN EM)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/%C4%90I%20D%E1%BA%A0O%20(INTERLUDE)%20%5BFeat.%20Wren%20Evans%5D.mp3" },
+      { id: 73, title: "MRT (feat. XUÂN ĐỊNH KY, buitruonglinh, CAPTAIN BOY, HYO)", artist: "TINH HÀ 'SAY HI'", album: "TINH HÀ 'SAY HI', TẬP 6 (TRẠM ĐẾN EM)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/MRT%20(Feat.%20XU%C3%82N%20%C4%90%E1%BB%8ANH%20KY%2C%20buitruonglinh%2C%20CAPTAIN%20BOY%2C%20HYO).mp3" },
+      { id: 74, title: "Nói Em Nghe... (feat. Wren Evans)", artist: "TINH HÀ 'SAY HI'", album: "TINH HÀ 'SAY HI', TẬP 6 (TRẠM ĐẾN EM)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/N%C3%93I%20EM%20NGHE...%20(INTERLUDE)%20%5BFeat.%20Wren%20Evans%5D.mp3" },
+      { id: 75, title: "SECRET (feat. Quang Hùng MasterD, Cody Nam Võ, CongB, Wren Evans)", artist: "TINH HÀ 'SAY HI'", album: "TINH HÀ 'SAY HI', TẬP 6 (TRẠM ĐẾN EM)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/SECRET%20(Feat.%20Quang%20H%C3%B9ng%20MasterD%2C%20Cody%20Nam%20V%C3%B5%2C%20CongB%2C%20Wren%20Evans).mp3" },
+      { id: 76, title: "Của Anh (feat. Wren Evans)", artist: "TINH HÀ 'SAY HI'", album: "TINH HÀ 'SAY HI', TẬP 6 (TRẠM ĐẾN EM)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/TR%E1%BA%A0M%20%C4%90%E1%BA%BEN%20EM%20by%20TINH%20H%C3%80%20'SAY%20HI'/C%E1%BB%A6A%20ANH%20(OUTRO)%20%5BFeat.%20Wren%20Evans%5D.mp3" },
+  
+      { id: 77, title: "Thác Nình (feat MONO, GREY D)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/1.%20Th%C3%A1c%20N%C3%ACnh%20(feat%20MONO%2C%20GreyD).mp3" },
+      { id: 78, title: "Đưa Em Vào Tròng (feat. GDucky, tlinh)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/2.%20%C4%90%C6%B0a%20Em%20V%C3%A0o%20Tr%C3%B2ng%20(feat.%20GDucky%2C%20tlinh).mp3" },
+      { id: 79, title: "Đến Lúc Này Thì... (feat. tlinh)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/3.%20%C4%90%E1%BA%BFn%20L%C3%BAc%20N%C3%A0y%20Th%C3%AC...%20(feat.%20tlinh).mp3" },
+      { id: 80, title: "Bước Đi/Nán Lại? (feat. Văn Mai Hương)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/4.%20B%C6%B0%E1%BB%9Bc%20%C4%90i%2C%20N%C3%A1n%20L%E1%BA%A1i%20(feat.%20V%C4%83n%20Mai%20H%C6%B0%C6%A1ng).mp3" },
+      { id: 81, title: "Lá Thu Vàng Rơi Mang Tình Yêu Tới (feat. NSND Phương Dung)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/5.%20L%C3%A1%20Thu%20V%C3%A0ng%20R%C6%A1i%20Mang%20T%C3%ACnh%20Y%C3%AAu%20T%E1%BB%9Bi%20(feat.%20NSND%20Ph%C6%B0%C6%A1ng%20Dung).mp3" },
+      { id: 82, title: "Nghĩ Một Tí (feat. Orange)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/6.%20Ngh%C4%A9%20M%E1%BB%99t%20T%C3%AD%20(feat.%20Orange).mp3" },
+      { id: 83, title: "Get You Out Of My Mind", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/7.%20Get%20You%20Out%20Of%20My%20Mind.mp3" },
+      { id: 84, title: "Chỉ Một Câu Thần Chú (feat. NeeNee)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/8.%20Ch%E1%BB%89%20M%E1%BB%99t%20C%C3%A2u%20Th%E1%BA%A7n%20Ch%C3%BA%20(feat.%20NeeNee).mp3" },
+      { id: 85, title: "Kiềm Chế Đôi Tay Đi Nào (feat. Vũ Phụng Tiên)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/9.%20Ki%E1%BB%81m%20Ch%E1%BA%BF%20%C4%90%C3%B4i%20Tay%20%C4%90i%20N%C3%A0o%20(feat.%20V%C5%A9%20Ph%E1%BB%A5ng%20Ti%C3%AAn).mp3" },
+      { id: 86, title: "Nobody But You", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/10.%20Nobody%20But%20You.mp3" },
+      { id: 87, title: "Giấc Du Miên (feat. NeeNee, GREY D)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/11.%20Gi%E1%BA%A5c%20Du%20Mi%C3%AAn%20(feat.%20NeeNee%2C%20GreyD).mp3" },
+      { id: 88, title: "Một Khi Nói Yêu Mọi Chuyện Chấm Hết (feat. WOKEUP, Vũ Phụng Tiên)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/12.%20M%E1%BB%99t%20Khi%20N%C3%B3i%20Y%C3%AAu%20M%E1%BB%8Di%20Chuy%E1%BB%87n%20Ch%E1%BA%A5m%20H%E1%BA%BFt%20(feat.%20WOKEUP%2C%20V%C5%A9%20Ph%E1%BB%A5ng%20Ti%C3%AAn).mp3" },
+      { id: 89, title: "Ngừi Đẹp Ơii (feat. tlinh)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/13.%20Ng%E1%BB%ABi%20%C4%90%E1%BA%B9p%20%C6%A0ii%20(feat.%20tlinh).mp3" },
+      { id: 90, title: "Chẳng Ai Vậy (feat. Kay Châu Anh)", artist: "2pillz", album: "PILLZCASSO", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/PILLZCASSO%20by%202pillz/14.%20Ch%E1%BA%B3ng%20Ai%20V%E1%BA%ADy%20(feat.%20Kay%20Ch%C3%A2u%20Anh).mp3" },
+      
+      { id: 91, title: "Risk It All", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Risk%20It%20All.mp3" },
+      { id: 92, title: "Cha Cha Cha", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Cha%20Cha%20Cha.mp3" },
+      { id: 93, title: "I Just Might", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/I%20Just%20Might.mp3" },
+      { id: 94, title: "God Was Showing Off", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/God%20Was%20Showing%20Off.mp3" },
+      { id: 95, title: "Why You Wanna Fight?", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Why%20You%20Wanna%20Fight_.mp3" },
+      { id: 96, title: "On My Soul", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/On%20My%20Soul.mp3" },
+      { id: 97, title: "Something Serious", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Something%20Serious.mp3" },
+      { id: 98, title: "Nothing Left", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Nothing%20Left.mp3" },
+      { id: 99, title: "Dance With Me", artist: "Bruno Mars", album: "The Romantic", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/The%20Romantic%20by%20Bruno%20Mars/Dance%20With%20Me.mp3" },
+      
+      { id: 100, title: "Body to Body", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Body%20to%20Body.mp3" },
+      { id: 101, title: "Hooligan", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Hooligan.mp3" },
+      { id: 102, title: "Aliens", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Aliens.mp3" },
+      { id: 103, title: "FYA", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/FYA.mp3" },
+      { id: 104, title: "2.0", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/2.0.mp3" },
+      { id: 105, title: "No. 29", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/No.%2029.mp3" },
+      { id: 106, title: "SWIM", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/SWIM.mp3" },
+      { id: 107, title: "Merry Go Round", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Merry%20Go%20Round.mp3" },
+      { id: 108, title: "NORMAL (Explicit Ver.)", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/NORMAL%20(Explicit%20Ver.).mp3" },
+      { id: 109, title: "Like Animals", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Like%20Animals.mp3" },
+      { id: 110, title: "they don't know 'bout us", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/they%20don't%20know%20'bout%20us.mp3" },
+      { id: 111, title: "One More Night", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/One%20More%20Night.mp3" },
+      { id: 112, title: "Please", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Please.mp3" },
+      { id: 113, title: "Into The Sun", artist: "BTS (방탄소년단)", album: "ARIRANG", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/ARIRANG%20by%20BTS/Into%20the%20Sun.mp3" },
+      
+      { id: 114, title: "1000 Ánh Mắt (feat. Obito)", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/1000%20%C3%81nh%20M%E1%BA%AFt.mp3" },
+      { id: 115, title: "Anh Vẫn Đợi", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/Anh%20V%E1%BA%ABn%20%C4%90%E1%BB%A3i.mp3" },
+      { id: 116, title: "Có Đôi Điều", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/C%C3%B3%20%C4%90%C3%B4i%20%C4%90i%E1%BB%81u.mp3" },
+      { id: 117, title: "Lặng", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/L%E1%BA%B7ng.mp3" },
+      { id: 118, title: "Night Time", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/Night%20Time.mp3" },
+      { id: 119, title: "Perfect (feat. Tyronee)", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/Perfect.mp3" },
+      { id: 120, title: "Take Off Your Hands (feat. Obito)", artist: "Shiki", album: "Lặng", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/L%E1%BA%B7ng%20by%20Shiki/Take%20Off%20Your%20Hands.mp3" },
+      
+      { id: 121, title: "tình yêu có nghĩa là gì?", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/t%C3%ACnh%20y%C3%AAu%20c%C3%B3%20ngh%C4%A9a%20l%C3%A0%20g%C3%AC_.mp3" },
+      { id: 122, title: "người đẹp ngủ", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/ng%C6%B0%E1%BB%9Di%20%C4%91%E1%BA%B9p%20ng%E1%BB%A7.mp3" },
+      { id: 123, title: "người điên", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/ng%C6%B0%E1%BB%9Di%20%C4%91i%C3%AAn.mp3" },
+      { id: 124, title: "kho báu đánh rơi (feat. GREY D)", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/kho%20b%C3%A1u%20%C4%91%C3%A1nh%20r%C6%A1i%20(feat.%20GREY%20D).mp3" },
+      { id: 125, title: "ái", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/%C3%A1i.mp3" },
+      { id: 126, title: "làm lành chữa tình", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/l%C3%A0m%20l%C3%A0nh%20ch%E1%BB%AFa%20t%C3%ACnh.mp3" },
+      { id: 127, title: "thế giới thần tiên", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/th%E1%BA%BF%20gi%E1%BB%9Bi%20th%E1%BA%A7n%20ti%C3%AAn.mp3" },
+      { id: 128, title: "những đốm sáng", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/nh%E1%BB%AFng%20%C4%91%E1%BB%91m%20s%C3%A1ng.mp3" },
+      { id: 129, title: "nữ siêu anh hùng", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/n%E1%BB%AF%20si%C3%AAu%20anh%20h%C3%B9ng.mp3" },
+      { id: 130, title: "ghệ iu dấu của em ơi", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/gh%E1%BB%87%20iu%20d%E1%BA%A5u%20c%E1%BB%A7a%20em%20%C6%A1i.mp3" },
+      { id: 131, title: "nếu lúc đó", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/n%E1%BA%BFu%20l%C3%BAc%20%C4%91%C3%B3.mp3" },
+      { id: 132, title: "kết thúc = mở đầu", artist: "tlinh", album: "ái", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/%C3%A1i%20by%20tlinh/k%E1%BA%BFt%20th%C3%BAc%20%3D%20m%E1%BB%9F%20%C4%91%E1%BA%A7u.mp3" },
+      
+      { id: 133, title: "Suit & Tie (feat. Hoàng Tôn)", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/SUIT%20%26%20TIE.mp3" },
+      { id: 134, title: "Va Vào Giai Điệu Này", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/VA%20V%C3%80O%20GIAI%20%C4%90I%E1%BB%86U%20N%C3%80Y.mp3" },
+      { id: 135, title: "Tối Nay Ta Đi Đâu Nhờ", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/T%E1%BB%90I%20NAY%20TA%20%C4%90I%20%C4%90%C3%82U%20NH%E1%BB%9C.mp3" },
+      { id: 136, title: "Chỉ Một Đêm Nữa Thôi (feat. tlinh)", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/CH%E1%BB%88%20M%E1%BB%98T%20%C4%90%C3%8AM%20N%E1%BB%AEA%20TH%C3%94I.mp3" },
+      { id: 137, title: "Thôi Em Đừng Đi (feat. Trung Trần)", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/TH%C3%94I%20EM%20%C4%90%E1%BB%AANG%20%C4%90I.mp3" },
+      { id: 138, title: "50/50 (Interlude)", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/50_50%20(INTERLUDE).mp3" },
+      { id: 139, title: "Show Me Love", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/SHOW%20ME%20LOVE.mp3" },
+      { id: 140, title: "Thờ Er", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/TH%E1%BB%9C%20ER.mp3" },
+      { id: 141, title: "Ai Mới Là Kẻ Xấu Xa", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/AI%20M%E1%BB%9AI%20L%C3%80%20K%E1%BA%BA%20X%E1%BA%A4U%20XA.mp3" },
+      { id: 142, title: "Anh Đã Ổn Hơn", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/ANH%20%C4%90%C3%83%20%E1%BB%94N%20H%C6%A0N.mp3" },
+      { id: 143, title: "Badtrip", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/BADTRIP.mp3" },
+      { id: 144, title: "99", artist: "MCK", album: "99% (prod. LOPE Pham)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/99%25%20by%20MCK/99.mp3" },
+      
+      { id: 145, title: "Phóng Đổ Tim Em", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/Ph%C3%B3ng%20%C4%90%E1%BB%95%20Tim%20Em.mp3" },
+      { id: 146, title: "Call Me", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/Call%20Me.mp3" },
+      { id: 147, title: "Cầu Vĩnh Tuy", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/C%E1%BA%A7u%20V%C4%A9nh%20Tuy.mp3" },
+      { id: 148, title: "Từng Quen", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/T%E1%BB%ABng%20Quen.mp3" },
+      { id: 149, title: "bé ơi từ từ", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/b%C3%A9%20%C6%A1i%20t%E1%BB%AB%20t%E1%BB%AB.mp3" },
+      { id: 150, title: "Lối Chơi (Interlude)", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/L%E1%BB%91i%20Ch%C6%A1i%20(Interlude).mp3" },
+      { id: 151, title: "Tình Yêu Vĩ Mô", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/T%C3%ACnh%20Y%C3%AAu%20V%C4%A9%20M%C3%B4.mp3" },
+      { id: 152, title: "Việt Kiều", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/Vi%E1%BB%87t%20Ki%E1%BB%81u.mp3" },
+      { id: 153, title: "ĐĐĐ", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/%C4%90%C4%90%C4%90.mp3" },
+      { id: 154, title: "Quyền Anh", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/Quy%E1%BB%81n%20Anh.mp3" },
+      { id: 155, title: "Tò Te Tí", artist: "Wren Evans", album: "Loi Choi: The Neo Pop Punk (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Loi%20Choi%20by%20Wren%20Evans/T%C3%B2%20Te%20T%C3%AD.mp3" },
+      
+      { id: 156, title: "Thu Đợi", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Thu%20%C4%90%E1%BB%A3i.mp3" },
+      { id: 157, title: "Không Thử Sao Biết", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Kh%C3%B4ng%20Th%E1%BB%AD%20Sao%20Bi%E1%BA%BFt.mp3" },
+      { id: 158, title: "Ngủ Quên", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Ng%E1%BB%A7%20Qu%C3%AAn.mp3" },
+      { id: 159, title: "Chờ Trong Trăng", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Ch%E1%BB%9D%20Trong%20Tr%C4%83ng.mp3" },
+      { id: 160, title: "144", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/144.mp3" },
+      { id: 161, title: "gắn bó né tránh sợ hãi (interlude)", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/g%E1%BA%AFn%20b%C3%B3%20n%C3%A9%20tr%C3%A1nh%20s%E1%BB%A3%20h%C3%A3i%20(interlude).mp3" },
+      { id: 162, title: "Vừa Tìm Thấy Đã Đánh Mất", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/V%E1%BB%ABa%20T%C3%ACm%20Th%E1%BA%A5y%20%C4%90%C3%A3%20%C4%90%C3%A1nh%20M%E1%BA%A5t.mp3" },
+      { id: 163, title: "mưa chưa tạnh (interlude)", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/m%C6%B0a%20ch%C6%B0a%20t%E1%BA%A1nh%20(interlude).mp3" },
+      { id: 164, title: "Gió Đưa Tình", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Gi%C3%B3%20%C4%90%C6%B0a%20T%C3%ACnh.mp3" },
+      { id: 165, title: "Yêu 4 Real", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/Y%C3%AAu%204%20Real.mp3" },
+      { id: 166, title: "Nội Bài", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/N%E1%BB%99i%20B%C3%A0i.mp3" },
+      { id: 167, title: "Nổ không?", artist: "Wren Evans", album: "Nổ (prod. itsnk)", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/N%E1%BB%95%20by%20Wren%20Evans/N%E1%BB%95%20kh%C3%B4ng_.mp3" },
+      
+      { id: 168, title: "The Way I Am", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/The%20Way%20I%20Am.mp3" },
+      { id: 169, title: "Attention", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Attention.mp3" },
+      { id: 170, title: "LA Girls", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/LA%20Girls.mp3" },
+      { id: 171, title: "How Long", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/How%20Long.mp3" },
+      { id: 172, title: "Done For Me (feat. Kehlani)", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Done%20for%20Me%20(feat.%20Kehlani).mp3" },
+      { id: 173, title: "Patient", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Patient.mp3" },
+      { id: 174, title: "If You Leave Me Now (feat. Boyz II Men)", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/If%20You%20Leave%20Me%20Now%20(feat.%20Boyz%20II%20Men).mp3" },
+      { id: 175, title: "BOY", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/BOY.mp3" },
+      { id: 176, title: "Slow It Down", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Slow%20It%20Down.mp3" },
+      { id: 177, title: "Change (feat. James Taylor)", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Change%20(feat.%20James%20Taylor).mp3" },
+      { id: 178, title: "Somebody Told Me", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Somebody%20Told%20Me.mp3" },
+      { id: 179, title: "Empty Cups", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Empty%20Cups.mp3" },
+      { id: 180, title: "Through It All", artist: "Charlie Puth", album: "Voicenotes", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/Voicenotes%20by%20Charlie%20Puth/Through%20It%20All.mp3" }
     ];
 
-    // Thêm 111 bài hát trống (id từ 71 tới 181) để bạn tự chèn thông tin khi cần
     for (let i = 71; i <= 181; i++) {
-      rawSongs.push({
-        id: i,
-        title: "",
-        artist: "",
-        album: "",
-        cover: "",
-        src: ""
-      });
+      rawSongs.push({ id: i, title: "", artist: "", album: "", cover: "", src: "" });
     }
 
-    // Filter out blank entries for active play
     const songs = rawSongs.filter(s => s.title && s.src);
 
-/* =========================================================
-   GLOBAL APP STATE & USER ACCOUNTS MANAGEMENT
-========================================================== */
-let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
-  'thhaof': '300172',
-  'irynna': '123456',
-  'thuan': '123456',
-  'caroline': '123456',
-  'annie': '123456',
-  'khanh': '123456'
-};
-
+    /* GLOBAL APP STATE */
+    let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || { 'thhaof': '300172' };
     let currentUser = null;
     let playlists = [];
     let currentQueue = [...songs];
@@ -849,9 +964,8 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
     let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
 
     const audio = document.getElementById('audioPlayer');
-    const songDurations = {}; // Store duration cache
+    const songDurations = {};
 
-    // Helper: format time in mm:ss
     function formatTime(seconds) {
       if (isNaN(seconds) || seconds === Infinity) return "0:00";
       const mins = Math.floor(seconds / 60);
@@ -859,19 +973,15 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
       return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
-    // Helper: format total album seconds to human readable string
     function formatFullDuration(totalSecs) {
       if (!totalSecs || isNaN(totalSecs)) return "0:00";
       const hours = Math.floor(totalSecs / 3600);
       const mins = Math.floor((totalSecs % 3600) / 60);
       const secs = Math.floor(totalSecs % 60);
-      if (hours > 0) {
-        return `${hours} HR ${mins} MIN`;
-      }
+      if (hours > 0) return `${hours} HR ${mins} MIN`;
       return `${mins} MIN ${secs} SEC`;
     }
 
-    // Preload & Pre-calculate duration for all songs
     function preloadDurations() {
       songs.forEach(song => {
         const tempAudio = new Audio();
@@ -892,8 +1002,17 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
     }
 
     /* =========================================================
-       AUTHENTICATION & ACCOUNT MANAGEMENT LOGIC
+       RANGE SLIDER DYNAMIC FILL COLOR LOGIC
     ========================================================== */
+    function updateRangeSliderColor(slider) {
+      const min = slider.min ? parseFloat(slider.min) : 0;
+      const max = slider.max ? parseFloat(slider.max) : 100;
+      const val = parseFloat(slider.value);
+      const percentage = ((val - min) / (max - min)) * 100;
+      slider.style.background = `linear-gradient(to right, #3b82f6 ${percentage}%, #374151 ${percentage}%)`;
+    }
+
+    /* AUTHENTICATION */
     async function handleLogin(e) {
       e.preventDefault();
       const username = document.getElementById('usernameInput').value.trim();
@@ -925,7 +1044,6 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
         return;
       }
 
-      // Xóa tài khoản cũ nếu đổi tên
       if (currentUser && currentUser !== newUsername) {
         delete accountsDB[currentUser];
       }
@@ -960,9 +1078,9 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
     }
 
     /* =========================================================
-       PERMANENT STORAGE & SHARED PLAYLISTS
+       PERMANENT STORAGE & SHARED PLAYLISTS (INDEXEDDB + LOCALSTORAGE)
     ========================================================== */
-    const DB_NAME = 'thhaof_music_db_v4';
+    const DB_NAME = 'thhaof_music_db_v5';
     const STORE_NAME = 'playlists_store';
 
     function openIndexedDB() {
@@ -982,7 +1100,6 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
     async function savePlaylistsPermanent() {
       if (!currentUser) return;
       
-      // Phân chia playlist của mình và playlist được shared
       const myPlaylists = playlists.filter(p => p.owner === currentUser);
       const accountKey = `user_playlists_${currentUser}`;
 
@@ -997,9 +1114,7 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
       try {
         localStorage.setItem(accountKey, JSON.stringify(myPlaylists));
         
-        // Lưu các playlist có trạng thái isShared vào bộ lưu trữ Shared chung
         let sharedGlobal = JSON.parse(localStorage.getItem('shared_playlists_global')) || [];
-        // Xóa tất cả các shared playlist thuộc về currentUser cũ và cập nhật bản mới nhất
         sharedGlobal = sharedGlobal.filter(p => p.owner !== currentUser);
         const myShared = myPlaylists.filter(p => p.isShared);
         sharedGlobal.push(...myShared);
@@ -1023,6 +1138,10 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
           req.onerror = () => reject([]);
         });
       } catch (e) {
+        loadedOwnPlaylists = [];
+      }
+
+      if (!loadedOwnPlaylists || loadedOwnPlaylists.length === 0) {
         try {
           const localData = localStorage.getItem(accountKey);
           loadedOwnPlaylists = localData ? JSON.parse(localData) : [];
@@ -1031,10 +1150,8 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
         }
       }
 
-      // Đảm bảo gắn quyền sở hữu
       loadedOwnPlaylists.forEach(p => p.owner = currentUser);
 
-      // Tải thêm các Shared Playlists từ người dùng khác
       let globalShared = JSON.parse(localStorage.getItem('shared_playlists_global')) || [];
       let otherShared = globalShared.filter(p => p.owner !== currentUser);
 
@@ -1042,9 +1159,60 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
       renderSidebarPlaylists();
     }
 
-    /* =========================================================
-       PLAYLIST MANAGEMENT
-    ========================================================== */
+    /* EXPORT & IMPORT PLAYLIST LOGIC FOR PERMANENT BACKUP */
+    function exportPlaylistsToFile() {
+      const myPlaylists = playlists.filter(p => p.owner === currentUser);
+      if (myPlaylists.length === 0) {
+        alert("BẠN CHƯA CÓ PLAYLIST NÀO ĐỂ XUẤT!");
+        return;
+      }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(myPlaylists, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `playlists_backup_${currentUser}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function triggerImportPlaylist() {
+      document.getElementById('importFileInput').click();
+    }
+
+    async function importPlaylistsFromFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (Array.isArray(importedData)) {
+            importedData.forEach(p => p.owner = currentUser);
+            
+            // Merge with existing playlists avoiding duplicate IDs
+            const existingIds = new Set(playlists.map(p => p.id));
+            importedData.forEach(p => {
+              if (!existingIds.has(p.id)) {
+                playlists.push(p);
+              }
+            });
+
+            await savePlaylistsPermanent();
+            renderSidebarPlaylists();
+            alert("ĐÃ NHẬP PLAYLIST THÀNH CÔNG!");
+          } else {
+            alert("TỆP FILE KHÔNG ĐÚNG ĐỊNH DẠNG PLAYLIST!");
+          }
+        } catch (err) {
+          alert("LỖI ĐỌC TỆP JSON!");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    /* PLAYLIST MANAGEMENT */
     function openModal(id) {
       document.getElementById(id).classList.remove('hidden');
     }
@@ -1174,22 +1342,18 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
       switchView('discover');
     }
 
-    /* =========================================================
-       AUDIO PLAYBACK CONTROL (SỬA LỖI TẠM DỪNG & PHÁT TIẾP)
-    ========================================================== */
+    /* AUDIO PLAYBACK CONTROL */
     function playSongFromList(songId, queueSource) {
       const targetSong = songs.find(s => s.id === songId);
       if (!targetSong) return;
 
       const currentPlayingSong = currentQueue[currentSongIndex];
 
-      // Nếu bấm vào đúng bài đang phát
       if (currentPlayingSong && currentPlayingSong.id === songId) {
         togglePlay();
         return;
       }
 
-      // Nối hàng đợi phát tùy theo nguồn bấm
       if (queueSource === 'all') {
         currentQueue = [...songs];
       }
@@ -1251,7 +1415,6 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
         if (overlayIcon) overlayIcon.className = "fa-solid fa-play text-sm ml-0.5";
       }
 
-      // Cập nhật lại biểu tượng ở tất cả dòng danh sách
       document.querySelectorAll('.song-item-card').forEach(card => {
         const songId = parseInt(card.getAttribute('data-song-id'));
         const currentPlayingSong = currentQueue[currentSongIndex];
@@ -1260,7 +1423,7 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
           if (currentPlayingSong && currentPlayingSong.id === songId && isPlaying) {
             icon.className = "fa-solid fa-pause text-sm";
           } else {
-            icon.className = "fa-solid fa-play text-sm";
+            icon.className = "fa-solid fa-play text-xs ml-0.5";
           }
         }
       });
@@ -1270,7 +1433,7 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
       const currentPlayingSong = currentQueue[currentSongIndex];
       document.querySelectorAll('.song-item-card').forEach(card => {
         const songId = parseInt(card.getAttribute('data-song-id'));
-        if (currentPlayingSong && currentPlayingSong.id === songId) {
+        if (currentPlayingSong && songId === currentPlayingSong.id) {
           card.classList.add('playing-item');
         } else {
           card.classList.remove('playing-item');
@@ -1297,13 +1460,7 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
     function toggleShuffle() {
       shuffleMode = !shuffleMode;
       const btn = document.getElementById('shuffleBtn');
-      if (shuffleMode) {
-        btn.classList.add('text-blue-500');
-        btn.classList.remove('text-gray-400');
-      } else {
-        btn.classList.remove('text-blue-500');
-        btn.classList.add('text-gray-400');
-      }
+      btn.className = shuffleMode ? "text-blue-500 hover:text-blue-400 text-sm transition p-2" : "text-gray-400 hover:text-white text-sm transition p-2";
     }
 
     function toggleRepeat() {
@@ -1317,19 +1474,11 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
       } else if (repeatMode === 1) {
         btn.className = "text-blue-500 hover:text-blue-400 text-sm transition relative p-2";
         badge.classList.add('hidden');
-      } else if (repeatMode === 2) {
+      } else {
         btn.className = "text-blue-500 hover:text-blue-400 text-sm transition relative p-2";
         badge.classList.remove('hidden');
       }
     }
-
-    audio.ontimeupdate = () => {
-      if (!audio.duration) return;
-      const bar = document.getElementById('progressBar');
-      bar.value = (audio.currentTime / audio.duration) * 100;
-      document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
-      document.getElementById('durationTime').innerText = formatTime(audio.duration);
-    };
 
     audio.onended = () => {
       if (repeatMode === 2) {
@@ -1340,252 +1489,237 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
       }
     };
 
+    /* PROGRESS BAR & VOLUME CONTROL WITH Dynamic Color Track */
+    audio.ontimeupdate = () => {
+      if (!isNaN(audio.duration)) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        const progressBar = document.getElementById('progressBar');
+        progressBar.value = progress || 0;
+        updateRangeSliderColor(progressBar);
+
+        document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+        document.getElementById('durationTime').innerText = formatTime(audio.duration);
+      }
+    };
+
     function seekAudio() {
-      if (!audio.duration) return;
-      const bar = document.getElementById('progressBar');
-      audio.currentTime = (bar.value / 100) * audio.duration;
+      const progressBar = document.getElementById('progressBar');
+      if (audio.duration) {
+        audio.currentTime = (progressBar.value / 100) * audio.duration;
+      }
+      updateRangeSliderColor(progressBar);
     }
 
     function setVolume() {
-      const volBar = document.getElementById('volumeBar');
-      audio.volume = volBar.value / 100;
-      const icon = document.getElementById('volumeIcon');
+      const volumeBar = document.getElementById('volumeBar');
+      audio.volume = volumeBar.value / 100;
+      updateRangeSliderColor(volumeBar);
+
+      const volIcon = document.getElementById('volumeIcon');
       if (audio.volume === 0) {
-        icon.className = "fa-solid fa-volume-xmark text-gray-400 text-sm";
+        volIcon.className = "fa-solid fa-volume-xmark text-gray-500 text-sm cursor-pointer";
       } else if (audio.volume < 0.5) {
-        icon.className = "fa-solid fa-volume-low text-gray-400 text-sm";
+        volIcon.className = "fa-solid fa-volume-low text-gray-400 text-sm cursor-pointer";
       } else {
-        icon.className = "fa-solid fa-volume-high text-gray-400 text-sm";
+        volIcon.className = "fa-solid fa-volume-high text-gray-400 text-sm cursor-pointer";
       }
     }
 
-    function playAllQueue(songList) {
-      if (!songList || songList.length === 0) return;
-      currentQueue = [...songList];
-      currentSongIndex = 0;
-      loadAndPlayCurrentSong();
-    }
-
-    /* =========================================================
-       VIEW SWITCHING & RENDERING
-    ========================================================== */
-    function switchView(viewName) {
-      currentActivePlaylistId = null;
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
-      renderSidebarPlaylists();
-
-      const views = ['discoverView', 'albumsView', 'artistsView', 'groupDetailView', 'playlistDetailView'];
-      views.forEach(v => document.getElementById(v).classList.add('hidden'));
-
-      if (viewName === 'discover') {
-        document.getElementById('nav-discover').classList.add('active-nav');
-        document.getElementById('discoverView').classList.remove('hidden');
-        renderAllSongsList(songs);
-      } else if (viewName === 'albums') {
-        document.getElementById('nav-albums').classList.add('active-nav');
-        document.getElementById('albumsView').classList.remove('hidden');
-        renderAlbumsView();
-      } else if (viewName === 'artists') {
-        document.getElementById('nav-artists').classList.add('active-nav');
-        document.getElementById('artistsView').classList.remove('hidden');
-        renderArtistsView();
+    let lastVolume = 80;
+    function toggleMute() {
+      const volumeBar = document.getElementById('volumeBar');
+      if (audio.volume > 0) {
+        lastVolume = volumeBar.value;
+        volumeBar.value = 0;
+      } else {
+        volumeBar.value = lastVolume || 80;
       }
+      setVolume();
     }
 
-    function generateSongRowHTML(song, index, queueSource) {
-      const currentPlayingSong = currentQueue[currentSongIndex];
-      const isThisPlaying = currentPlayingSong && currentPlayingSong.id === song.id;
-      const durationText = songDurations[song.id] ? formatTime(songDurations[song.id]) : "0:00";
+    /* RENDER SONG CARDS */
+    function createSongCardHTML(song, index, sourceListStr) {
+      const isCurrent = currentQueue[currentSongIndex] && currentQueue[currentSongIndex].id === song.id;
+      const durationText = songDurations[song.id] ? formatTime(songDurations[song.id]) : '--:--';
 
       return `
-        <div data-song-id="${song.id}" class="song-item-card flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
+        <div data-song-id="${song.id}" class="song-item-card flex items-center justify-between p-3.5 rounded-xl hover:bg-white/5 border border-transparent transition group ${isCurrent ? 'playing-item' : ''}">
           <div class="flex items-center gap-4 overflow-hidden">
-            <!-- Avatar Cover with Overlay Play/Pause Button -->
-            <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
-              <img src="${song.cover}" class="w-full h-full object-cover" alt="cover">
-              <button
-                onclick="playSongFromList(${song.id}, '${queueSource}')"
-                class="absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition duration-200"
-                title="PLAY / PAUSE"
-              >
-                <i class="fa-solid ${isThisPlaying && isPlaying ? 'fa-pause' : 'fa-play'} text-sm"></i>
-              </button>
-            </div>
-
+            <span class="text-xs font-bold text-gray-500 w-5 text-center group-hover:hidden">${index + 1}</span>
+            <button onclick="playSongFromList(${song.id}, '${sourceListStr}')" class="hidden group-hover:flex w-5 text-blue-400 items-center justify-center">
+              <i class="${isCurrent && isPlaying ? 'fa-solid fa-pause text-sm' : 'fa-solid fa-play text-xs ml-0.5'}"></i>
+            </button>
+            <img src="${song.cover}" class="w-11 h-11 rounded-lg object-cover flex-shrink-0" alt="Cover">
             <div class="overflow-hidden">
-              <p class="text-sm font-bold text-white truncate normal-case">${song.title}</p>
-              <p class="text-xs text-gray-400 truncate normal-case mt-0.5">${song.artist} • <span class="text-gray-500">${song.album}</span></p>
+              <h5 class="text-sm font-bold text-white truncate hover:text-blue-400 cursor-pointer normal-case" onclick="playSongFromList(${song.id}, '${sourceListStr}')">${song.title}</h5>
+              <p class="text-xs text-gray-400 truncate normal-case">${song.artist} • <span class="text-gray-500">${song.album}</span></p>
             </div>
           </div>
-
-          <div class="flex items-center gap-4 flex-shrink-0">
-            <!-- Duration -->
-            <span class="text-xs font-semibold text-gray-400 duration-song-${song.id}">${durationText}</span>
-
-            <!-- Add to Playlist Button -->
-            <button onclick="openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-700/50 transition">
-              <i class="fa-solid fa-plus text-xs"></i>
+          <div class="flex items-center gap-5">
+            <span class="text-xs text-gray-400 font-medium duration-song-${song.id}">${durationText}</span>
+            <button onclick="openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition">
+              <i class="fa-solid fa-plus text-sm"></i>
             </button>
           </div>
         </div>
       `;
     }
 
-    function renderAllSongsList(songArray) {
+    function renderSongsList(listToRender = songs) {
       const container = document.getElementById('songList');
-      document.getElementById('totalSongsCount').innerText = `${songArray.length} SONGS`;
-      container.innerHTML = songArray.map((s, idx) => generateSongRowHTML(s, idx, 'all')).join('');
-    }
+      container.innerHTML = '';
+      document.getElementById('totalSongsCount').innerText = `${listToRender.length} SONGS`;
 
-    function renderAlbumsView() {
-      const container = document.getElementById('albumList');
-      const albumsMap = {};
-
-      songs.forEach(s => {
-        if (!albumsMap[s.album]) {
-          albumsMap[s.album] = { name: s.album, artist: s.artist, cover: s.cover, count: 0 };
-        }
-        albumsMap[s.album].count++;
+      listToRender.forEach((song, idx) => {
+        container.innerHTML += createSongCardHTML(song, idx, 'all');
       });
-
-      container.innerHTML = Object.values(albumsMap).map(alb => `
-        <div onclick="openGroupDetail('album', '${alb.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-start">
-          <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-4 shadow-xl">
-            <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
-            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-              <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40">
-                <i class="fa-solid fa-play text-base ml-0.5"></i>
-              </div>
-            </div>
-          </div>
-          <h3 class="font-bold text-base text-white truncate w-full normal-case">${alb.name}</h3>
-          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.artist} • ${alb.count} SONGS</p>
-        </div>
-      `).join('');
-    }
-
-    function renderArtistsView() {
-      const container = document.getElementById('artistList');
-      const artistsMap = {};
-
-      songs.forEach(s => {
-        if (!artistsMap[s.artist]) {
-          artistsMap[s.artist] = { name: s.artist, cover: s.cover, count: 0 };
-        }
-        artistsMap[s.artist].count++;
-      });
-
-      container.innerHTML = Object.values(artistsMap).map(art => `
-        <div onclick="openGroupDetail('artist', '${art.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-center text-center">
-          <div class="relative w-36 h-36 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-white/10">
-            <img src="${art.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="artist">
-            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-              <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40">
-                <i class="fa-solid fa-play text-sm ml-0.5"></i>
-              </div>
-            </div>
-          </div>
-          <h3 class="font-bold text-base text-white truncate w-full uppercase">${art.name}</h3>
-          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${art.count} TRACKS</p>
-        </div>
-      `).join('');
-    }
-
-    function openGroupDetail(type, key) {
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
-      currentActivePlaylistId = null;
-      renderSidebarPlaylists();
-
-      const views = ['discoverView', 'albumsView', 'artistsView', 'playlistDetailView'];
-      views.forEach(v => document.getElementById(v).classList.add('hidden'));
-      document.getElementById('groupDetailView').classList.remove('hidden');
-
-      let filteredSongs = [];
-      if (type === 'album') {
-        filteredSongs = songs.filter(s => s.album === key);
-        document.getElementById('groupDetailType').innerText = 'ALBUM';
-      } else {
-        filteredSongs = songs.filter(s => s.artist === key);
-        document.getElementById('groupDetailType').innerText = 'ARTIST';
-      }
-
-      const totalSecs = filteredSongs.reduce((acc, s) => acc + (songDurations[s.id] || 0), 0);
-      const fullDurationFormatted = formatFullDuration(totalSecs);
-
-      document.getElementById('groupDetailTitle').innerText = key;
-      document.getElementById('groupDetailCount').innerText = `${filteredSongs.length} SONGS • TOTAL DURATION: ${fullDurationFormatted}`;
-      document.getElementById('groupDetailCover').src = filteredSongs[0] ? filteredSongs[0].cover : '';
-
-      document.getElementById('groupPlayAllBtn').onclick = () => playAllQueue(filteredSongs);
-
-      const songsListContainer = document.getElementById('groupSongsList');
-      songsListContainer.innerHTML = filteredSongs.map((s, idx) => generateSongRowHTML(s, idx, 'group')).join('');
-    }
-
-    function openPlaylistDetail(playlistId) {
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
-      currentActivePlaylistId = playlistId;
-      renderSidebarPlaylists();
-
-      const views = ['discoverView', 'albumsView', 'artistsView', 'groupDetailView'];
-      views.forEach(v => document.getElementById(v).classList.add('hidden'));
-      document.getElementById('playlistDetailView').classList.remove('hidden');
-
-      const pl = playlists.find(p => p.id === playlistId);
-      if (!pl) return;
-
-      const isMine = pl.owner === currentUser;
-      document.getElementById('playlistDetailTitle').innerText = pl.name + (isMine ? '' : ` (BY ${pl.owner.toUpperCase()})`);
-
-      const playlistShareBadge = document.getElementById('playlistShareBadge');
-      if (pl.isShared) {
-        playlistShareBadge.classList.remove('hidden');
-      } else {
-        playlistShareBadge.classList.add('hidden');
-      }
-
-      const playlistSongs = songs.filter(s => pl.songIds.includes(s.id));
-      document.getElementById('playlistDetailCount').innerText = `${playlistSongs.length} SONGS`;
-
-      document.getElementById('playAllBtn').onclick = () => playAllQueue(playlistSongs);
-      
-      const toggleShareBtn = document.getElementById('toggleShareBtn');
-      const deletePlaylistBtn = document.getElementById('deletePlaylistBtn');
-
-      if (isMine) {
-        toggleShareBtn.classList.remove('hidden');
-        deletePlaylistBtn.classList.remove('hidden');
-        toggleShareBtn.onclick = () => togglePlaylistShare(pl.id);
-        deletePlaylistBtn.onclick = () => deletePlaylist(pl.id);
-      } else {
-        toggleShareBtn.classList.add('hidden');
-        deletePlaylistBtn.classList.add('hidden');
-      }
-
-      const songsListContainer = document.getElementById('playlistSongsList');
-      if (playlistSongs.length === 0) {
-        songsListContainer.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">THIS PLAYLIST IS EMPTY</p>`;
-      } else {
-        songsListContainer.innerHTML = playlistSongs.map((s, idx) => generateSongRowHTML(s, idx, 'playlist')).join('');
-      }
     }
 
     function filterSongs() {
-      const q = document.getElementById('searchInput').value.toLowerCase().trim();
-      if (!q) {
-        renderAllSongsList(songs);
-        return;
-      }
-
-      const filtered = songs.filter(s =>
-        s.title.toLowerCase().includes(q) ||
-        s.artist.toLowerCase().includes(q) ||
-        s.album.toLowerCase().includes(q)
-      );
-
-      renderAllSongsList(filtered);
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      const filtered = songs.filter(s => s.title.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query) || s.album.toLowerCase().includes(query));
+      renderSongsList(filtered);
     }
 
+    /* ALBUMS & ARTISTS VIEWS */
+    function renderAlbumsView() {
+      const albumsMap = {};
+      songs.forEach(s => {
+        if (!albumsMap[s.album]) {
+          albumsMap[s.album] = { name: s.album, artist: s.artist, cover: s.cover, songs: [] };
+        }
+        albumsMap[s.album].songs.push(s);
+      });
+
+      const container = document.getElementById('albumList');
+      container.innerHTML = '';
+
+      Object.values(albumsMap).forEach(album => {
+        const div = document.createElement('div');
+        div.className = "glass-card p-4 rounded-2xl cursor-pointer";
+        div.onclick = () => openGroupDetail('album', album);
+        div.innerHTML = `
+          <img src="${album.cover}" class="w-full h-48 object-cover rounded-xl mb-4 shadow-lg" alt="Cover">
+          <h4 class="font-bold text-base text-white truncate normal-case">${album.name}</h4>
+          <p class="text-xs text-gray-400 mt-1 truncate normal-case">${album.artist} • ${album.songs.length} Tracks</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderArtistsView() {
+      const artistsMap = {};
+      songs.forEach(s => {
+        if (!artistsMap[s.artist]) {
+          artistsMap[s.artist] = { name: s.artist, cover: s.cover, songs: [] };
+        }
+        artistsMap[s.artist].songs.push(s);
+      });
+
+      const container = document.getElementById('artistList');
+      container.innerHTML = '';
+
+      Object.values(artistsMap).forEach(artist => {
+        const div = document.createElement('div');
+        div.className = "glass-card p-4 rounded-2xl cursor-pointer text-center";
+        div.onclick = () => openGroupDetail('artist', artist);
+        div.innerHTML = `
+          <img src="${artist.cover}" class="w-36 h-36 object-cover rounded-full mx-auto mb-4 shadow-xl border-2 border-white/10" alt="Artist">
+          <h4 class="font-bold text-base text-white truncate normal-case">${artist.name}</h4>
+          <p class="text-xs text-gray-400 mt-1 uppercase">${artist.songs.length} SONGS</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function openGroupDetail(type, group) {
+      hideAllViews();
+      currentActivePlaylistId = null;
+      renderSidebarPlaylists();
+
+      document.getElementById('groupDetailView').classList.remove('hidden');
+      document.getElementById('groupDetailCover').src = group.cover;
+      document.getElementById('groupDetailType').innerText = type.toUpperCase();
+      document.getElementById('groupDetailTitle').innerText = group.name;
+
+      let totalSecs = 0;
+      group.songs.forEach(s => totalSecs += (songDurations[s.id] || 0));
+
+      document.getElementById('groupDetailCount').innerText = `${group.songs.length} SONGS • ${formatFullDuration(totalSecs)}`;
+
+      const listContainer = document.getElementById('groupSongsList');
+      listContainer.innerHTML = '';
+      group.songs.forEach((song, idx) => {
+        listContainer.innerHTML += createSongCardHTML(song, idx, 'group');
+      });
+
+      document.getElementById('groupPlayAllBtn').onclick = () => {
+        currentQueue = [...group.songs];
+        currentSongIndex = 0;
+        loadAndPlayCurrentSong();
+      };
+    }
+
+    function openPlaylistDetail(playlistId) {
+      const pl = playlists.find(p => p.id === playlistId);
+      if (!pl) return;
+
+      hideAllViews();
+      currentActivePlaylistId = playlistId;
+      renderSidebarPlaylists();
+
+      document.getElementById('playlistDetailView').classList.remove('hidden');
+      document.getElementById('playlistDetailTitle').innerText = pl.name;
+
+      const isMine = pl.owner === currentUser;
+      const shareBadge = document.getElementById('playlistShareBadge');
+
+      if (pl.isShared) {
+        shareBadge.classList.remove('hidden');
+      } else {
+        shareBadge.classList.add('hidden');
+      }
+
+      const playlistSongs = songs.filter(s => pl.songIds.includes(s.id));
+      let totalSecs = 0;
+      playlistSongs.forEach(s => totalSecs += (songDurations[s.id] || 0));
+
+      document.getElementById('playlistDetailCount').innerText = `${playlistSongs.length} SONGS • ${formatFullDuration(totalSecs)}`;
+
+      const listContainer = document.getElementById('playlistSongsList');
+      listContainer.innerHTML = '';
+
+      if (playlistSongs.length === 0) {
+        listContainer.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST YET</p>`;
+      } else {
+        playlistSongs.forEach((song, idx) => {
+          listContainer.innerHTML += createSongCardHTML(song, idx, 'playlist');
+        });
+      }
+
+      document.getElementById('playAllBtn').onclick = () => {
+        if (playlistSongs.length > 0) {
+          currentQueue = [...playlistSongs];
+          currentSongIndex = 0;
+          loadAndPlayCurrentSong();
+        }
+      };
+
+      const shareBtn = document.getElementById('toggleShareBtn');
+      const deleteBtn = document.getElementById('deletePlaylistBtn');
+
+      if (isMine) {
+        shareBtn.classList.remove('hidden');
+        deleteBtn.classList.remove('hidden');
+        shareBtn.onclick = () => togglePlaylistShare(playlistId);
+        deleteBtn.onclick = () => deletePlaylist(playlistId);
+      } else {
+        shareBtn.classList.add('hidden');
+        deleteBtn.classList.add('hidden');
+      }
+    }
+
+    /* QUEUE SIDEBAR */
     function toggleQueueSidebar() {
       const sidebar = document.getElementById('queueSidebar');
       sidebar.classList.toggle('hidden');
@@ -1594,32 +1728,70 @@ let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
 
     function renderQueueSidebar() {
       const container = document.getElementById('queueListContainer');
-      container.innerHTML = currentQueue.map((s, idx) => {
-        const isThisPlaying = idx === currentSongIndex;
-        return `
-          <div onclick="playSongFromQueueIndex(${idx})" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-800/50 cursor-pointer transition ${isThisPlaying ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-gray-300'}">
-            <div class="flex items-center gap-3 overflow-hidden">
-              <img src="${s.cover}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" alt="cover">
-              <div class="overflow-hidden">
-                <p class="text-xs font-bold truncate normal-case">${s.title}</p>
-                <p class="text-[11px] text-gray-400 truncate normal-case">${s.artist}</p>
-              </div>
+      container.innerHTML = '';
+
+      currentQueue.forEach((song, idx) => {
+        const isCurrent = idx === currentSongIndex;
+        const div = document.createElement('div');
+        div.className = `flex items-center justify-between p-3 rounded-xl border transition ${isCurrent ? 'bg-blue-600/20 border-blue-500/50' : 'bg-[#181922] border-gray-800 hover:bg-gray-800/50'}`;
+        div.innerHTML = `
+          <div class="flex items-center gap-3 overflow-hidden cursor-pointer" onclick="playQueueIndex(${idx})">
+            <img src="${song.cover}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" alt="Cover">
+            <div class="overflow-hidden">
+              <h5 class="text-xs font-bold ${isCurrent ? 'text-blue-400' : 'text-white'} truncate normal-case">${song.title}</h5>
+              <p class="text-[11px] text-gray-400 truncate normal-case">${song.artist}</p>
             </div>
-            ${isThisPlaying ? '<i class="fa-solid fa-volume-high text-xs text-blue-400 mr-1"></i>' : ''}
           </div>
+          ${isCurrent ? '<i class="fa-solid fa-volume-high text-blue-400 text-xs ml-2"></i>' : ''}
         `;
-      }).join('');
+        container.appendChild(div);
+      });
     }
 
-    function playSongFromQueueIndex(idx) {
-      currentSongIndex = idx;
+    function playQueueIndex(index) {
+      currentSongIndex = index;
       loadAndPlayCurrentSong();
     }
 
-    /* Initialize Application */
-    window.addEventListener('DOMContentLoaded', () => {
+    /* SWITCH VIEW LOGIC */
+    function hideAllViews() {
+      document.getElementById('discoverView').classList.add('hidden');
+      document.getElementById('albumsView').classList.add('hidden');
+      document.getElementById('artistsView').classList.add('hidden');
+      document.getElementById('groupDetailView').classList.add('hidden');
+      document.getElementById('playlistDetailView').classList.add('hidden');
+    }
+
+    function switchView(viewName) {
+      hideAllViews();
+      currentActivePlaylistId = null;
+      renderSidebarPlaylists();
+
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
+
+      if (viewName === 'discover') {
+        document.getElementById('discoverView').classList.remove('hidden');
+        document.getElementById('nav-discover').classList.add('active-nav');
+        renderSongsList();
+      } else if (viewName === 'albums') {
+        document.getElementById('albumsView').classList.remove('hidden');
+        document.getElementById('nav-albums').classList.add('active-nav');
+        renderAlbumsView();
+      } else if (viewName === 'artists') {
+        document.getElementById('artistsView').classList.remove('hidden');
+        document.getElementById('nav-artists').classList.add('active-nav');
+        renderArtistsView();
+      }
+    }
+
+    /* INITIALIZATION */
+    window.onload = () => {
       preloadDurations();
-    });
+      // Initialize dynamic fill colors for inputs
+      updateRangeSliderColor(document.getElementById('progressBar'));
+      updateRangeSliderColor(document.getElementById('volumeBar'));
+      setVolume();
+    };
   </script>
 </body>
 </html>
