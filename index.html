@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
   >
 
-  <!-- Google Fonts: Montserrat & Inter for NhacCuatui modern feel with larger readable type -->
+  <!-- Google Fonts: Montserrat & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -24,11 +24,10 @@
       background-color: #0f1016;
       color: #f3f4f6;
       font-family: 'Montserrat', 'Inter', sans-serif;
-      font-size: 15px; /* Larger base font as requested */
+      font-size: 15px;
       overflow: hidden;
     }
 
-    /* Smooth transition utilities */
     .view-transition {
       animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
@@ -44,7 +43,6 @@
       }
     }
 
-    /* Custom Scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -266,7 +264,8 @@
             id="nav-discover"
             class="nav-item active-nav flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200"
           >
-            <i class="fa-solid fa-compass text-lg w-5 text-center text-blue-400"></i>
+            <!-- Updated Icon to fa-music -->
+            <i class="fa-solid fa-music text-lg w-5 text-center text-blue-400"></i>
             All Songs
           </a>
           <a
@@ -323,7 +322,7 @@
             class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-sm font-extrabold flex-shrink-0"
             id="userAvatar"
           >
-            T
+            G
           </div>
           <div class="overflow-hidden">
             <p
@@ -368,7 +367,7 @@
             type="text"
             id="searchInput"
             onkeyup="filterSongs()"
-            placeholder="Tìm kiếm bài hát, nghệ sĩ..."
+            placeholder="Search songs, artists..."
             class="bg-transparent text-sm w-full text-white focus:outline-none placeholder-gray-400"
           >
         </div>
@@ -379,7 +378,7 @@
             class="bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-600/25 transition active:scale-95"
           >
             <i class="fa-solid fa-plus"></i>
-            Tạo Playlist
+            Create Playlist
           </button>
         </div>
       </header>
@@ -388,27 +387,29 @@
       <!-- Dynamic Views Container -->
       <div id="contentView" class="view-transition">
 
-        <!-- DISCOVER VIEW -->
+        <!-- ALL SONGS VIEW (Converted to List Layout) -->
         <div id="discoverView">
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-extrabold tracking-tight text-white">Tất Cả Bài Hát</h2>
-            <span id="totalSongsCount" class="text-xs text-gray-400 font-medium">0 bài hát</span>
+            <h2 class="text-2xl font-extrabold tracking-tight text-white">All Songs</h2>
+            <span id="totalSongsCount" class="text-xs text-gray-400 font-medium">0 songs</span>
           </div>
-          <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            id="songList"
-          ></div>
+          <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
+            <div
+              class="flex flex-col gap-2"
+              id="songList"
+            ></div>
+          </div>
         </div>
 
         <!-- ALBUMS VIEW -->
         <div id="albumsView" class="hidden">
-          <h2 class="text-2xl font-extrabold tracking-tight text-white mb-6">Album Nổi Bật</h2>
+          <h2 class="text-2xl font-extrabold tracking-tight text-white mb-6">Featured Albums</h2>
           <div id="albumList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
 
         <!-- ARTISTS VIEW -->
         <div id="artistsView" class="hidden">
-          <h2 class="text-2xl font-extrabold tracking-tight text-white mb-6">Nghệ Sĩ</h2>
+          <h2 class="text-2xl font-extrabold tracking-tight text-white mb-6">Artists</h2>
           <div id="artistList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
 
@@ -421,7 +422,7 @@
               <h1 id="groupDetailTitle" class="text-3xl sm:text-4xl font-extrabold mt-1 mb-3 text-white"></h1>
               <p id="groupDetailCount" class="text-xs text-gray-400 mb-5 font-medium"></p>
               <button id="groupPlayAllBtn" class="bg-blue-600 hover:bg-blue-500 px-7 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 shadow-xl shadow-blue-600/30 transition active:scale-95">
-                <i class="fa-solid fa-play text-xs"></i> Phát Tất Cả
+                <i class="fa-solid fa-play text-xs"></i> Play All
               </button>
             </div>
           </div>
@@ -437,15 +438,15 @@
               <i class="fa-solid fa-music text-6xl text-white/80"></i>
             </div>
             <div class="flex-1">
-              <p class="text-xs uppercase font-bold text-purple-400 tracking-wider mb-1">Playlist Của Tôi</p>
+              <p class="text-xs uppercase font-bold text-purple-400 tracking-wider mb-1">My Playlist</p>
               <h1 id="playlistDetailTitle" class="text-3xl sm:text-4xl font-extrabold mt-1 mb-3 text-white">My Playlist</h1>
-              <p id="playlistDetailCount" class="text-xs text-gray-400 mb-5 font-medium">0 bài hát</p>
+              <p id="playlistDetailCount" class="text-xs text-gray-400 mb-5 font-medium">0 songs</p>
               <div class="flex items-center gap-3 flex-wrap">
                 <button id="playAllBtn" class="bg-blue-600 hover:bg-blue-500 px-7 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 shadow-xl shadow-blue-600/30 transition active:scale-95">
-                  <i class="fa-solid fa-play text-xs"></i> Phát Tất Cả
+                  <i class="fa-solid fa-play text-xs"></i> Play All
                 </button>
                 <button id="deletePlaylistBtn" class="bg-red-500/10 text-red-400 hover:bg-red-500/20 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition">
-                  <i class="fa-solid fa-trash text-xs"></i> Xóa Playlist
+                  <i class="fa-solid fa-trash text-xs"></i> Delete Playlist
                 </button>
               </div>
             </div>
@@ -466,7 +467,7 @@
       <div>
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-800">
           <h3 class="font-bold text-sm flex items-center gap-2 text-white">
-            <i class="fa-solid fa-bars-staggered text-blue-500"></i> Danh Sách Phát (Queue)
+            <i class="fa-solid fa-bars-staggered text-blue-500"></i> Playing Queue
           </h3>
           <button onclick="toggleQueueSidebar()" class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg hover:bg-gray-800 flex items-center justify-center transition">
             <i class="fa-solid fa-xmark text-sm"></i>
@@ -485,21 +486,21 @@
   <footer
     class="h-24 bg-[#14151f] border-t border-gray-800/80 px-6 flex items-center justify-between z-40 shadow-2xl"
   >
-    <!-- Song Info (Click cover or title to play/focus) -->
+    <!-- Song Info -->
     <div class="flex items-center gap-4 w-1/4">
       <img
         id="currentCover"
         src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100&h=100&fit=crop"
         class="w-14 h-14 rounded-xl object-cover shadow-lg border border-white/10 cursor-pointer hover:opacity-90 transition"
         alt="Album cover"
-        title="Phát bài hát"
+        title="Play Song"
       >
-      <div class="overflow-hidden cursor-pointer" title="Phát bài hát">
+      <div class="overflow-hidden cursor-pointer" title="Play Song">
         <h4
           id="currentTitle"
           class="text-sm font-bold truncate text-white hover:text-blue-400 transition"
         >
-          Chọn bài hát
+          Select a song
         </h4>
         <p
           id="currentArtist"
@@ -511,7 +512,7 @@
 
       <button
         onclick="openAddToPlaylistCurrent()"
-        title="Thêm vào playlist"
+        title="Add to playlist"
         class="text-gray-400 hover:text-blue-400 text-sm ml-2 w-8 h-8 rounded-lg hover:bg-gray-800/80 flex items-center justify-center transition"
       >
         <i class="fa-solid fa-plus"></i>
@@ -523,7 +524,7 @@
     <div class="flex flex-col items-center gap-2 w-1/2 max-w-xl">
       <div class="flex items-center justify-center gap-6">
         <!-- Shuffle Button -->
-        <button onclick="toggleShuffle()" title="Trộn bài (Shuffle)" id="shuffleBtn" class="text-gray-400 hover:text-white text-sm transition p-2">
+        <button onclick="toggleShuffle()" title="Shuffle" id="shuffleBtn" class="text-gray-400 hover:text-white text-sm transition p-2">
           <i class="fa-solid fa-shuffle"></i>
         </button>
 
@@ -531,7 +532,7 @@
         <button
           onclick="prevSong()"
           class="text-gray-300 hover:text-white text-sm transition p-2"
-          title="Bài trước"
+          title="Previous Song"
         >
           <i class="fa-solid fa-backward-step text-base"></i>
         </button>
@@ -540,7 +541,7 @@
         <button
           onclick="togglePlay()"
           class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 text-white flex items-center justify-center hover:scale-105 transition shadow-lg shadow-blue-500/30 active:scale-95"
-          title="Phát / Tạm dừng"
+          title="Play / Pause"
         >
           <i
             id="playIcon"
@@ -552,13 +553,13 @@
         <button
           onclick="nextSong()"
           class="text-gray-300 hover:text-white text-sm transition p-2"
-          title="Bài tiếp theo"
+          title="Next Song"
         >
           <i class="fa-solid fa-forward-step text-base"></i>
         </button>
 
-        <!-- Repeat Button (Tắt -> Lặp danh sách -> Lặp 1 bài) -->
-        <button onclick="toggleRepeat()" title="Chế độ Lặp (Repeat)" id="repeatBtn" class="text-gray-400 hover:text-white text-sm transition relative p-2">
+        <!-- Repeat Button -->
+        <button onclick="toggleRepeat()" title="Repeat Mode" id="repeatBtn" class="text-gray-400 hover:text-white text-sm transition relative p-2">
           <i class="fa-solid fa-repeat"></i>
           <span id="repeatOneBadge" class="absolute -top-1 -right-1 text-[9px] font-extrabold bg-blue-600 text-white px-1.5 py-0.2 rounded-full hidden">1</span>
         </button>
@@ -596,7 +597,7 @@
 
     <!-- Volume & Queue Toggle -->
     <div class="flex items-center gap-4 w-1/4 justify-end">
-      <button onclick="toggleQueueSidebar()" title="Danh sách phát" id="queueToggleBtn" class="text-gray-400 hover:text-white text-sm transition p-2.5 rounded-xl hover:bg-gray-800">
+      <button onclick="toggleQueueSidebar()" title="Playing Queue" id="queueToggleBtn" class="text-gray-400 hover:text-white text-sm transition p-2.5 rounded-xl hover:bg-gray-800">
         <i class="fa-solid fa-list-check"></i>
       </button>
 
@@ -629,7 +630,7 @@
   ========================================================== -->
   <script>
     /* =========================================================
-       SONG DATABASE
+       SONG DATABASE (Unchanged titles, artists, and albums)
     ========================================================== */
     const songs = [
       { id: 1, title: "Elegie", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/01.%20Elegie.mp3" },
@@ -650,13 +651,27 @@
       { id: 16, title: "Intenpol", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/16.%20Intenpol.mp3" },
       { id: 17, title: "Tây Thi", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/17.%20T%C3%A2y%20Thi.mp3" },
       { id: 18, title: "Hút và Hút", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/18.%20H%C3%BAt%20v%C3%A0%20H%C3%BAt.mp3" },
-      { id: 19, title: "Dưa Chua", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/19.%20D%C6%B0a%20Chua.mp3" },
+      { id: 19, title: "Dưa Chua", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/20. D%C6%B0a%20Chua.mp3" },
       { id: 20, title: "Xa Xôi (feat. Obito)", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/20.%20Xa%20X%C3%B4i%20(feat.%20Obito).mp3" }
+      { id: 21, title: "Che Phủ", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/21.%20Che%20Ph%E1%BB%A7.mp3" }
+      { id: 22, title: "Oanh M = Thuoc", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/22.%20Oanh%20M%20%3D%20Thuoc.mp3" },
+      { id: 23, title: "Ghet Xog Lai Thik", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/23.%20Ghet%20Xog%20Lai%20Thik.mp3" },
+      { id: 24, title: "Nhìn Kẻ Thù Của Tao", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/24.%20Nh%C3%ACn%20K%E1%BA%BB%20Th%C3%B9%20C%E1%BB%A7a%20Tao.mp3" },
+      { id: 25, title: "Envy (feat. THANHDRAW)", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/25.%20Envy%20(feat.%20THANHDRAW).mp3" },
+      { id: 26, title: "Cảm Ơn", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/26.%20C%E1%BA%A3m%20%C6%A0n.mp3" },
+      { id: 27, title: "Không Cần Lo Cho Tao", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/27.%20Kh%C3%B4ng%20C%E1%BA%A7n%20Lo%20Cho%20Tao.mp3" },
+      { id: 28, title: "Huh (feat. RPT Orijinn & THANHDRAW)", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/28.%20Huh%20(feat.%20RPT%20Orijinn%20%26%20THANHDRAW).mp3" },
+      { id: 29, title: "Nguyễn Văn Mười", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/29.%20Nguy%E1%BB%85n%20V%C4%83n%20M%C6%B0%E1%BB%9Di.mp3" },
+      { id: 30, title: "Thịt Lợn", artist: "MCK", album: "HVL", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/HVL%20by%20MCK/30.%20Th%E1%BB%8Bt%20L%E1%BB%A3n.mp3" },
+      { id: 31, title: "xương rồng (intro)", artist: "dangrangto", album: "trái tim băng bó", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/31.%20x%C6%B0%C6%A1ng%20r%E1%BB%93ng%20(intro).mp3" },
+      { id: 32, title: "my lil b*tch (feat. TeuYungBoy)", artist: "dangrangto", album: "trái tim băng bó", cover: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/cover.jpg", src: "https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/tr%C3%A1i%20tim%20b%C4%83ng%20b%C3%B3%20by%20dangrangto/32.%20my%20lil%20bitch%20(feat.%20TeuYungBoy).mp3" },
+        
     ];
 
     /* =========================================================
        GLOBAL APP STATE
     ========================================================== */
+    let currentUser = null;
     let playlists = [];
     let currentQueue = [...songs];
     let currentSongIndex = 0;
@@ -664,25 +679,30 @@
     let currentActivePlaylistId = null;
 
     let shuffleMode = false;
-    let repeatMode = 0; // 0: Off, 1: Repeat All/List, 2: Repeat 1 (Lặp 1 bài)
+    let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
 
     const audio = document.getElementById('audioPlayer');
 
     /* =========================================================
-       AUTHENTICATION LOGIC
+       AUTHENTICATION LOGIC (Bound to Account)
     ========================================================== */
-    function handleLogin(e) {
+    async function handleLogin(e) {
       e.preventDefault();
       const username = document.getElementById('usernameInput').value.trim();
       const password = document.getElementById('passwordInput').value;
 
       if (username === 'thhaof' && password === '300172') {
+        currentUser = username;
         document.getElementById('authModal').classList.add('hidden');
         document.getElementById('userNameDisplay').innerText = username;
         document.getElementById('userStatus').innerText = 'Premium Member';
         document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
         document.getElementById('loginError').classList.add('hidden');
         document.getElementById('passwordInput').value = '';
+
+        // Load account-specific playlists
+        await loadSavedPlaylistsPermanent();
+        switchView('discover');
       } else {
         document.getElementById('loginError').classList.remove('hidden');
       }
@@ -693,6 +713,9 @@
       audio.currentTime = 0;
       isPlaying = false;
       document.getElementById('playIcon').className = "fa-solid fa-play text-sm ml-0.5";
+      currentUser = null;
+      playlists = [];
+      renderSidebarPlaylists();
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('usernameInput').value = '';
       document.getElementById('passwordInput').value = '';
@@ -700,9 +723,9 @@
     }
 
     /* =========================================================
-       ROBUST PERMANENT STORAGE (IndexedDB + localStorage fallback)
+       ACCOUNT-BASED PERMANENT STORAGE (IndexedDB + localStorage)
     ========================================================== */
-    const DB_NAME = 'thhaof_music_db_v2';
+    const DB_NAME = 'thhaof_music_db_v3';
     const STORE_NAME = 'playlists_store';
 
     function openIndexedDB() {
@@ -720,26 +743,30 @@
     }
 
     async function savePlaylistsPermanent() {
+      if (!currentUser) return;
+      const accountKey = `user_playlists_${currentUser}`;
       try {
         const db = await openIndexedDB();
         const tx = db.transaction(STORE_NAME, 'readwrite');
-        tx.objectStore(STORE_NAME).put(playlists, 'user_playlists');
+        tx.objectStore(STORE_NAME).put(playlists, accountKey);
       } catch (err) {
         console.warn('IndexedDB save failed, falling back to localStorage', err);
       }
       try {
-        localStorage.setItem(DB_NAME, JSON.stringify(playlists));
+        localStorage.setItem(accountKey, JSON.stringify(playlists));
       } catch (err) {
         console.error('localStorage save failed', err);
       }
     }
 
     async function loadSavedPlaylistsPermanent() {
+      if (!currentUser) return;
+      const accountKey = `user_playlists_${currentUser}`;
       try {
         const db = await openIndexedDB();
         await new Promise((resolve, reject) => {
           const tx = db.transaction(STORE_NAME, 'readonly');
-          const req = tx.objectStore(STORE_NAME).get('user_playlists');
+          const req = tx.objectStore(STORE_NAME).get(accountKey);
           req.onsuccess = () => {
             if (req.result) {
               playlists = req.result;
@@ -751,26 +778,24 @@
           req.onerror = () => reject();
         });
       } catch (e) {
-        // Fallback to localStorage
         try {
-          const localData = localStorage.getItem(DB_NAME);
+          const localData = localStorage.getItem(accountKey);
           if (localData) {
             playlists = JSON.parse(localData);
           } else {
-            playlists = [{ id: 'p1', name: 'Nhạc Yêu Thích', songIds: [1, 2, 5] }];
+            playlists = [{ id: 'p1', name: 'My Favorites', songIds: [1, 2, 5] }];
           }
         } catch (err) {
-          playlists = [{ id: 'p1', name: 'Nhạc Yêu Thích', songIds: [1, 2, 5] }];
+          playlists = [{ id: 'p1', name: 'My Favorites', songIds: [1, 2, 5] }];
         }
       }
       renderSidebarPlaylists();
     }
 
     /* =========================================================
-       INITIALIZATION ON WINDOW LOAD
+       INITIALIZATION
     ========================================================== */
     window.onload = async () => {
-      await loadSavedPlaylistsPermanent();
       renderSongs(songs);
       audio.volume = 0.8;
       loadSong(0);
@@ -789,17 +814,17 @@
     }
 
     /* =========================================================
-       RENDER SONGS IN DISCOVER
+       RENDER SONGS IN ALL SONGS (Converted to List View)
     ========================================================== */
     function renderSongs(list) {
       const container = document.getElementById('songList');
-      document.getElementById('totalSongsCount').innerText = `${list.length} bài hát`;
+      document.getElementById('totalSongsCount').innerText = `${list.length} songs`;
       container.innerHTML = '';
 
       if (list.length === 0) {
         container.innerHTML = `
-          <div class="col-span-full text-center py-16 text-gray-400 text-sm font-medium">
-            Không tìm thấy bài hát nào phù hợp.
+          <div class="text-center py-16 text-gray-400 text-sm font-medium">
+            No matching songs found.
           </div>
         `;
         return;
@@ -807,20 +832,21 @@
 
       list.forEach((song, idx) => {
         container.innerHTML += `
-          <div class="glass-card p-4 rounded-2xl flex items-center justify-between group">
-            <div class="flex items-center gap-4 overflow-hidden flex-1 cursor-pointer" onclick="playSongById(${song.id})" title="Phát bài hát">
-              <img src="${song.cover}" class="w-13 h-13 rounded-xl object-cover shadow group-hover:scale-105 transition flex-shrink-0" alt="${song.title}">
+          <div class="flex items-center justify-between p-3.5 hover:bg-white/5 rounded-xl transition group">
+            <div class="flex items-center gap-4 flex-1 cursor-pointer overflow-hidden" onclick="playSongById(${song.id})" title="Play Song">
+              <span class="text-xs text-gray-500 w-5 text-center font-bold">${idx + 1}</span>
+              <img src="${song.cover}" class="w-11 h-11 rounded-xl object-cover shadow flex-shrink-0" alt="${song.title}">
               <div class="overflow-hidden flex-1">
-                <h4 class="text-sm font-bold truncate text-white group-hover:text-blue-400 transition">${song.title}</h4>
+                <h5 class="text-sm font-bold text-white truncate group-hover:text-blue-400 transition">${song.title}</h5>
                 <p class="text-xs text-gray-400 truncate font-medium mt-0.5">${song.artist}</p>
               </div>
             </div>
 
             <div class="flex items-center gap-1 flex-shrink-0">
-              <button onclick="openAddToPlaylistModal(${song.id})" title="Thêm vào playlist" class="text-gray-400 hover:text-blue-400 p-2 rounded-lg hover:bg-white/5 transition">
-                <i class="fa-solid fa-plus text-xs"></i>
+              <button onclick="openAddToPlaylistModal(${song.id})" title="Add to playlist" class="text-gray-400 hover:text-blue-400 text-xs p-2 rounded-lg hover:bg-white/5 transition">
+                <i class="fa-solid fa-plus"></i>
               </button>
-              <button onclick="playSongById(${song.id})" title="Phát ngay" class="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md shadow-blue-600/30">
+              <button onclick="playSongById(${song.id})" title="Play Now" class="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow">
                 <i class="fa-solid fa-play text-xs text-white ml-0.5"></i>
               </button>
             </div>
@@ -856,7 +882,7 @@
 
       if (playlists.length === 0) {
         container.innerHTML = `
-          <p class="text-xs text-gray-500 px-4 py-2 font-medium">Chưa có playlist nào.</p>
+          <p class="text-xs text-gray-500 px-4 py-2 font-medium">No playlists available.</p>
         `;
         return;
       }
@@ -897,7 +923,7 @@
 
       if (playlists.length === 0) {
         listContainer.innerHTML = `
-          <p class="text-xs text-gray-500 text-center py-4 font-medium">Chưa có playlist. Hãy tạo playlist mới trước!</p>
+          <p class="text-xs text-gray-500 text-center py-4 font-medium">No playlists found. Create a new playlist first!</p>
         `;
         return;
       }
@@ -958,7 +984,7 @@
       document.getElementById('playlistDetailView').classList.remove('hidden');
 
       document.getElementById('playlistDetailTitle').innerText = playlist.name;
-      document.getElementById('playlistDetailCount').innerText = `${playlist.songIds.length} bài hát`;
+      document.getElementById('playlistDetailCount').innerText = `${playlist.songIds.length} songs`;
 
       const playlistSongs = songs.filter(song => playlist.songIds.includes(song.id));
       const container = document.getElementById('playlistSongsList');
@@ -967,14 +993,14 @@
       if (playlistSongs.length === 0) {
         container.innerHTML = `
           <p class="text-xs text-gray-400 py-8 text-center font-medium">
-            Playlist này chưa có bài hát nào. Hãy thêm bài hát từ mục Tất Cả Bài Hát!
+            This playlist is empty. Add songs from All Songs!
           </p>
         `;
       } else {
         playlistSongs.forEach((song, index) => {
           container.innerHTML += `
             <div class="flex items-center justify-between p-3.5 hover:bg-white/5 rounded-xl transition group">
-              <div class="flex items-center gap-4 flex-1 cursor-pointer overflow-hidden" onclick="playPlaylistSong('${playlistId}', ${song.id})" title="Phát bài hát">
+              <div class="flex items-center gap-4 flex-1 cursor-pointer overflow-hidden" onclick="playPlaylistSong('${playlistId}', ${song.id})" title="Play Song">
                 <span class="text-xs text-gray-500 w-5 text-center font-bold">${index + 1}</span>
                 <img src="${song.cover}" class="w-11 h-11 rounded-xl object-cover shadow flex-shrink-0" alt="${song.title}">
                 <div class="overflow-hidden flex-1">
@@ -984,10 +1010,10 @@
               </div>
 
               <div class="flex items-center gap-1 flex-shrink-0">
-                <button onclick="toggleSongInPlaylist('${playlistId}', ${song.id})" title="Xóa khỏi playlist" class="text-gray-400 hover:text-red-400 text-xs p-2 rounded-lg hover:bg-white/5 transition">
+                <button onclick="toggleSongInPlaylist('${playlistId}', ${song.id})" title="Remove from playlist" class="text-gray-400 hover:text-red-400 text-xs p-2 rounded-lg hover:bg-white/5 transition">
                   <i class="fa-solid fa-minus"></i>
                 </button>
-                <button onclick="playPlaylistSong('${playlistId}', ${song.id})" title="Phát ngay" class="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow">
+                <button onclick="playPlaylistSong('${playlistId}', ${song.id})" title="Play Now" class="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow">
                   <i class="fa-solid fa-play text-xs text-white ml-0.5"></i>
                 </button>
               </div>
@@ -1001,7 +1027,7 @@
     }
 
     function deletePlaylist(playlistId) {
-      if (!confirm("Bạn có chắc chắn muốn xóa playlist này?")) return;
+      if (!confirm("Are you sure you want to delete this playlist?")) return;
       playlists = playlists.filter(p => p.id !== playlistId);
       savePlaylistsPermanent();
       renderSidebarPlaylists();
@@ -1082,7 +1108,7 @@
     }
 
     /* =========================================================
-       SHUFFLE & REPEAT MODES (Repeat 1 / Repeat All / Off)
+       SHUFFLE & REPEAT MODES
     ========================================================== */
     function toggleShuffle() {
       shuffleMode = !shuffleMode;
@@ -1092,29 +1118,25 @@
     }
 
     function toggleRepeat() {
-      // 0: Off -> 1: Repeat All -> 2: Repeat 1 -> 0
       repeatMode = (repeatMode + 1) % 3;
       const btn = document.getElementById('repeatBtn');
       const badge = document.getElementById('repeatOneBadge');
 
       if (repeatMode === 0) {
-        // Tắt repeat
         btn.classList.remove('text-blue-400', 'text-indigo-400');
         btn.classList.add('text-gray-400');
         badge.classList.add('hidden');
-        btn.title = "Chế độ Lặp: Tắt";
+        btn.title = "Repeat: Off";
       } else if (repeatMode === 1) {
-        // Lặp danh sách / tất cả
         btn.classList.remove('text-gray-400', 'text-indigo-400');
         btn.classList.add('text-blue-400');
         badge.classList.add('hidden');
-        btn.title = "Chế độ Lặp: Tất cả";
+        btn.title = "Repeat: All";
       } else if (repeatMode === 2) {
-        // Lặp 1 bài (Repeat 1)
         btn.classList.remove('text-gray-400', 'text-blue-400');
         btn.classList.add('text-indigo-400');
         badge.classList.remove('hidden');
-        btn.title = "Chế độ Lặp: 1 bài";
+        btn.title = "Repeat: One";
       }
     }
 
@@ -1172,14 +1194,11 @@
 
     audio.onended = () => {
       if (repeatMode === 2) {
-        // Repeat 1 bài hiện tại
         audio.currentTime = 0;
         playAudio();
       } else if (repeatMode === 1) {
-        // Lặp tất cả / danh sách
         nextSong();
       } else {
-        // Tắt lặp: nếu hết bài thì tiếp tục hoặc dừng
         if (currentSongIndex < currentQueue.length - 1) {
           nextSong();
         } else {
@@ -1189,7 +1208,7 @@
     };
 
     audio.onerror = () => {
-      console.error('Lỗi khi tải tệp âm thanh:', audio.src);
+      console.error('Error loading audio file:', audio.src);
       isPlaying = false;
       document.getElementById('playIcon').className = "fa-solid fa-play text-sm ml-0.5";
     };
@@ -1225,7 +1244,7 @@
     }
 
     /* =========================================================
-       SWITCH VIEW & ALBUMS / ARTISTS (Album kèm Artist)
+       SWITCH VIEW & ALBUMS / ARTISTS
     ========================================================== */
     function switchView(view) {
       document.getElementById('discoverView').classList.toggle('hidden', view !== 'discover');
@@ -1239,10 +1258,9 @@
       if (activeNav) activeNav.classList.add('active-nav');
 
       if (view === 'albums') {
-        // Lấy danh sách unique album cùng artist tương ứng
         const albumsMap = {};
         songs.forEach(s => {
-          const albumName = s.album || 'Album Khác';
+          const albumName = s.album || 'Other Album';
           if (!albumsMap[albumName]) {
             albumsMap[albumName] = { name: albumName, artist: s.artist, cover: s.cover, songs: [] };
           }
@@ -1256,7 +1274,7 @@
             <div class="overflow-hidden">
               <h4 class="font-bold text-white text-base truncate group-hover:text-blue-400 transition">${item.name}</h4>
               <p class="text-xs text-blue-400 font-semibold mt-1 truncate">${item.artist}</p>
-              <p class="text-xs text-gray-400 mt-1 font-medium">${item.songs.length} bài hát</p>
+              <p class="text-xs text-gray-400 mt-1 font-medium">${item.songs.length} songs</p>
             </div>
           </div>
         `).join('');
@@ -1272,7 +1290,7 @@
               <img src="${cover}" class="w-20 h-20 rounded-full object-cover shadow-lg group-hover:scale-105 transition flex-shrink-0 border-2 border-purple-500/30" alt="${artist}">
               <div class="overflow-hidden">
                 <h4 class="font-bold text-white text-base truncate group-hover:text-purple-400 transition">${artist}</h4>
-                <p class="text-xs text-gray-400 mt-1 font-medium">${artistSongs.length} bài hát</p>
+                <p class="text-xs text-gray-400 mt-1 font-medium">${artistSongs.length} songs</p>
               </div>
             </div>
           `;
@@ -1287,12 +1305,12 @@
       document.getElementById('playlistDetailView').classList.add('hidden');
       document.getElementById('groupDetailView').classList.remove('hidden');
 
-      const groupSongs = songs.filter(s => type === 'Album' ? (s.album || 'Album Khác') === name : s.artist === name);
+      const groupSongs = songs.filter(s => type === 'Album' ? (s.album || 'Other Album') === name : s.artist === name);
       const mainArtist = type === 'Album' ? (groupSongs[0]?.artist || '') : name;
 
-      document.getElementById('groupDetailType').innerText = type === 'Album' ? `Album của ${mainArtist}` : 'Nghệ Sĩ';
+      document.getElementById('groupDetailType').innerText = type === 'Album' ? `Album by ${mainArtist}` : 'Artist';
       document.getElementById('groupDetailTitle').innerText = name;
-      document.getElementById('groupDetailCount').innerText = `${groupSongs.length} bài hát`;
+      document.getElementById('groupDetailCount').innerText = `${groupSongs.length} songs`;
       document.getElementById('groupDetailCover').src = groupSongs[0]?.cover || '';
 
       const container = document.getElementById('groupSongsList');
@@ -1301,7 +1319,7 @@
       groupSongs.forEach((song, index) => {
         container.innerHTML += `
           <div class="flex items-center justify-between p-3.5 hover:bg-white/5 rounded-xl transition group">
-            <div class="flex items-center gap-4 flex-1 cursor-pointer overflow-hidden" onclick="playGroupSong('${type}', '${name}', ${song.id})" title="Phát bài hát">
+            <div class="flex items-center gap-4 flex-1 cursor-pointer overflow-hidden" onclick="playGroupSong('${type}', '${name}', ${song.id})" title="Play Song">
               <span class="text-xs text-gray-500 w-5 text-center font-bold">${index + 1}</span>
               <img src="${song.cover}" class="w-11 h-11 rounded-xl object-cover shadow flex-shrink-0" alt="${song.title}">
               <div class="overflow-hidden flex-1">
@@ -1311,10 +1329,10 @@
             </div>
 
             <div class="flex items-center gap-1 flex-shrink-0">
-              <button onclick="openAddToPlaylistModal(${song.id})" title="Thêm vào playlist" class="text-gray-400 hover:text-blue-400 text-xs p-2 rounded-lg hover:bg-white/5 transition">
+              <button onclick="openAddToPlaylistModal(${song.id})" title="Add to playlist" class="text-gray-400 hover:text-blue-400 text-xs p-2 rounded-lg hover:bg-white/5 transition">
                 <i class="fa-solid fa-plus"></i>
               </button>
-              <button onclick="playGroupSong('${type}', '${name}', ${song.id})" title="Phát ngay" class="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow">
+              <button onclick="playGroupSong('${type}', '${name}', ${song.id})" title="Play Now" class="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow">
                 <i class="fa-solid fa-play text-xs text-white ml-0.5"></i>
               </button>
             </div>
@@ -1332,7 +1350,7 @@
     }
 
     function playGroupSong(type, name, songId) {
-      const groupSongs = songs.filter(s => type === 'Album' ? (s.album || 'Album Khác') === name : s.artist === name);
+      const groupSongs = songs.filter(s => type === 'Album' ? (s.album || 'Other Album') === name : s.artist === name);
       currentQueue = [...groupSongs];
       currentSongIndex = currentQueue.findIndex(s => s.id === songId);
       if (currentSongIndex !== -1) {
