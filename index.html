@@ -826,12 +826,17 @@
     // Filter out blank entries for active play
     const songs = rawSongs.filter(s => s.title && s.src);
 
-    /* =========================================================
-       GLOBAL APP STATE & USER ACCOUNTS MANAGEMENT
-    ========================================================== */
-    let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
-      'thhaof': '300172'
-    };
+/* =========================================================
+   GLOBAL APP STATE & USER ACCOUNTS MANAGEMENT
+========================================================== */
+let accountsDB = JSON.parse(localStorage.getItem('music_player_accounts')) || {
+  'thhaof': '300172',
+  'irynna': '123456',
+  'thuan': '123456',
+  'caroline': '123456',
+  'annie': '123456',
+  'khanh': '123456'
+};
 
     let currentUser = null;
     let playlists = [];
