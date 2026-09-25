@@ -450,6 +450,12 @@
 
         <!-- ALBUM / ARTIST DETAIL VIEW -->
         <div id="groupDetailView" class="hidden">
+          <button 
+    onclick="goBackFromGroupDetail()" 
+    class="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white bg-gray-800/60 hover:bg-gray-800 px-4 py-2 rounded-xl transition cursor-pointer"
+  >
+    <i class="fa-solid fa-arrow-left"></i> BACK
+  </button>
           <div class="flex flex-col sm:flex-row items-start sm:items-end gap-6 mb-8 bg-gradient-to-r from-blue-950/40 via-transparent to-transparent p-6 rounded-2xl border border-white/5">
             <img id="groupDetailCover" src="" class="w-44 h-44 rounded-2xl object-cover shadow-2xl border border-white/10" alt="Cover">
             <div class="flex-1">
@@ -1297,6 +1303,7 @@
 
       const songsListContainer = document.getElementById('groupSongsList');
       songsListContainer.innerHTML = filteredSongs.map((s, idx) => generateSongRowHTML(s, idx, 'group')).join('');
+      document.querySelector('main').scrollTop = 0;
     }
 
     function openPlaylistDetail(playlistId) {
