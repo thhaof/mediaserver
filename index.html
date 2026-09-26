@@ -294,14 +294,17 @@
 
         <!-- Navigation Links -->
         <nav class="px-3 flex flex-col gap-1.5 font-medium">
-          <a
-            href="#"
-            onclick="switchView('discover'); return false;"
-            id="nav-discover"
-            class="nav-item active-nav flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase"
-          >
+          <a href="#" onclick="switchView('home'); return false;" id="nav-home" class="nav-item active-nav flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
+            <i class="fa-solid fa-house text-lg w-5 text-center text-blue-400"></i>
+            HOME
+          </a>
+          <a href="#" onclick="switchView('search'); return false;" id="nav-search" class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
+            <i class="fa-solid fa-magnifying-glass text-lg w-5 text-center text-cyan-400"></i>
+            SEARCH
+          </a>
+          <a href="#" onclick="switchView('discover'); return false;" id="nav-discover" class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
             <i class="fa-solid fa-music text-lg w-5 text-center text-blue-400"></i>
-            ALL SONGS
+            SONGS
           </a>
           <a
             href="#"
@@ -422,8 +425,59 @@
       <!-- Dynamic Views Container -->
       <div id="contentView" class="view-transition">
 
+        <!-- HOME VIEW -->
+        <div id="homeView">
+          <div class="mb-8">
+            <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">YOUR MUSIC</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white">WELCOME BACK</h1>
+            <p class="text-sm text-gray-400 mt-2">Discover your latest songs, albums and artists.</p>
+          </div>
+
+          <div class="flex items-center justify-between mb-5">
+            <h2 class="text-xl font-extrabold text-white uppercase">WHAT'S NEW?</h2>
+            <button onclick="switchView('discover')" class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase">VIEW ALL SONGS</button>
+          </div>
+          <div id="homeNewSongs" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-10"></div>
+
+          <div class="flex items-center justify-between mb-5">
+            <h2 class="text-xl font-extrabold text-white uppercase">RECOMMENDED FOR YOU</h2>
+          </div>
+          <div id="homeRecommended" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-10"></div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-extrabold text-white uppercase">NEW ALBUMS</h2>
+                <button onclick="switchView('albums')" class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase">VIEW ALL</button>
+              </div>
+              <div id="homeNewAlbums" class="grid grid-cols-2 gap-4"></div>
+            </div>
+            <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-extrabold text-white uppercase">NEW ARTISTS</h2>
+                <button onclick="switchView('artists')" class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase">VIEW ALL</button>
+              </div>
+              <div id="homeNewArtists" class="grid grid-cols-2 gap-4"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEARCH VIEW -->
+        <div id="searchView" class="hidden">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">SEARCH</h2>
+              <p id="searchResultCount" class="text-xs text-gray-400 mt-1 uppercase">SEARCH YOUR MUSIC</p>
+            </div>
+          </div>
+          <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
+            <div id="searchResults" class="flex flex-col gap-2"></div>
+            <p id="searchEmpty" class="hidden text-sm text-gray-500 text-center py-12 uppercase">NO RESULTS FOUND</p>
+          </div>
+        </div>
+
         <!-- ALL SONGS VIEW -->
-        <div id="discoverView">
+        <div id="discoverView" class="hidden">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ALL SONGS</h2>
             <span id="totalSongsCount" class="text-xs text-gray-400 font-medium uppercase">0 SONGS</span>
@@ -438,13 +492,23 @@
 
         <!-- ALBUMS VIEW -->
         <div id="albumsView" class="hidden">
-          <h2 class="text-2xl font-extrabold tracking-tight text-white mb-6 uppercase">FEATURED ALBUMS</h2>
+          <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+            <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">FEATURED ALBUMS</h2>
+            <select id="albumSort" onchange="renderAlbumsView()" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500">
+              <option value="az">A-Z</option><option value="za">Z-A</option><option value="artist">BY ARTIST</option><option value="type">BY TYPE</option>
+            </select>
+          </div>
           <div id="albumList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
 
         <!-- ARTISTS VIEW -->
         <div id="artistsView" class="hidden">
-          <h2 class="text-2xl font-extrabold tracking-tight text-white mb-6 uppercase">ARTISTS</h2>
+          <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+            <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ARTISTS</h2>
+            <select id="artistSort" onchange="renderArtistsView()" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500">
+              <option value="az">A-Z</option><option value="za">Z-A</option><option value="songs">BY SONG COUNT</option>
+            </select>
+          </div>
           <div id="artistList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
 
@@ -1009,7 +1073,7 @@
       document.getElementById('passwordInput').value = '';
 
       await loadSavedPlaylistsPermanent();
-      switchView('discover');
+      switchView('home');
     }
 
     async function restoreSupabaseSession() {
@@ -1036,6 +1100,7 @@
         document.getElementById('userStatus').innerText = 'Premium Member';
         document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
         await loadSavedPlaylistsPermanent();
+        switchView('home');
       }
     }
 
@@ -1182,7 +1247,7 @@
           div.className = "flex items-center justify-between p-3 rounded-xl bg-[#222331] border border-gray-700/60";
           div.innerHTML = `
             <span class="text-xs font-bold text-white uppercase truncate">${pl.name}</span>
-            <button onclick="toggleSongInPlaylist(${pl.id}, ${songId})" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${inPlaylist ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-blue-600 text-white hover:bg-blue-500'}">
+            <button onclick="event.stopPropagation(); toggleSongInPlaylist('${pl.id}', ${songId})" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${inPlaylist ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-blue-600 text-white hover:bg-blue-500'}">
               ${inPlaylist ? 'REMOVE' : 'ADD'}
             </button>
           `;
@@ -1248,10 +1313,19 @@
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
       renderSidebarPlaylists();
 
-      const views = ['discoverView', 'albumsView', 'artistsView', 'groupDetailView', 'playlistDetailView'];
-      views.forEach(v => document.getElementById(v).classList.add('hidden'));
+      const views = ['homeView', 'searchView', 'discoverView', 'albumsView', 'artistsView', 'groupDetailView', 'playlistDetailView'];
+      views.forEach(v => { const el = document.getElementById(v); if (el) el.classList.add('hidden'); });
 
-      if (viewName === 'discover') {
+      if (viewName === 'home') {
+        document.getElementById('nav-home').classList.add('active-nav');
+        document.getElementById('homeView').classList.remove('hidden');
+        renderHomeView();
+      } else if (viewName === 'search') {
+        document.getElementById('nav-search').classList.add('active-nav');
+        document.getElementById('searchView').classList.remove('hidden');
+        filterSongs();
+        setTimeout(() => document.getElementById('searchInput')?.focus(), 50);
+      } else if (viewName === 'discover') {
         document.getElementById('nav-discover').classList.add('active-nav');
         document.getElementById('discoverView').classList.remove('hidden');
         renderAllSongsList(songs);
@@ -1264,6 +1338,31 @@
         document.getElementById('artistsView').classList.remove('hidden');
         renderArtistsView();
       }
+      document.querySelector('main').scrollTop = 0;
+    }
+
+    function albumType(name) {
+      if (name === 'bittersweet' || name === 'Lặng') return 'EP';
+      if (name === 'để dành cho em') return 'Single';
+      return 'Album';
+    }
+
+    function renderHomeView() {
+      const latest = [...songs].slice(-9).reverse();
+      const recommended = songs.filter((_, i) => i % 7 === 0).slice(0, 9);
+      const renderHomeSong = (song, source) => `
+        <div onclick="playSongFromList(${song.id}, '${source}')" class="glass-card p-3 rounded-xl cursor-pointer flex items-center gap-3 ${currentQueue[currentSongIndex]?.id === song.id ? 'playing-item' : ''}">
+          <img src="${song.cover}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" alt="cover">
+          <div class="min-w-0 flex-1"><p class="text-sm font-bold text-white truncate normal-case">${song.title}</p><p class="text-xs text-gray-400 truncate normal-case mt-0.5">${song.artist} • ${song.album}</p></div>
+          <i class="fa-solid ${currentQueue[currentSongIndex]?.id === song.id && isPlaying ? 'fa-pause' : 'fa-play'} text-xs text-blue-400"></i>
+        </div>`;
+      document.getElementById('homeNewSongs').innerHTML = latest.map(s => renderHomeSong(s, 'home')).join('');
+      document.getElementById('homeRecommended').innerHTML = recommended.map(s => renderHomeSong(s, 'home')).join('');
+
+      const albums = [...new Map(songs.map(s => [s.album, s])).values()].slice(-4).reverse();
+      document.getElementById('homeNewAlbums').innerHTML = albums.map(s => `<div onclick="openGroupDetail('album', '${s.album.replace(/'/g, "\\'")}')" class="cursor-pointer group"><img src="${s.cover}" class="w-full aspect-square object-cover rounded-xl mb-2 group-hover:scale-[1.02] transition"><p class="text-xs font-bold text-white truncate normal-case">${s.album}</p><p class="text-[10px] text-gray-500 truncate uppercase">${s.artist} • ${albumType(s.album)}</p></div>`).join('');
+      const artists = [...new Map(songs.map(s => [s.artist, s])).values()].slice(-4).reverse();
+      document.getElementById('homeNewArtists').innerHTML = artists.map(s => `<div onclick="openGroupDetail('artist', '${s.artist.replace(/'/g, "\\'")}')" class="cursor-pointer group text-center"><img src="${s.cover}" class="w-20 h-20 mx-auto rounded-full object-cover mb-2 border border-white/10 group-hover:scale-[1.03] transition"><p class="text-xs font-bold text-white truncate uppercase">${s.artist}</p></div>`).join('');
     }
 
     function generateSongRowHTML(song, index, queueSource) {
@@ -1272,13 +1371,13 @@
       const durationText = songDurations[song.id] ? formatTime(songDurations[song.id]) : "0:00";
 
       return `
-        <div data-song-id="${song.id}" class="song-item-card flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
+        <div data-song-id="${song.id}" onclick="playSongFromList(${song.id}, '${queueSource}')" class="song-item-card flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
           <div class="flex items-center gap-4 overflow-hidden">
             <!-- Avatar Cover with Overlay Play/Pause Button -->
             <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
               <img src="${song.cover}" class="w-full h-full object-cover" alt="cover">
               <button
-                onclick="playSongFromList(${song.id}, '${queueSource}')"
+                onclick="event.stopPropagation(); playSongFromList(${song.id}, '${queueSource}')"
                 class="absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition duration-200"
                 title="PLAY / PAUSE"
               >
@@ -1297,7 +1396,7 @@
             <span class="text-xs font-semibold text-gray-400 duration-song-${song.id}">${durationText}</span>
 
             <!-- Add to Playlist Button -->
-            <button onclick="openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-700/50 transition">
+            <button onclick="event.stopPropagation(); openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-700/50 transition">
               <i class="fa-solid fa-plus text-xs"></i>
             </button>
           </div>
@@ -1322,7 +1421,10 @@
         albumsMap[s.album].count++;
       });
 
-      container.innerHTML = Object.values(albumsMap).map(alb => `
+      let albumValues = Object.values(albumsMap).map(a => ({ ...a, type: albumType(a.name) }));
+      const sort = document.getElementById('albumSort')?.value || 'az';
+      albumValues.sort((a,b) => sort === 'za' ? b.name.localeCompare(a.name) : sort === 'artist' ? a.artist.localeCompare(b.artist) || a.name.localeCompare(b.name) : sort === 'type' ? a.type.localeCompare(b.type) || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
+      container.innerHTML = albumValues.map(alb => `
         <div onclick="openGroupDetail('album', '${alb.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-start">
           <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-4 shadow-xl">
             <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
@@ -1333,7 +1435,7 @@
             </div>
           </div>
           <h3 class="font-bold text-base text-white truncate w-full normal-case">${alb.name}</h3>
-          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.artist} • ${alb.count} SONGS</p>
+          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.type} • ${alb.artist} • ${alb.count} SONGS</p>
         </div>
       `).join('');
     }
@@ -1349,7 +1451,10 @@
         artistsMap[s.artist].count++;
       });
 
-      container.innerHTML = Object.values(artistsMap).map(art => `
+      let artistValues = Object.values(artistsMap);
+      const sort = document.getElementById('artistSort')?.value || 'az';
+      artistValues.sort((a,b) => sort === 'za' ? b.name.localeCompare(a.name) : sort === 'songs' ? b.count - a.count || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
+      container.innerHTML = artistValues.map(art => `
         <div onclick="openGroupDetail('artist', '${art.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-center text-center">
           <div class="relative w-36 h-36 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-white/10">
             <img src="${art.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="artist">
@@ -1371,14 +1476,14 @@
       currentActivePlaylistId = null;
       renderSidebarPlaylists();
 
-      const views = ['discoverView', 'albumsView', 'artistsView', 'playlistDetailView'];
+      const views = ['homeView', 'searchView', 'discoverView', 'albumsView', 'artistsView', 'playlistDetailView'];
       views.forEach(v => document.getElementById(v).classList.add('hidden'));
       document.getElementById('groupDetailView').classList.remove('hidden');
 
       let filteredSongs = [];
       if (type === 'album') {
         filteredSongs = songs.filter(s => s.album === key);
-        document.getElementById('groupDetailType').innerText = 'ALBUM';
+        document.getElementById('groupDetailType').innerText = `${albumType(key)} BY ${filteredSongs[0]?.artist || ''}`;
       } else {
         filteredSongs = songs.filter(s => s.artist === key);
         document.getElementById('groupDetailType').innerText = 'ARTIST';
@@ -1403,7 +1508,7 @@
       currentActivePlaylistId = playlistId;
       renderSidebarPlaylists();
 
-      const views = ['discoverView', 'albumsView', 'artistsView', 'groupDetailView'];
+      const views = ['homeView', 'searchView', 'discoverView', 'albumsView', 'artistsView', 'groupDetailView'];
       views.forEach(v => document.getElementById(v).classList.add('hidden'));
       document.getElementById('playlistDetailView').classList.remove('hidden');
 
@@ -1454,13 +1559,25 @@
     }
 
     function filterSongs() {
-      const query = document.getElementById('searchInput').value.toLowerCase().trim();
-      const filtered = songs.filter(s =>
+      const input = document.getElementById('searchInput');
+      const query = input ? input.value.toLowerCase().trim() : '';
+      const filtered = query ? songs.filter(s =>
         s.title.toLowerCase().includes(query) ||
         s.artist.toLowerCase().includes(query) ||
         s.album.toLowerCase().includes(query)
-      );
-      renderAllSongsList(filtered);
+      ) : [];
+
+      const container = document.getElementById('searchResults');
+      if (container) {
+        container.innerHTML = filtered.map((s, idx) => generateSongRowHTML(s, idx, 'search')).join('');
+        document.getElementById('searchResultCount').innerText = query ? `${filtered.length} RESULTS FOR "${query}"` : 'TYPE TO SEARCH YOUR MUSIC';
+        document.getElementById('searchEmpty').classList.toggle('hidden', filtered.length !== 0 || !query);
+      }
+
+      // Keep the existing Songs filtering behavior available if the search page is not active.
+      if (!document.getElementById('searchView') || document.getElementById('searchView').classList.contains('hidden')) {
+        renderAllSongsList(query ? filtered : songs);
+      }
     }
 
     /* =========================================================
@@ -1761,6 +1878,7 @@ function togglePlay() {
       }
 
       await restoreSupabaseSession();
+      if (!currentUser) switchView('home');
     });
   </script>
 
