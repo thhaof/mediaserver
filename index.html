@@ -301,11 +301,6 @@
       <div>
         <!-- Logo / Welcome Banner -->
         <div class="p-6 flex items-center gap-3">
-          <div
-            class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-extrabold text-lg shadow-lg shadow-blue-500/30 text-white flex-shrink-0"
-          >
-            T
-          </div>
           <span
             id="welcomeHeader"
             class="font-extrabold text-sm tracking-wider bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent break-words leading-tight"
@@ -357,6 +352,14 @@
         <div
           id="sidebarPlaylists"
           class="px-3 flex flex-col gap-1 max-h-52 overflow-y-auto pr-1"
+        ></div>
+
+        <div class="px-6 mt-5 mb-3">
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">PUBLIC PLAYLISTS</span>
+        </div>
+        <div
+          id="publicSidebarPlaylists"
+          class="px-3 flex flex-col gap-1 max-h-44 overflow-y-auto pr-1"
         ></div>
       </div>
 
@@ -519,12 +522,14 @@
               <p id="groupDetailType" class="text-xs uppercase font-bold text-blue-400 tracking-wider mb-1"></p>
               <h1 id="groupDetailTitle" class="text-3xl sm:text-4xl font-extrabold mt-1 mb-2 text-white normal-case"></h1>
               <p id="groupDetailCount" class="text-xs text-gray-400 mb-5 font-medium uppercase"></p>
-              <button id="groupPlayAllBtn" class="bg-blue-600 hover:bg-blue-500 px-7 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 shadow-xl shadow-blue-600/30 transition active:scale-95 uppercase">
-                <i class="fa-solid fa-play text-xs"></i> PLAY ALL
-              </button>
-              <button id="groupAddToPlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase hidden">
-                <i class="fa-solid fa-plus text-xs"></i> ADD ALBUM TO PLAYLIST
-              </button>
+              <div class="flex items-center gap-3 flex-wrap">
+                <button id="groupPlayAllBtn" class="bg-blue-600 hover:bg-blue-500 px-7 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 shadow-xl shadow-blue-600/30 transition active:scale-95 uppercase">
+                  <i class="fa-solid fa-play text-xs"></i> PLAY ALL
+                </button>
+                <button id="groupAddToPlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase hidden">
+                  <i class="fa-solid fa-plus text-xs"></i> ADD ALBUM TO PLAYLIST
+                </button>
+              </div>
             </div>
           </div>
           <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
@@ -1101,7 +1106,7 @@
         document.getElementById('authModal').classList.add('hidden');
         document.getElementById('userNameDisplay').innerText = username.toUpperCase();
         document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
-        document.getElementById('userStatus').innerText = 'Member';
+        document.getElementById('userStatus').innerText = 'Premium Member';
         document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
         await loadSavedPlaylistsPermanent();
         switchView('home');
@@ -1154,6 +1159,7 @@
           id,
           name,
           created_at,
+          is_public,
           playlist_songs ( song_id )
         `)
         .eq('user_id', currentUser.id)
@@ -1169,10 +1175,60 @@
       playlists = (data || []).map(pl => ({
         id: pl.id,
         name: pl.name,
-        songIds: (pl.playlist_songs || []).map(item => Number(item.song_id))
+        songIds: (pl.playlist_songs || []).map(item => Number(item.song_id)),
+        isPublic: !!pl.is_public
       }));
 
       renderSidebarPlaylists();
+      await loadPublicPlaylists();
+    }
+
+    async function loadPublicPlaylists() {
+      const container = document.getElementById('publicSidebarPlaylists');
+      if (!container) return;
+      const { data, error } = await supabaseClient
+        .from('playlists')
+        .select('id,name,share_token,created_at,playlist_songs(song_id)')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (error) {
+        console.error('Could not load public playlists:', error);
+        container.innerHTML = '<p class="px-4 py-2 text-[10px] text-gray-600 uppercase">PUBLIC PLAYLISTS UNAVAILABLE</p>';
+        return;
+      }
+      container.innerHTML = '';
+      if (!data?.length) {
+        container.innerHTML = '<p class="px-4 py-2 text-[10px] text-gray-600 uppercase">NO PUBLIC PLAYLISTS</p>';
+        return;
+      }
+      data.forEach(pl => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition text-gray-400 hover:text-white hover:bg-gray-800/50';
+        btn.innerHTML = `<span class="truncate uppercase"><i class="fa-solid fa-globe mr-2.5 text-xs text-purple-400"></i>${pl.name}</span><span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded-full text-gray-400 font-bold">${(pl.playlist_songs || []).length}</span>`;
+        btn.onclick = () => openPublicPlaylistDetail(pl);
+        container.appendChild(btn);
+      });
+    }
+
+    function openPublicPlaylistDetail(pl) {
+      const parent = viewFromVisibleDOM();
+      if (parent !== 'playlist' && parent !== 'group') { rememberCurrentScroll(); viewHistory.push(parent); }
+      const ids = (pl.playlist_songs || []).map(x => Number(x.song_id));
+      const playlistSongs = songs.filter(s => ids.includes(s.id));
+      currentViewName = 'playlist';
+      currentActivePlaylistId = null;
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
+      ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'].forEach(v => document.getElementById(v)?.classList.add('hidden'));
+      document.getElementById('playlistDetailView').classList.remove('hidden');
+      document.getElementById('playlistDetailTitle').innerText = pl.name;
+      document.getElementById('playlistDetailCount').innerText = `${playlistSongs.length} SONGS • PUBLIC PLAYLIST`;
+      document.getElementById('playAllBtn').onclick = () => playAllQueue(playlistSongs);
+      document.getElementById('deletePlaylistBtn').classList.add('hidden');
+      document.getElementById('renamePlaylistBtn').classList.add('hidden');
+      document.getElementById('sharePlaylistBtn').classList.add('hidden');
+      document.getElementById('playlistSongsList').innerHTML = playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
+      document.querySelector('main').scrollTop = 0;
     }
 
     /* =========================================================
@@ -1208,7 +1264,8 @@
       playlists.push({
         id: playlist.id,
         name: playlist.name,
-        songIds: []
+        songIds: [],
+        isPublic: false
       });
 
       renderSidebarPlaylists();
@@ -1225,7 +1282,7 @@
         btn.onclick = () => openPlaylistDetail(pl.id);
         btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${currentActivePlaylistId === pl.id ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`;
         btn.innerHTML = `
-          <span class="truncate uppercase"><i class="fa-solid fa-list-ul mr-2.5 text-xs text-blue-400"></i>${pl.name}</span>
+          <span class="truncate uppercase"><i class="fa-solid ${pl.isPublic ? 'fa-globe text-purple-400' : 'fa-list-ul text-blue-400'} mr-2.5 text-xs"></i>${pl.name}</span>
           <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded-full text-gray-400 font-bold">${pl.songIds.length}</span>
         `;
         container.appendChild(btn);
@@ -1282,6 +1339,27 @@
       if (currentQueue[currentSongIndex]) {
         openAddToPlaylistModal(currentQueue[currentSongIndex].id);
       }
+    }
+
+    async function removeSongFromPlaylist(playlistId, songId) {
+      const pl = playlists.find(p => p.id === playlistId);
+      if (!pl || !currentUser) return;
+
+      const { error } = await supabaseClient
+        .from('playlist_songs')
+        .delete()
+        .eq('playlist_id', playlistId)
+        .eq('song_id', String(songId));
+
+      if (error) {
+        console.error('Remove song from playlist error:', error);
+        alert('Could not remove the song from this playlist.');
+        return;
+      }
+
+      pl.songIds = pl.songIds.filter(id => id !== songId);
+      renderSidebarPlaylists();
+      openPlaylistDetail(playlistId);
     }
 
     async function toggleSongInPlaylist(playlistId, songId) {
@@ -1376,6 +1454,23 @@
     /* =========================================================
        VIEW SWITCHING & RENDERING
     ========================================================== */
+    const viewScrollPositions = {};
+
+    function rememberCurrentScroll() {
+      const main = document.querySelector('main');
+      const current = viewFromVisibleDOM();
+      if (main && current) viewScrollPositions[current] = main.scrollTop;
+    }
+
+    function restoreViewScroll(viewName) {
+      const main = document.querySelector('main');
+      if (!main) return;
+      const top = Number(viewScrollPositions[viewName] || 0);
+      requestAnimationFrame(() => {
+        main.scrollTop = top;
+        requestAnimationFrame(() => { main.scrollTop = top; });
+      });
+    }
     function toggleLibraryMenu(force) {
       libraryOpen = typeof force === 'boolean' ? force : !libraryOpen;
       const menu = document.getElementById('libraryMenu');
@@ -1396,6 +1491,7 @@
     function switchView(viewName, options = {}) {
       const current = viewFromVisibleDOM();
       if (!options.fromBack && !options.replaceHistory && current !== viewName && !['group','playlist'].includes(current)) {
+        rememberCurrentScroll();
         viewHistory.push(current);
       }
       currentViewName = viewName;
@@ -1431,14 +1527,16 @@
         document.getElementById('artistsView').classList.remove('hidden');
         renderArtistsView();
       }
-      document.querySelector('main').scrollTop = 0;
+      if (options.restoreScroll) restoreViewScroll(viewName);
+      else if (!options.preserveScroll) document.querySelector('main').scrollTop = 0;
     }
 
     function goBack() {
+      rememberCurrentScroll();
       const previous = viewHistory.pop() || 'home';
       currentGroupDetailType = null;
       currentActivePlaylistId = null;
-      switchView(previous, { fromBack: true });
+      switchView(previous, { fromBack: true, restoreScroll: true });
     }
 
     function albumType(name) {
@@ -1450,14 +1548,8 @@
     function renderHomeView() {
       const latest = [...songs].slice(-9).reverse();
       const recommended = songs.filter((_, i) => i % 7 === 0).slice(0, 9);
-      const renderHomeSong = (song, source) => `
-        <div onclick="playSongFromList(${song.id}, '${source}')" class="glass-card p-3 rounded-xl cursor-pointer flex items-center gap-3 ${currentQueue[currentSongIndex]?.id === song.id ? 'playing-item' : ''}">
-          <img src="${song.cover}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" alt="cover">
-          <div class="min-w-0 flex-1"><p class="text-sm font-bold text-white truncate normal-case">${song.title}</p><p class="text-xs text-gray-400 truncate normal-case mt-0.5">${song.artist} • ${song.album}</p></div>
-          <i class="fa-solid ${currentQueue[currentSongIndex]?.id === song.id && isPlaying ? 'fa-pause' : 'fa-play'} text-xs text-blue-400"></i>
-        </div>`;
-      document.getElementById('homeNewSongs').innerHTML = latest.map(s => renderHomeSong(s, 'home')).join('');
-      document.getElementById('homeRecommended').innerHTML = recommended.map(s => renderHomeSong(s, 'home')).join('');
+      document.getElementById('homeNewSongs').innerHTML = latest.map((s, idx) => generateSongRowHTML(s, idx, 'home')).join('');
+      document.getElementById('homeRecommended').innerHTML = recommended.map((s, idx) => generateSongRowHTML(s, idx, 'home')).join('');
 
       const albums = [...new Map(songs.map(s => [s.album, s])).values()].slice(-4).reverse();
       document.getElementById('homeNewAlbums').innerHTML = albums.map(s => `<div onclick="openGroupDetail('album', '${s.album.replace(/'/g, "\\'")}')" class="cursor-pointer group"><img src="${s.cover}" class="w-full aspect-square object-cover rounded-xl mb-2 group-hover:scale-[1.02] transition"><p class="text-xs font-bold text-white truncate normal-case">${s.album}</p><p class="text-[10px] text-gray-500 truncate uppercase">${s.artist} • ${albumType(s.album)}</p></div>`).join('');
@@ -1491,7 +1583,7 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-4 flex-shrink-0">
+          <div class="flex items-center gap-2 flex-shrink-0">
             <!-- Duration -->
             <span class="text-xs font-semibold text-gray-400 duration-song-${song.id}">${durationText}</span>
 
@@ -1499,6 +1591,12 @@
             <button onclick="event.stopPropagation(); openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-700/50 transition">
               <i class="fa-solid fa-plus text-xs"></i>
             </button>
+
+            ${queueSource === 'playlist' ? `
+            <!-- Remove from Current Playlist -->
+            <button onclick="event.stopPropagation(); removeSongFromPlaylist('${currentActivePlaylistId}', ${song.id})" title="REMOVE FROM PLAYLIST" class="text-gray-500 hover:text-red-400 p-2 rounded-lg hover:bg-red-500/10 transition">
+              <i class="fa-solid fa-trash text-xs"></i>
+            </button>` : ''}
           </div>
         </div>
       `;
@@ -1572,7 +1670,10 @@
 
     function openGroupDetail(type, key) {
       const parent = viewFromVisibleDOM();
-      if (parent !== 'group' && parent !== 'playlist') viewHistory.push(parent);
+      if (parent !== 'group' && parent !== 'playlist') {
+        rememberCurrentScroll();
+        viewHistory.push(parent);
+      }
       currentGroupDetailType = type;
       currentViewName = 'group';
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
@@ -1598,7 +1699,10 @@
 
     function openPlaylistDetail(playlistId) {
       const parent = viewFromVisibleDOM();
-      if (parent !== 'playlist' && parent !== 'group') viewHistory.push(parent);
+      if (parent !== 'playlist' && parent !== 'group') {
+        rememberCurrentScroll();
+        viewHistory.push(parent);
+      }
       currentViewName = 'playlist';
       document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active-nav'));
       currentActivePlaylistId=playlistId;
@@ -2011,7 +2115,10 @@ function togglePlay() {
         if (loaded) return;
       }
       await restoreSupabaseSession();
-      if (!currentUser) switchView('home');
+      if (!currentUser) {
+        await loadPublicPlaylists();
+        switchView('home');
+      }
     });
   </script>
 
