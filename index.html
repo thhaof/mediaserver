@@ -680,7 +680,19 @@
   <!-- =========================================================
        JAVASCRIPT APPLICATION LOGIC
   ========================================================== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
+    /* =========================================================
+       SUPABASE CONFIGURATION
+    ========================================================== */
+    const SUPABASE_URL = "https://xwawaxayqnxsxzzbzver.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_CU85Sw18TcKT4ElOirghww_yZL38QJa";
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
     /* =========================================================
        SONG DATABASE (Filtered empty entries & Active 70 Songs)
     ========================================================== */
