@@ -555,6 +555,9 @@
                 <button id="sharePlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
                   <i class="fa-solid fa-share-nodes text-xs"></i> SHARE PLAYLIST
                 </button>
+                <button id="publicPlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
+                  <i id="publicPlaylistIcon" class="fa-solid fa-lock text-xs"></i> <span id="publicPlaylistLabel">PRIVATE</span>
+                </button>
                 <button id="renamePlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
                   <i class="fa-solid fa-pen text-xs"></i> RENAME
                 </button>
@@ -1227,6 +1230,7 @@
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
       document.getElementById('renamePlaylistBtn').classList.add('hidden');
       document.getElementById('sharePlaylistBtn').classList.add('hidden');
+      document.getElementById('publicPlaylistBtn').classList.add('hidden');
       document.getElementById('playlistSongsList').innerHTML = playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
       document.querySelector('main').scrollTop = 0;
     }
@@ -1716,10 +1720,45 @@
       const playlistSongs=songs.filter(s=>pl.songIds.includes(s.id));
       document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
       document.getElementById('playAllBtn').onclick=()=>playAllQueue(playlistSongs);
+      // This is the user's own playlist: always restore owner-only controls
+      // after visiting a public playlist.
+      document.getElementById('deletePlaylistBtn').classList.remove('hidden');
+      document.getElementById('renamePlaylistBtn').classList.remove('hidden');
+      document.getElementById('sharePlaylistBtn').classList.remove('hidden');
+      document.getElementById('publicPlaylistBtn').classList.remove('hidden');
       document.getElementById('deletePlaylistBtn').onclick=()=>deletePlaylist(pl.id);
       document.getElementById('renamePlaylistBtn').onclick=()=>openRenamePlaylistModal(pl.id);
       document.getElementById('sharePlaylistBtn').onclick=()=>sharePlaylist(pl.id);
+      document.getElementById('publicPlaylistBtn').onclick=()=>togglePlaylistPublic(pl.id);
+      const publicLabel = document.getElementById('publicPlaylistLabel');
+      const publicIcon = document.getElementById('publicPlaylistIcon');
+      publicLabel.innerText = pl.isPublic ? 'PUBLIC' : 'PRIVATE';
+      publicIcon.className = `fa-solid ${pl.isPublic ? 'fa-globe text-purple-400' : 'fa-lock text-gray-400'} text-xs`;
       document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'playlist')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST YET</p>`;
+    }
+
+    async function togglePlaylistPublic(playlistId) {
+      if (!currentUser) return;
+      const pl = playlists.find(p => p.id === playlistId);
+      if (!pl) return;
+
+      const nextValue = !pl.isPublic;
+      const { error } = await supabaseClient
+        .from('playlists')
+        .update({ is_public: nextValue })
+        .eq('id', playlistId)
+        .eq('user_id', currentUser.id);
+
+      if (error) {
+        console.error('Update playlist visibility error:', error);
+        alert('Could not change playlist visibility. Please run the Public Playlist SQL first.');
+        return;
+      }
+
+      pl.isPublic = nextValue;
+      renderSidebarPlaylists();
+      await loadPublicPlaylists();
+      openPlaylistDetail(playlistId);
     }
 
     async function sharePlaylist(playlistId) {
@@ -1766,7 +1805,9 @@
       document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
       document.getElementById('playAllBtn').onclick=()=>playAllQueue(playlistSongs);
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
+      document.getElementById('renamePlaylistBtn').classList.add('hidden');
       document.getElementById('sharePlaylistBtn').classList.add('hidden');
+      document.getElementById('publicPlaylistBtn').classList.add('hidden');
       return true;
     }
 
