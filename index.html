@@ -238,6 +238,21 @@
 
 
   <!-- =========================================================
+       RENAME PLAYLIST MODAL
+  ========================================================== -->
+  <div id="renamePlaylistModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden backdrop-blur-sm">
+    <div class="bg-[#181922] p-6 rounded-2xl w-96 border border-gray-800 shadow-2xl view-transition">
+      <h3 class="text-lg font-bold mb-4 text-white uppercase">RENAME PLAYLIST</h3>
+      <input type="text" id="renamePlaylistInput" class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 mb-6 transition uppercase" placeholder="PLAYLIST NAME">
+      <div class="flex justify-end gap-3">
+        <button onclick="closeModal('renamePlaylistModal')" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-xl font-medium transition text-gray-300 uppercase">CANCEL</button>
+        <button onclick="renamePlaylist()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-xs rounded-xl font-bold transition shadow-md shadow-blue-600/30 uppercase">SAVE</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================
        ADD TO PLAYLIST MODAL
   ========================================================== -->
   <div
@@ -251,7 +266,7 @@
         ADD TO PLAYLIST
       </h3>
       <p
-        id="targetSongTitle"
+        id="targetPlaylistTarget"
         class="text-xs text-blue-400 font-semibold mb-4 truncate normal-case"
       ></p>
 
@@ -507,6 +522,9 @@
               <button id="groupPlayAllBtn" class="bg-blue-600 hover:bg-blue-500 px-7 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 shadow-xl shadow-blue-600/30 transition active:scale-95 uppercase">
                 <i class="fa-solid fa-play text-xs"></i> PLAY ALL
               </button>
+              <button id="groupAddToPlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase hidden">
+                <i class="fa-solid fa-plus text-xs"></i> ADD ALBUM TO PLAYLIST
+              </button>
             </div>
           </div>
           <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
@@ -531,6 +549,9 @@
                 </button>
                 <button id="sharePlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
                   <i class="fa-solid fa-share-nodes text-xs"></i> SHARE PLAYLIST
+                </button>
+                <button id="renamePlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
+                  <i class="fa-solid fa-pen text-xs"></i> RENAME
                 </button>
                 <button id="deletePlaylistBtn" class="bg-red-500/10 text-red-400 hover:bg-red-500/20 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
                   <i class="fa-solid fa-trash text-xs"></i> DELETE PLAYLIST
@@ -1212,33 +1233,49 @@
     }
 
     let targetSongForPlaylist = null;
+    let targetAlbumForPlaylist = null;
 
     function openAddToPlaylistModal(songId) {
       targetSongForPlaylist = songs.find(s => s.id === songId);
+      targetAlbumForPlaylist = null;
       if (!targetSongForPlaylist) return;
 
-      document.getElementById('targetSongTitle').innerText = targetSongForPlaylist.title;
+      document.getElementById('targetPlaylistTarget').innerText = targetSongForPlaylist.title;
+      renderPlaylistSelection('song', songId);
+      openModal('addToPlaylistModal');
+    }
+
+    function openAddAlbumToPlaylistModal(albumName) {
+      const albumSongs = songs.filter(s => s.album === albumName);
+      if (!albumSongs.length) return;
+      targetSongForPlaylist = null;
+      targetAlbumForPlaylist = albumName;
+      document.getElementById('targetPlaylistTarget').innerText = albumName;
+      renderPlaylistSelection('album', albumSongs.map(s => s.id));
+      openModal('addToPlaylistModal');
+    }
+
+    function renderPlaylistSelection(type, ids) {
       const listContainer = document.getElementById('playlistSelectList');
       listContainer.innerHTML = '';
-
       if (playlists.length === 0) {
         listContainer.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">NO PLAYLISTS CREATED YET</p>`;
-      } else {
-        playlists.forEach(pl => {
-          const inPlaylist = pl.songIds.includes(songId);
-          const div = document.createElement('div');
-          div.className = "flex items-center justify-between p-3 rounded-xl bg-[#222331] border border-gray-700/60";
-          div.innerHTML = `
-            <span class="text-xs font-bold text-white uppercase truncate">${pl.name}</span>
-            <button onclick="event.stopPropagation(); toggleSongInPlaylist('${pl.id}', ${songId})" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${inPlaylist ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-blue-600 text-white hover:bg-blue-500'}">
-              ${inPlaylist ? 'REMOVE' : 'ADD'}
-            </button>
-          `;
-          listContainer.appendChild(div);
-        });
+        return;
       }
-
-      openModal('addToPlaylistModal');
+      playlists.forEach(pl => {
+        const inPlaylist = type === 'song'
+          ? pl.songIds.includes(ids)
+          : ids.every(id => pl.songIds.includes(id));
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between p-3 rounded-xl bg-[#222331] border border-gray-700/60";
+        div.innerHTML = `
+          <span class="text-xs font-bold text-white uppercase truncate">${pl.name}</span>
+          <button onclick="event.stopPropagation(); ${type === 'song' ? `toggleSongInPlaylist('${pl.id}', ${ids})` : `toggleAlbumInPlaylist('${pl.id}')`}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${inPlaylist ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-blue-600 text-white hover:bg-blue-500'}">
+            ${inPlaylist ? 'REMOVE' : 'ADD'}
+          </button>
+        `;
+        listContainer.appendChild(div);
+      });
     }
 
     function openAddToPlaylistCurrent() {
@@ -1286,6 +1323,54 @@
       if (currentActivePlaylistId === playlistId) {
         openPlaylistDetail(playlistId);
       }
+    }
+
+    async function toggleAlbumInPlaylist(playlistId) {
+      const pl = playlists.find(p => p.id === playlistId);
+      if (!pl || !currentUser || !targetAlbumForPlaylist) return;
+      const albumSongs = songs.filter(s => s.album === targetAlbumForPlaylist);
+      const allIncluded = albumSongs.every(s => pl.songIds.includes(s.id));
+      if (allIncluded) {
+        const { error } = await supabaseClient.from('playlist_songs').delete().eq('playlist_id', playlistId).in('song_id', albumSongs.map(s => String(s.id)));
+        if (error) { console.error('Remove album error:', error); return; }
+        pl.songIds = pl.songIds.filter(id => !albumSongs.some(s => s.id === id));
+      } else {
+        const missing = albumSongs.filter(s => !pl.songIds.includes(s.id));
+        if (missing.length) {
+          const rows = missing.map(s => ({ playlist_id: playlistId, song_id: String(s.id) }));
+          const { error } = await supabaseClient.from('playlist_songs').upsert(rows, { onConflict: 'playlist_id,song_id', ignoreDuplicates: true });
+          if (error) { console.error('Add album error:', error); return; }
+          pl.songIds.push(...missing.map(s => s.id));
+        }
+      }
+      renderSidebarPlaylists();
+      renderPlaylistSelection('album', albumSongs.map(s => s.id));
+      if (currentActivePlaylistId === playlistId) openPlaylistDetail(playlistId);
+    }
+
+    let playlistBeingRenamed = null;
+
+    function openRenamePlaylistModal(playlistId) {
+      const pl = playlists.find(p => p.id === playlistId);
+      if (!pl || !currentUser) return;
+      playlistBeingRenamed = playlistId;
+      document.getElementById('renamePlaylistInput').value = pl.name;
+      openModal('renamePlaylistModal');
+      setTimeout(() => document.getElementById('renamePlaylistInput')?.focus(), 50);
+    }
+
+    async function renamePlaylist() {
+      const pl = playlists.find(p => p.id === playlistBeingRenamed);
+      const input = document.getElementById('renamePlaylistInput');
+      const name = input.value.trim();
+      if (!pl || !name || !currentUser) return;
+      const { error } = await supabaseClient.from('playlists').update({ name }).eq('id', pl.id).eq('user_id', currentUser.id);
+      if (error) { console.error('Rename playlist error:', error); alert('Could not rename playlist.'); return; }
+      pl.name = name;
+      renderSidebarPlaylists();
+      openPlaylistDetail(pl.id);
+      closeModal('renamePlaylistModal');
+      playlistBeingRenamed = null;
     }
 
     /* =========================================================
@@ -1504,6 +1589,9 @@
       document.getElementById('groupDetailCount').innerText = `${filteredSongs.length} SONGS • TOTAL DURATION: ${formatFullDuration(totalSecs)}`;
       document.getElementById('groupDetailCover').src = filteredSongs[0]?.cover || '';
       document.getElementById('groupPlayAllBtn').onclick = () => playAllQueue(filteredSongs);
+      const albumBtn = document.getElementById('groupAddToPlaylistBtn');
+      albumBtn.classList.toggle('hidden', type !== 'album');
+      if (type === 'album') albumBtn.onclick = () => openAddAlbumToPlaylistModal(key);
       document.getElementById('groupSongsList').innerHTML = filteredSongs.map((s,idx)=>generateSongRowHTML(s,idx,'group')).join('');
       document.querySelector('main').scrollTop=0;
     }
@@ -1525,6 +1613,7 @@
       document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
       document.getElementById('playAllBtn').onclick=()=>playAllQueue(playlistSongs);
       document.getElementById('deletePlaylistBtn').onclick=()=>deletePlaylist(pl.id);
+      document.getElementById('renamePlaylistBtn').onclick=()=>openRenamePlaylistModal(pl.id);
       document.getElementById('sharePlaylistBtn').onclick=()=>sharePlaylist(pl.id);
       document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'playlist')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST YET</p>`;
     }
