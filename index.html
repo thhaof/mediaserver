@@ -107,20 +107,6 @@
     }
 
     /* Highlight style for currently playing song item in any list */
-    .home-new-song-item.playing-item {
-      animation: newSongGlow 1.8s ease-in-out infinite alternate;
-    }
-
-    @keyframes newSongGlow {
-      from {
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.25), inset 0 0 8px rgba(59, 130, 246, 0.10) !important;
-      }
-      to {
-        box-shadow: 0 0 24px rgba(59, 130, 246, 0.70), 0 0 8px rgba(129, 140, 248, 0.35), inset 0 0 14px rgba(59, 130, 246, 0.22) !important;
-      }
-    }
-
-    /* Highlight style for currently playing song item in any list */
     .playing-item {
       background: rgba(59, 130, 246, 0.18) !important;
       border: 1px solid rgba(59, 130, 246, 0.6) !important;
@@ -213,43 +199,32 @@
     class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden backdrop-blur-sm"
   >
     <div
-      class="bg-[#181922] p-6 rounded-2xl w-[min(760px,92vw)] max-h-[88vh] border border-gray-800 shadow-2xl view-transition flex flex-col"
+      class="bg-[#181922] p-6 rounded-2xl w-96 border border-gray-800 shadow-2xl view-transition"
     >
-      <div class="flex items-center justify-between gap-4 mb-4">
-        <div>
-          <h3 class="text-lg font-bold text-white uppercase">CREATE NEW PLAYLIST</h3>
-          <p class="text-[11px] text-gray-500 mt-1 uppercase">SELECT THE SONGS YOU WANT TO ADD</p>
-        </div>
-        <button onclick="closeModal('createPlaylistModal')" class="text-gray-400 hover:text-white w-8 h-8 rounded-lg hover:bg-gray-800 transition">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
+      <h3 class="text-lg font-bold mb-4 text-white uppercase">
+        CREATE NEW PLAYLIST
+      </h3>
 
       <input
         type="text"
         id="playlistNameInput"
-        class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 mb-3 transition uppercase"
+        class="w-full bg-[#222331] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 mb-6 transition uppercase"
         placeholder="MY PLAYLIST #1"
       >
 
-      <div class="flex items-center justify-between gap-3 mb-3">
-        <span id="createPlaylistSelectedCount" class="text-[11px] text-blue-400 font-bold uppercase">0 SONGS SELECTED</span>
-        <button onclick="toggleAllPlaylistSongs()" class="text-[11px] text-gray-400 hover:text-white px-3 py-2 rounded-lg hover:bg-gray-800 transition uppercase">
-          SELECT / CLEAR ALL
-        </button>
-      </div>
-
-      <div id="createPlaylistSongList" class="flex-1 min-h-0 max-h-[50vh] overflow-y-auto pr-1 flex flex-col gap-1.5"></div>
-
-      <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-800">
+      <div class="flex justify-end gap-3">
         <button
           onclick="closeModal('createPlaylistModal')"
           class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-xl font-medium transition text-gray-300 uppercase"
-        >CANCEL</button>
+        >
+          CANCEL
+        </button>
         <button
           onclick="saveNewPlaylist()"
           class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-xs rounded-xl font-bold transition shadow-md shadow-blue-600/30 uppercase"
-        >CREATE PLAYLIST</button>
+        >
+          CREATE
+        </button>
       </div>
     </div>
   </div>
@@ -319,28 +294,30 @@
 
         <!-- Navigation Links -->
         <nav class="px-3 flex flex-col gap-1.5 font-medium">
-          <a href="#" onclick="switchView('home'); return false;" id="nav-home"
-             class="nav-item active-nav flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
-            <i class="fa-solid fa-house text-lg w-5 text-center text-blue-400"></i>
-            HOME
-          </a>
-          <a href="#" onclick="switchView('search'); return false;" id="nav-search"
-             class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
-            <i class="fa-solid fa-magnifying-glass text-lg w-5 text-center text-cyan-400"></i>
-            SEARCH
-          </a>
-          <a href="#" onclick="switchView('discover'); return false;" id="nav-discover"
-             class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
+          <a
+            href="#"
+            onclick="switchView('discover'); return false;"
+            id="nav-discover"
+            class="nav-item active-nav flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase"
+          >
             <i class="fa-solid fa-music text-lg w-5 text-center text-blue-400"></i>
-            SONGS
+            ALL SONGS
           </a>
-          <a href="#" onclick="switchView('albums'); return false;" id="nav-albums"
-             class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
+          <a
+            href="#"
+            onclick="switchView('albums'); return false;"
+            id="nav-albums"
+            class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase"
+          >
             <i class="fa-solid fa-compact-disc text-lg w-5 text-center text-indigo-400"></i>
             ALBUMS
           </a>
-          <a href="#" onclick="switchView('artists'); return false;" id="nav-artists"
-             class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
+          <a
+            href="#"
+            onclick="switchView('artists'); return false;"
+            id="nav-artists"
+            class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase"
+          >
             <i class="fa-solid fa-microphone-lines text-lg w-5 text-center text-purple-400"></i>
             ARTISTS
           </a>
@@ -356,7 +333,7 @@
             PLAYLISTS
           </span>
           <button
-            onclick="openCreatePlaylistModal()"
+            onclick="openModal('createPlaylistModal')"
             title="CREATE PLAYLIST"
             class="text-gray-400 hover:text-white text-sm w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition"
           >
@@ -417,12 +394,22 @@
     >
       <!-- Top Bar / Header -->
       <header class="flex items-center justify-between mb-8 gap-4 flex-wrap">
-        <div class="flex items-center gap-3">
-          <span id="pageBreadcrumb" class="text-xs font-bold text-gray-500 uppercase tracking-widest">HOME</span>
+        <div
+          class="flex items-center gap-3 w-full md:w-96 bg-[#1f202e] px-4 py-2.5 rounded-2xl border border-gray-700/50 shadow-inner focus-within:border-blue-500 transition"
+        >
+          <i class="fa-solid fa-magnifying-glass text-gray-400 text-sm"></i>
+          <input
+            type="text"
+            id="searchInput"
+            onkeyup="filterSongs()"
+            placeholder="SEARCH SONGS, ARTISTS..."
+            class="bg-transparent text-sm w-full text-white focus:outline-none placeholder-gray-400 uppercase"
+          >
         </div>
+
         <div class="flex items-center gap-3">
           <button
-            onclick="openCreatePlaylistModal()"
+            onclick="openModal('createPlaylistModal')"
             class="bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-600/25 transition active:scale-95 uppercase"
           >
             <i class="fa-solid fa-plus"></i>
@@ -435,99 +422,29 @@
       <!-- Dynamic Views Container -->
       <div id="contentView" class="view-transition">
 
-        <!-- HOME VIEW -->
-        <div id="homeView">
-          <div class="mb-8">
-            <p class="text-xs text-blue-400 font-bold tracking-widest uppercase mb-2">WELCOME BACK</p>
-            <h2 class="text-3xl font-extrabold tracking-tight text-white uppercase">HOME</h2>
-          </div>
-
-          <section class="mb-9">
-            <div class="flex items-center justify-between mb-5">
-              <h3 class="text-xl font-extrabold text-white uppercase">WHAT'S NEW?</h3>
-              <span class="text-[11px] text-gray-500 uppercase">LATEST IN YOUR LIBRARY</span>
-            </div>
-            <div id="homeNewGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
-          </section>
-
-          <section>
-            <div class="flex items-center justify-between mb-5">
-              <h3 class="text-xl font-extrabold text-white uppercase">RECOMMENDED FOR YOU</h3>
-              <button onclick="renderHomeRecommendations()" class="text-[11px] text-blue-400 hover:text-white font-bold uppercase">
-                <i class="fa-solid fa-rotate mr-1"></i> REFRESH
-              </button>
-            </div>
-            <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
-              <div id="homeRecommendedList" class="flex flex-col gap-2"></div>
-            </div>
-          </section>
-        </div>
-
-        <!-- SEARCH VIEW -->
-        <div id="searchView" class="hidden">
-          <div class="mb-6">
-            <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">SEARCH</h2>
-            <p class="text-xs text-gray-500 mt-1 uppercase">FIND SONGS, ARTISTS AND ALBUMS</p>
-          </div>
-          <div class="flex items-center gap-3 w-full bg-[#1f202e] px-4 py-3 rounded-2xl border border-gray-700/50 shadow-inner focus-within:border-blue-500 transition mb-6">
-            <i class="fa-solid fa-magnifying-glass text-gray-400 text-sm"></i>
-            <input type="text" id="searchInput" oninput="filterSongs()" placeholder="SEARCH SONGS, ARTISTS, ALBUMS..."
-              class="bg-transparent text-sm w-full text-white focus:outline-none placeholder-gray-400 uppercase">
-          </div>
-          <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
-            <div id="searchResultList" class="flex flex-col gap-2"></div>
-          </div>
-        </div>
-
         <!-- ALL SONGS VIEW -->
-        <div id="discoverView" class="hidden">
-          <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
-            <div>
-              <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">SONGS</h2>
-              <span id="totalSongsCount" class="text-xs text-gray-400 font-medium uppercase">0 SONGS</span>
-            </div>
-            <select id="sortSongsSelect" onchange="sortSongs(this.value)"
-              class="bg-[#1f202e] border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-gray-200 font-bold uppercase focus:outline-none focus:border-blue-500">
-              <option value="default">SORT OUT</option>
-              <option value="az">A-Z</option>
-              <option value="za">Z-A</option>
-              <option value="artist">BY ARTIST</option>
-              <option value="album">BY ALBUM</option>
-            </select>
+        <div id="discoverView">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ALL SONGS</h2>
+            <span id="totalSongsCount" class="text-xs text-gray-400 font-medium uppercase">0 SONGS</span>
           </div>
           <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
-            <div class="flex flex-col gap-2" id="songList"></div>
+            <div
+              class="flex flex-col gap-2"
+              id="songList"
+            ></div>
           </div>
         </div>
 
         <!-- ALBUMS VIEW -->
         <div id="albumsView" class="hidden">
-          <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
-            <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">FEATURED ALBUMS</h2>
-            <select id="sortAlbumsSelect" onchange="sortAlbums(this.value)"
-              class="bg-[#1f202e] border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-gray-200 font-bold uppercase focus:outline-none focus:border-blue-500">
-              <option value="default">SORT OUT</option>
-              <option value="az">A-Z</option>
-              <option value="za">Z-A</option>
-              <option value="artist">BY ARTIST</option>
-              <option value="type">BY TYPE</option>
-            </select>
-          </div>
+          <h2 class="text-2xl font-extrabold tracking-tight text-white mb-6 uppercase">FEATURED ALBUMS</h2>
           <div id="albumList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
 
         <!-- ARTISTS VIEW -->
         <div id="artistsView" class="hidden">
-          <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
-            <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ARTISTS</h2>
-            <select id="sortArtistsSelect" onchange="sortArtists(this.value)"
-              class="bg-[#1f202e] border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-gray-200 font-bold uppercase focus:outline-none focus:border-blue-500">
-              <option value="default">SORT OUT</option>
-              <option value="az">A-Z</option>
-              <option value="za">Z-A</option>
-              <option value="tracks">BY TRACKS</option>
-            </select>
-          </div>
+          <h2 class="text-2xl font-extrabold tracking-tight text-white mb-6 uppercase">ARTISTS</h2>
           <div id="artistList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
 
@@ -1034,64 +951,97 @@
     }
 
     /* =========================================================
-       ACCOUNTS
-       Add more accounts here in code:
-       "username": { password: "password", name: "Display Name" }
-    ========================================================== */
-    const ACCOUNTS = {
-      "thhaof": { password: "300172", name: "THHAOF" }
-      // Example:
-      // "friend": { password: "123456", name: "FRIEND" }
-    };
-
-    /* =========================================================
        AUTHENTICATION LOGIC
     ========================================================== */
+    function usernameToEmail(username) {
+      const normalized = username.trim().toLowerCase();
+      if (normalized === 'howie') return 'howie@howie.xy';
+      return `${normalized}@howie.xy`;
+    }
+
     async function handleLogin(e) {
       e.preventDefault();
 
-      const username = document.getElementById('usernameInput').value.trim();
+      const username = document.getElementById('usernameInput').value.trim().toLowerCase();
       const password = document.getElementById('passwordInput').value;
+      const email = usernameToEmail(username);
 
-      const account = ACCOUNTS[username];
-      if (!account || account.password !== password) {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error || !data.user) {
+        console.error('Supabase login error:', error);
         document.getElementById('loginError').classList.remove('hidden');
         return;
       }
 
-      // Authenticate first and hide the modal immediately.
-      // Playlist restoration is allowed to fail without blocking login.
-      currentUser = username;
+      currentUser = data.user;
+
+      // Ensure the profile exists for this authenticated user.
+      const { error: profileError } = await supabaseClient
+        .from('profiles')
+        .upsert({ id: data.user.id, username }, { onConflict: 'id' });
+
+      if (profileError) {
+        console.error('Profile error:', profileError);
+      }
 
       document.getElementById('authModal').classList.add('hidden');
-      document.getElementById('userNameDisplay').innerText = (account.name || username).toUpperCase();
-      document.getElementById('welcomeHeader').innerText =
-        `WELCOME, ${(account.name || username).toUpperCase()}`;
+      document.getElementById('userNameDisplay').innerText = username.toUpperCase();
+      document.getElementById('welcomeHeader').innerText = `WELCOME, ${username.toUpperCase()}`;
       document.getElementById('userStatus').innerText = 'Premium Member';
-      document.getElementById('userAvatar').innerText =
-        username.charAt(0).toUpperCase();
+      document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
       document.getElementById('loginError').classList.add('hidden');
       document.getElementById('passwordInput').value = '';
 
-      try {
-        await loadSavedPlaylistsPermanent();
-      } catch (err) {
-        console.error("Could not restore playlists:", err);
-        playlists = playlists || [];
-        renderSidebarPlaylists();
-      }
-
-      switchView('home');
+      await loadSavedPlaylistsPermanent();
+      switchView('discover');
     }
 
-    function logout() {
+    async function restoreSupabaseSession() {
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error) {
+        console.error('Session restore error:', error);
+        return;
+      }
+
+      if (data.session && data.session.user) {
+        const user = data.session.user;
+        currentUser = user;
+
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('username')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        const username = profile?.username || user.email?.split('@')[0] || 'howie';
+        document.getElementById('authModal').classList.add('hidden');
+        document.getElementById('userNameDisplay').innerText = username.toUpperCase();
+        document.getElementById('welcomeHeader').innerText = `WELCOME, ${username.toUpperCase()}`;
+        document.getElementById('userStatus').innerText = 'Premium Member';
+        document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
+        await loadSavedPlaylistsPermanent();
+      }
+    }
+
+    async function logout() {
       audio.pause();
       audio.currentTime = 0;
       isPlaying = false;
       updatePlayIconsUI();
+
+      await supabaseClient.auth.signOut();
+
       currentUser = null;
       playlists = [];
+      currentActivePlaylistId = null;
       document.getElementById('welcomeHeader').innerText = 'WELCOME, GUEST';
+      document.getElementById('userNameDisplay').innerText = 'GUEST';
+      document.getElementById('userStatus').innerText = 'FREE ACCOUNT';
+      document.getElementById('userAvatar').innerText = 'G';
       renderSidebarPlaylists();
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('usernameInput').value = '';
@@ -1100,72 +1050,47 @@
     }
 
     /* =========================================================
-       PERMANENT STORAGE
+       PERMANENT STORAGE — SUPABASE
     ========================================================== */
-    const DB_NAME = 'thhaof_music_db_v3';
-    const STORE_NAME = 'playlists_store';
-
-    function openIndexedDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 1);
-        request.onupgradeneeded = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME);
-          }
-        };
-        request.onsuccess = (e) => resolve(e.target.result);
-        request.onerror = (e) => reject(e.target.error);
-      });
-    }
-
     async function savePlaylistsPermanent() {
       if (!currentUser) return;
-      const accountKey = `user_playlists_${currentUser}`;
-      try {
-        const db = await openIndexedDB();
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        tx.objectStore(STORE_NAME).put(playlists, accountKey);
-      } catch (err) {
-        console.warn('IndexedDB save failed', err);
-      }
-      try {
-        localStorage.setItem(accountKey, JSON.stringify(playlists));
-      } catch (err) {
-        console.error('localStorage save failed', err);
-      }
+
+      // The database is the source of truth. This function reloads the
+      // server state after playlist operations so the UI stays in sync.
+      await loadSavedPlaylistsPermanent();
     }
 
     async function loadSavedPlaylistsPermanent() {
-      if (!currentUser) return;
-      const accountKey = `user_playlists_${currentUser}`;
-      try {
-        const db = await openIndexedDB();
-        await new Promise((resolve, reject) => {
-          const tx = db.transaction(STORE_NAME, 'readonly');
-          const req = tx.objectStore(STORE_NAME).get(accountKey);
-          req.onsuccess = () => {
-            if (req.result) {
-              playlists = req.result;
-              resolve(playlists);
-            } else {
-              reject();
-            }
-          };
-          req.onerror = () => reject();
-        });
-      } catch (e) {
-        try {
-          const localData = localStorage.getItem(accountKey);
-          if (localData) {
-            playlists = JSON.parse(localData);
-          } else {
-            playlists = [];
-          }
-        } catch (err) {
-          playlists = [];
-        }
+      if (!currentUser) {
+        playlists = [];
+        renderSidebarPlaylists();
+        return;
       }
+
+      const { data, error } = await supabaseClient
+        .from('playlists')
+        .select(`
+          id,
+          name,
+          created_at,
+          playlist_songs ( song_id )
+        `)
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Could not load playlists from Supabase:', error);
+        playlists = [];
+        renderSidebarPlaylists();
+        return;
+      }
+
+      playlists = (data || []).map(pl => ({
+        id: pl.id,
+        name: pl.name,
+        songIds: (pl.playlist_songs || []).map(item => Number(item.song_id))
+      }));
+
       renderSidebarPlaylists();
     }
 
@@ -1180,60 +1105,34 @@
       document.getElementById(id).classList.add('hidden');
     }
 
-    function openCreatePlaylistModal() {
-      document.getElementById('playlistNameInput').value = '';
-      document.getElementById('createPlaylistSongList').innerHTML = songs.map(song => `
-        <label class="flex items-center gap-3 p-2.5 rounded-xl bg-[#222331]/70 border border-gray-800/70 hover:border-blue-500/40 cursor-pointer transition">
-          <input type="checkbox" class="playlist-song-check w-4 h-4 accent-blue-600" value="${song.id}" onchange="updateCreatePlaylistSelectedCount()">
-          <img src="${song.cover}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" alt="cover">
-          <span class="min-w-0 flex-1">
-            <span class="block text-xs font-bold text-white truncate normal-case">${song.title}</span>
-            <span class="block text-[10px] text-gray-500 truncate normal-case">${song.artist} • ${song.album}</span>
-          </span>
-          <span class="text-[10px] text-gray-500 duration-song-${song.id}">${songDurations[song.id] ? formatTime(songDurations[song.id]) : '0:00'}</span>
-        </label>
-      `).join('');
-      updateCreatePlaylistSelectedCount();
-      openModal('createPlaylistModal');
-    }
-
-    function updateCreatePlaylistSelectedCount() {
-      const count = document.querySelectorAll('.playlist-song-check:checked').length;
-      document.getElementById('createPlaylistSelectedCount').innerText = `${count} SONGS SELECTED`;
-    }
-
-    function toggleAllPlaylistSongs() {
-      const checks = [...document.querySelectorAll('.playlist-song-check')];
-      const shouldCheck = checks.some(c => !c.checked);
-      checks.forEach(c => c.checked = shouldCheck);
-      updateCreatePlaylistSelectedCount();
-    }
-
     async function saveNewPlaylist() {
-      if (!currentUser) return;
-
       const nameInput = document.getElementById('playlistNameInput');
       const name = nameInput.value.trim();
-      if (!name) {
-        nameInput.focus();
+      if (!name || !currentUser) return;
+
+      const { data: playlist, error } = await supabaseClient
+        .from('playlists')
+        .insert({
+          user_id: currentUser.id,
+          name
+        })
+        .select('id, name, created_at')
+        .single();
+
+      if (error) {
+        console.error('Create playlist error:', error);
         return;
       }
 
-      const songIds = [...document.querySelectorAll('.playlist-song-check:checked')]
-        .map(input => Number(input.value));
+      playlists.push({
+        id: playlist.id,
+        name: playlist.name,
+        songIds: []
+      });
 
-      const newPlaylist = {
-        id: Date.now(),
-        name: name,
-        songIds: songIds
-      };
-
-      playlists.push(newPlaylist);
-      await savePlaylistsPermanent();
       renderSidebarPlaylists();
       nameInput.value = '';
       closeModal('createPlaylistModal');
-      openPlaylistDetail(newPlaylist.id);
     }
 
     function renderSidebarPlaylists() {
@@ -1290,17 +1189,39 @@
 
     async function toggleSongInPlaylist(playlistId, songId) {
       const pl = playlists.find(p => p.id === playlistId);
-      if (!pl) return;
+      if (!pl || !currentUser) return;
 
       if (pl.songIds.includes(songId)) {
+        const { error } = await supabaseClient
+          .from('playlist_songs')
+          .delete()
+          .eq('playlist_id', playlistId)
+          .eq('song_id', String(songId));
+
+        if (error) {
+          console.error('Remove song error:', error);
+          return;
+        }
+
         pl.songIds = pl.songIds.filter(id => id !== songId);
       } else {
+        const { error } = await supabaseClient
+          .from('playlist_songs')
+          .insert({
+            playlist_id: playlistId,
+            song_id: String(songId)
+          });
+
+        if (error) {
+          console.error('Add song error:', error);
+          return;
+        }
+
         pl.songIds.push(songId);
       }
 
-      await savePlaylistsPermanent();
-      openAddToPlaylistModal(songId);
       renderSidebarPlaylists();
+      openAddToPlaylistModal(songId);
 
       if (currentActivePlaylistId === playlistId) {
         openPlaylistDetail(playlistId);
@@ -1310,33 +1231,18 @@
     /* =========================================================
        VIEW SWITCHING & RENDERING
     ========================================================== */
-    let currentSongsSort = 'default';
-
     function switchView(viewName) {
       currentActivePlaylistId = null;
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
       renderSidebarPlaylists();
 
-      const views = ['homeView', 'searchView', 'discoverView', 'albumsView', 'artistsView', 'groupDetailView', 'playlistDetailView'];
+      const views = ['discoverView', 'albumsView', 'artistsView', 'groupDetailView', 'playlistDetailView'];
       views.forEach(v => document.getElementById(v).classList.add('hidden'));
 
-      const breadcrumbMap = {
-        home: 'HOME', search: 'SEARCH', discover: 'SONGS', albums: 'ALBUMS', artists: 'ARTISTS'
-      };
-      document.getElementById('pageBreadcrumb').innerText = breadcrumbMap[viewName] || viewName.toUpperCase();
-
-      if (viewName === 'home') {
-        document.getElementById('nav-home').classList.add('active-nav');
-        document.getElementById('homeView').classList.remove('hidden');
-        renderHome();
-      } else if (viewName === 'search') {
-        document.getElementById('nav-search').classList.add('active-nav');
-        document.getElementById('searchView').classList.remove('hidden');
-        filterSongs();
-      } else if (viewName === 'discover') {
+      if (viewName === 'discover') {
         document.getElementById('nav-discover').classList.add('active-nav');
         document.getElementById('discoverView').classList.remove('hidden');
-        renderAllSongsList(getSortedSongs());
+        renderAllSongsList(songs);
       } else if (viewName === 'albums') {
         document.getElementById('nav-albums').classList.add('active-nav');
         document.getElementById('albumsView').classList.remove('hidden');
@@ -1348,97 +1254,19 @@
       }
     }
 
-    function getSortedSongs() {
-      const result = [...songs];
-      const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-      if (currentSongsSort === 'az') result.sort((a,b) => collator.compare(a.title,b.title));
-      if (currentSongsSort === 'za') result.sort((a,b) => collator.compare(b.title,a.title));
-      if (currentSongsSort === 'artist') result.sort((a,b) => collator.compare(a.artist,b.artist) || collator.compare(a.title,b.title));
-      if (currentSongsSort === 'album') result.sort((a,b) => collator.compare(a.album,b.album) || collator.compare(a.title,b.title));
-      return result;
-    }
-
-    function sortSongs(mode) {
-      currentSongsSort = mode;
-      renderAllSongsList(getSortedSongs());
-    }
-
-    function renderHome() {
-      renderHomeNew();
-      renderHomeRecommendations();
-    }
-
-    function renderHomeNew() {
-      const grid = document.getElementById('homeNewGrid');
-      const latestSongs = [...songs].slice(-6).reverse();
-      const latestAlbums = [...new Map(songs.slice().reverse().map(s => [s.album, s])).values()].slice(0,3);
-      const latestArtists = [...new Map(songs.slice().reverse().map(s => [s.artist, s])).values()].slice(0,3);
-
-      const songCard = latestSongs.length ? `
-        <div class="glass-card p-5 rounded-2xl">
-          <div class="flex items-center gap-2 mb-4"><i class="fa-solid fa-music text-blue-400"></i><h4 class="font-bold text-sm uppercase">NEW SONGS</h4></div>
-          <div class="flex flex-col gap-2">
-            ${latestSongs.slice(0,4).map(s => {
-              const active = currentQueue[currentSongIndex] && currentQueue[currentSongIndex].id === s.id;
-              return `
-              <div data-song-id="${s.id}" class="song-item-card home-new-song-item flex items-center gap-3 p-2 rounded-xl hover:bg-gray-800/60 cursor-pointer border border-transparent transition ${active ? 'playing-item' : ''}" onclick="playSongFromList(${s.id}, 'home', 'row')">
-                <div class="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-                  <img src="${s.cover}" class="w-full h-full object-cover">
-                  <div class="absolute inset-0 bg-black/30 flex items-center justify-center"><i class="fa-solid ${active && isPlaying ? 'fa-pause' : 'fa-play'} text-white text-[10px]"></i></div>
-                </div>
-                <div class="min-w-0 flex-1"><p class="text-xs font-bold truncate normal-case">${s.title}</p><p class="text-[10px] text-gray-500 truncate normal-case">${s.artist}</p></div>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>` : '';
-
-      const albumCard = `
-        <div class="glass-card p-5 rounded-2xl">
-          <div class="flex items-center gap-2 mb-4"><i class="fa-solid fa-compact-disc text-indigo-400"></i><h4 class="font-bold text-sm uppercase">NEW ALBUMS</h4></div>
-          <div class="flex flex-col gap-3">
-            ${latestAlbums.map(a => `
-              <div class="flex items-center gap-3 cursor-pointer" onclick="openGroupDetail('album', ${JSON.stringify(a.album).replace(/"/g,'&quot;')})">
-                <img src="${a.cover}" class="w-12 h-12 rounded-lg object-cover">
-                <div class="min-w-0"><p class="text-xs font-bold truncate normal-case">${a.album}</p><p class="text-[10px] text-gray-500 truncate normal-case">${getAlbumType(a.album)} • ${a.artist}</p></div>
-              </div>`).join('')}
-          </div>
-        </div>`;
-
-      const artistCard = `
-        <div class="glass-card p-5 rounded-2xl">
-          <div class="flex items-center gap-2 mb-4"><i class="fa-solid fa-microphone-lines text-purple-400"></i><h4 class="font-bold text-sm uppercase">NEW ARTISTS</h4></div>
-          <div class="flex flex-col gap-3">
-            ${latestArtists.map(a => `
-              <div class="flex items-center gap-3 cursor-pointer" onclick="openGroupDetail('artist', ${JSON.stringify(a.artist).replace(/"/g,'&quot;')})">
-                <img src="${a.cover}" class="w-12 h-12 rounded-full object-cover">
-                <div class="min-w-0"><p class="text-xs font-bold truncate uppercase">${a.artist}</p><p class="text-[10px] text-gray-500">${songs.filter(s=>s.artist===a.artist).length} TRACKS</p></div>
-              </div>`).join('')}
-          </div>
-        </div>`;
-
-      grid.innerHTML = songCard + albumCard + artistCard;
-    }
-
-    function renderHomeRecommendations() {
-      const container = document.getElementById('homeRecommendedList');
-      const shuffled = [...songs].sort(() => Math.random() - 0.5).slice(0, 8);
-      container.innerHTML = shuffled.map((s, idx) => generateSongRowHTML(s, idx, 'home')).join('');
-    }
-
     function generateSongRowHTML(song, index, queueSource) {
       const currentPlayingSong = currentQueue[currentSongIndex];
       const isThisPlaying = currentPlayingSong && currentPlayingSong.id === song.id;
       const durationText = songDurations[song.id] ? formatTime(songDurations[song.id]) : "0:00";
 
       return `
-        <div data-song-id="${song.id}"
-          onclick="playSongFromList(${song.id}, '${queueSource}', 'row')"
-          class="song-item-card flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''} cursor-pointer">
+        <div data-song-id="${song.id}" class="song-item-card flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
           <div class="flex items-center gap-4 overflow-hidden">
+            <!-- Avatar Cover with Overlay Play/Pause Button -->
             <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
               <img src="${song.cover}" class="w-full h-full object-cover" alt="cover">
               <button
-                onclick="event.stopPropagation(); playSongFromList(${song.id}, '${queueSource}', 'button')"
+                onclick="playSongFromList(${song.id}, '${queueSource}')"
                 class="absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition duration-200"
                 title="PLAY / PAUSE"
               >
@@ -1453,9 +1281,11 @@
           </div>
 
           <div class="flex items-center gap-4 flex-shrink-0">
+            <!-- Duration -->
             <span class="text-xs font-semibold text-gray-400 duration-song-${song.id}">${durationText}</span>
-            <button onclick="event.stopPropagation(); openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST"
-              class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-700/50 transition">
+
+            <!-- Add to Playlist Button -->
+            <button onclick="openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-700/50 transition">
               <i class="fa-solid fa-plus text-xs"></i>
             </button>
           </div>
@@ -1469,50 +1299,19 @@
       container.innerHTML = songArray.map((s, idx) => generateSongRowHTML(s, idx, 'all')).join('');
     }
 
-    let currentAlbumsSort = 'default';
-    let currentArtistsSort = 'default';
-
-    function getAlbumType(albumName) {
-      if (albumName === 'bittersweet' || albumName === 'Lặng') return 'EP';
-      if (albumName === 'để dành cho em') return 'SINGLE';
-      return 'ALBUM';
-    }
-
-    function getAlbumsData() {
+    function renderAlbumsView() {
+      const container = document.getElementById('albumList');
       const albumsMap = {};
+
       songs.forEach(s => {
         if (!albumsMap[s.album]) {
-          albumsMap[s.album] = {
-            name: s.album,
-            artist: s.artist,
-            cover: s.cover,
-            count: 0,
-            type: getAlbumType(s.album)
-          };
+          albumsMap[s.album] = { name: s.album, artist: s.artist, cover: s.cover, count: 0 };
         }
         albumsMap[s.album].count++;
       });
 
-      const result = Object.values(albumsMap);
-      const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-      if (currentAlbumsSort === 'az') result.sort((a,b) => collator.compare(a.name,b.name));
-      if (currentAlbumsSort === 'za') result.sort((a,b) => collator.compare(b.name,a.name));
-      if (currentAlbumsSort === 'artist') result.sort((a,b) => collator.compare(a.artist,b.artist) || collator.compare(a.name,b.name));
-      if (currentAlbumsSort === 'type') result.sort((a,b) => collator.compare(a.type,b.type) || collator.compare(a.name,b.name));
-      return result;
-    }
-
-    function sortAlbums(mode) {
-      currentAlbumsSort = mode;
-      renderAlbumsView();
-    }
-
-    function renderAlbumsView() {
-      const container = document.getElementById('albumList');
-      const albums = getAlbumsData();
-
-      container.innerHTML = albums.map(alb => `
-        <div onclick="openGroupDetail('album', ${JSON.stringify(alb.name).replace(/"/g,'&quot;')})" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-start">
+      container.innerHTML = Object.values(albumsMap).map(alb => `
+        <div onclick="openGroupDetail('album', '${alb.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-start">
           <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-4 shadow-xl">
             <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -1522,13 +1321,15 @@
             </div>
           </div>
           <h3 class="font-bold text-base text-white truncate w-full normal-case">${alb.name}</h3>
-          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.type} • ${alb.artist} • ${alb.count} SONGS</p>
+          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.artist} • ${alb.count} SONGS</p>
         </div>
       `).join('');
     }
 
-    function getArtistsData() {
+    function renderArtistsView() {
+      const container = document.getElementById('artistList');
       const artistsMap = {};
+
       songs.forEach(s => {
         if (!artistsMap[s.artist]) {
           artistsMap[s.artist] = { name: s.artist, cover: s.cover, count: 0 };
@@ -1536,25 +1337,8 @@
         artistsMap[s.artist].count++;
       });
 
-      const result = Object.values(artistsMap);
-      const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-      if (currentArtistsSort === 'az') result.sort((a,b) => collator.compare(a.name,b.name));
-      if (currentArtistsSort === 'za') result.sort((a,b) => collator.compare(b.name,a.name));
-      if (currentArtistsSort === 'tracks') result.sort((a,b) => b.count - a.count || collator.compare(a.name,b.name));
-      return result;
-    }
-
-    function sortArtists(mode) {
-      currentArtistsSort = mode;
-      renderArtistsView();
-    }
-
-    function renderArtistsView() {
-      const container = document.getElementById('artistList');
-      const artists = getArtistsData();
-
-      container.innerHTML = artists.map(art => `
-        <div onclick="openGroupDetail('artist', ${JSON.stringify(art.name).replace(/"/g,'&quot;')})" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-center text-center">
+      container.innerHTML = Object.values(artistsMap).map(art => `
+        <div onclick="openGroupDetail('artist', '${art.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-center text-center">
           <div class="relative w-36 h-36 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-white/10">
             <img src="${art.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="artist">
             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -1575,20 +1359,17 @@
       currentActivePlaylistId = null;
       renderSidebarPlaylists();
 
-      const views = ['homeView', 'searchView', 'discoverView', 'albumsView', 'artistsView', 'playlistDetailView', 'groupDetailView'];
+      const views = ['discoverView', 'albumsView', 'artistsView', 'playlistDetailView'];
       views.forEach(v => document.getElementById(v).classList.add('hidden'));
       document.getElementById('groupDetailView').classList.remove('hidden');
 
       let filteredSongs = [];
       if (type === 'album') {
         filteredSongs = songs.filter(s => s.album === key);
-        const artist = filteredSongs[0] ? filteredSongs[0].artist : '';
-        document.getElementById('groupDetailType').innerText = `${getAlbumType(key)} BY ${artist}`;
-        document.getElementById('pageBreadcrumb').innerText = getAlbumType(key);
+        document.getElementById('groupDetailType').innerText = 'ALBUM';
       } else {
         filteredSongs = songs.filter(s => s.artist === key);
         document.getElementById('groupDetailType').innerText = 'ARTIST';
-        document.getElementById('pageBreadcrumb').innerText = 'ARTIST';
       }
 
       const totalSecs = filteredSongs.reduce((acc, s) => acc + (songDurations[s.id] || 0), 0);
@@ -1633,8 +1414,20 @@
     }
 
     async function deletePlaylist(id) {
+      if (!currentUser) return;
+
+      const { error } = await supabaseClient
+        .from('playlists')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', currentUser.id);
+
+      if (error) {
+        console.error('Delete playlist error:', error);
+        return;
+      }
+
       playlists = playlists.filter(p => p.id !== id);
-      await savePlaylistsPermanent();
       renderSidebarPlaylists();
       switchView('discover');
     }
@@ -1649,18 +1442,13 @@
     }
 
     function filterSongs() {
-      const input = document.getElementById('searchInput');
-      const query = input ? input.value.toLowerCase().trim() : '';
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
       const filtered = songs.filter(s =>
         s.title.toLowerCase().includes(query) ||
         s.artist.toLowerCase().includes(query) ||
         s.album.toLowerCase().includes(query)
       );
-
-      const container = document.getElementById('searchResultList');
-      if (container) {
-        container.innerHTML = filtered.map((s, idx) => generateSongRowHTML(s, idx, 'search')).join('');
-      }
+      renderAllSongsList(filtered);
     }
 
     /* =========================================================
@@ -1677,47 +1465,18 @@
       renderQueueSidebarList();
     }
 
-    function playSongFromList(songId, source, action = 'button') {
-      const clickedSong = songs.find(s => s.id === songId);
-      if (!clickedSong) return;
-
-      // All non-button row clicks start the selected song from the beginning.
-      if (action === 'row') {
-        if (source === 'all') currentQueue = getSortedSongs();
-        else if (source === 'search') {
-          const q = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
-          currentQueue = songs.filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q) || s.album.toLowerCase().includes(q));
-        } else if (source === 'home') currentQueue = [...songs];
-        else if (source === 'group') currentQueue = [...songs].filter(s => s.album === clickedSong.album || s.artist === clickedSong.artist);
-        else if (source === 'playlist') {
-          const pl = playlists.find(p => p.id === currentActivePlaylistId);
-          currentQueue = pl ? songs.filter(s => pl.songIds.includes(s.id)) : [...songs];
-        } else if (source === 'queue') currentQueue = [...currentQueue];
-
-        const idx = currentQueue.findIndex(s => s.id === songId);
-        if (idx !== -1) currentSongIndex = idx;
-        loadSong(clickedSong);
-        audio.currentTime = 0;
-        audio.play().then(() => { isPlaying = true; updatePlayIconsUI(); }).catch(console.error);
-        return;
-      }
-
-      // The overlay play/pause button keeps resume/pause behavior.
+    function playSongFromList(songId, source) {
+      // If this is the song currently loaded, the list cover button
+      // acts as a true Play/Pause control. Do NOT reload the song,
+      // because setting audio.src again would reset currentTime to 0.
       const currentSong = currentQueue[currentSongIndex];
       if (currentSong && currentSong.id === songId && audio.src) {
         togglePlay();
         return;
       }
 
-      if (source === 'all') currentQueue = getSortedSongs();
-      else if (source === 'search') {
-        const q = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
-        currentQueue = songs.filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q) || s.album.toLowerCase().includes(q));
-      } else if (source === 'home') currentQueue = [...songs];
-      else if (source === 'group') currentQueue = [...songs].filter(s => s.album === clickedSong.album || s.artist === clickedSong.artist);
-      else if (source === 'playlist') {
-        const pl = playlists.find(p => p.id === currentActivePlaylistId);
-        currentQueue = pl ? songs.filter(s => pl.songIds.includes(s.id)) : [...songs];
+      if (source === 'all') {
+        currentQueue = [...songs];
       }
 
       const index = currentQueue.findIndex(s => s.id === songId);
@@ -1978,15 +1737,18 @@ function togglePlay() {
     /* =========================================================
        INITIALIZATION
     ========================================================== */
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       preloadDurations();
       // Initialize range bars styling
       setVolume();
       updateRangeBackground(document.getElementById('progressBar'), 0);
 
-      // Load initial default song into footer and open Home.
-      if (songs.length > 0) loadSong(songs[0]);
-      switchView('home');
+      // Load initial default song into footer
+      if (songs.length > 0) {
+        loadSong(songs[0]);
+      }
+
+      await restoreSupabaseSession();
     });
   </script>
 
