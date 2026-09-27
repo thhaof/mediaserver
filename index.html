@@ -361,20 +361,17 @@
         <hr class="border-gray-800/80 my-5 mx-4">
 
         <!-- Playlists Header -->
-        <button type="button" onclick="togglePlaylistMenu()" class="w-full px-6 flex items-center justify-between mb-3 text-left">
-          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">PLAYLISTS</span>
-          <i id="playlistChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
-        </button>
-        <div id="playlistSection" class="px-3">
-          <div class="px-0 flex items-center justify-end mb-2">
-          <button
-            onclick="openModal('createPlaylistModal')"
-            title="CREATE PLAYLIST"
-            class="text-gray-400 hover:text-white text-sm w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition"
-          >
-            <i class="fa-solid fa-plus text-xs"></i>
+        <div class="px-6 flex items-center justify-between mb-3">
+          <button type="button" onclick="togglePlaylistMenu()" class="flex items-center gap-2 text-left">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">PLAYLISTS</span>
+            <i id="playlistChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
           </button>
+          <div class="flex items-center gap-1">
+            <button onclick="openModal('createPlaylistModal')" title="CREATE PLAYLIST" class="text-gray-400 hover:text-white text-sm w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition"><i class="fa-solid fa-plus text-xs"></i></button>
+            <button onclick="alert('Albums are generated automatically from the album information in your songs.')" title="CREATE NEW ALBUM" class="text-gray-400 hover:text-white px-2 py-1.5 rounded-lg bg-gray-800/50 hover:bg-indigo-600 transition text-[10px] font-bold flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-plus text-[9px]"></i> TẠO ALBUM MỚI</button>
           </div>
+        </div>
+        <div id="playlistSection" class="px-3">
           <!-- Playlists Container -->
           <div id="sidebarPlaylists" class="px-0 flex flex-col gap-1 max-h-52 overflow-y-auto pr-1"></div>
         </div>
@@ -395,7 +392,7 @@
          MAIN CONTENT AREA
     ======================================================== -->
     <main
-      class="flex-1 bg-gradient-to-b from-[#161722] to-[#0f1016] overflow-y-auto p-8 lg:p-10 transition-all duration-300"
+      class="flex-1 bg-gradient-to-b from-[#161722] to-[#0f1016] overflow-y-auto p-5 lg:p-6 transition-all duration-300"
     >
       <!-- Top Bar / Header -->
       <header class="flex items-center justify-end mb-8 gap-4 flex-wrap">
@@ -498,7 +495,7 @@
 
         <!-- ALBUMS VIEW -->
         <div id="albumsView" class="hidden">
-          <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+          <div class="flex items-center justify-between mb-4 gap-4 flex-wrap">
             <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">FEATURED ALBUMS</h2>
             <select id="albumSort" onchange="renderAlbumsView()" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500">
               <option value="az">A-Z</option><option value="za">Z-A</option><option value="artist">BY ARTIST</option><option value="type">BY TYPE</option>
@@ -509,7 +506,7 @@
 
         <!-- ARTISTS VIEW -->
         <div id="artistsView" class="hidden">
-          <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+          <div class="flex items-center justify-between mb-4 gap-4 flex-wrap">
             <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ARTISTS</h2>
             <select id="artistSort" onchange="renderArtistsView()" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500">
               <option value="az">A-Z</option><option value="za">Z-A</option><option value="songs">BY SONG COUNT</option>
@@ -1196,6 +1193,8 @@
        ACCOUNT FAVORITES — SUPABASE AUTH USER METADATA
        Stored per account and never published as a playlist.
     ========================================================== */
+    function escapeHtmlAttr(value) { return String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
     function normalizeFavorites(value) {
       return {
         song: Array.isArray(value?.song) ? value.song.map(Number).filter(Number.isFinite) : [],
@@ -1204,36 +1203,40 @@
       };
     }
 
+    function favoriteStorageKey() { return currentUser ? `thhaof_favorites_${currentUser.id}` : null; }
+
     async function loadFavorites() {
-      if (!currentUser) { favorites = { song: [], album: [], artist: [] }; return; }
-      const metadata = currentUser.user_metadata?.favorites || {};
-      favorites = normalizeFavorites(metadata);
+      if (!currentUser) { favorites={song:[],album:[],artist:[]}; return; }
+      const key=favoriteStorageKey(); let local={};
+      try { local=JSON.parse(localStorage.getItem(key)||'{}'); } catch (_) {}
+      const metadata=currentUser.user_metadata?.favorites||{};
+      const source=(Array.isArray(metadata.song)||Array.isArray(metadata.album)||Array.isArray(metadata.artist)) ? metadata : local;
+      favorites=normalizeFavorites(source);
+      try { localStorage.setItem(key,JSON.stringify(favorites)); } catch (_) {}
     }
 
     async function persistFavorites() {
       if (!currentUser) return false;
-      const { data, error } = await supabaseClient.auth.updateUser({ data: { favorites } });
-      if (error) { console.error('Favorite save error:', error); alert('Could not save favorite.'); return false; }
-      if (data?.user) currentUser = data.user;
+      try { localStorage.setItem(favoriteStorageKey(),JSON.stringify(favorites)); } catch (_) {}
+      const {data,error}=await supabaseClient.auth.updateUser({data:{favorites:{...favorites}}});
+      if (error) console.warn('Favorite cloud save failed; account-local cache retained.',error);
+      else if (data?.user) currentUser=data.user;
       return true;
     }
 
-    async function toggleFavorite(type, key) {
+    async function toggleFavorite(type,key) {
       if (!currentUser) { openModal('authModal'); return; }
-      const value = type === 'song' ? Number(key) : String(key);
-      const list = favorites[type] || [];
-      const index = list.findIndex(x => String(x) === String(value));
-      if (index >= 0) list.splice(index, 1); else list.push(value);
-      favorites[type] = list;
-      const saved = await persistFavorites();
-      if (!saved) { if (index >= 0) list.push(value); else list.pop(); return; }
+      const value=type==='song'?Number(key):String(key);
+      if ((type==='song'&&!Number.isFinite(value))||!favorites[type]) return;
+      const list=favorites[type]; const index=list.findIndex(x=>String(x)===String(value));
+      if(index>=0) list.splice(index,1); else list.push(value);
       renderFavoriteButtons();
-      if (currentViewName === 'favorites') renderFavoritesView();
-      if (currentViewName === 'group') {
-        const key = document.getElementById('groupDetailTitle')?.innerText;
-        const btn = document.getElementById('groupFavoriteBtn');
-        const t = currentGroupDetailType === 'album' ? 'album' : 'artist';
-        if (btn && key) { const active = isFavorite(t, key); btn.innerHTML = `<i class="fa-${active ? 'solid' : 'regular'} fa-heart text-xs"></i> ${active ? 'FAVORITED' : 'FAVORITE'}`; btn.classList.toggle('favorite-active', active); }
+      if(currentViewName==='favorites') renderFavoritesView();
+      await persistFavorites();
+      if(currentViewName==='group') {
+        const title=document.getElementById('groupDetailTitle')?.innerText, btn=document.getElementById('groupFavoriteBtn');
+        const t=currentGroupDetailType==='album'?'album':'artist';
+        if(btn&&title){const active=isFavorite(t,title);btn.innerHTML=`<i class="fa-${active?'solid':'regular'} fa-heart text-xs"></i> ${active?'FAVORITED':'FAVORITE'}`;btn.classList.toggle('favorite-active',active);}
       }
     }
 
@@ -1244,7 +1247,7 @@
     function favoriteButtonHTML(type, key, label='') {
       const active = isFavorite(type, key);
       const safeKey = String(key).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      return `<button onclick="event.stopPropagation(); toggleFavorite('${type}', '${safeKey}')" title="${active ? 'REMOVE FROM FAVORITES' : 'ADD TO FAVORITES'}" class="favorite-btn ${active ? 'favorite-active' : 'text-gray-500'} hover:text-pink-400 p-2 rounded-lg hover:bg-pink-500/10 transition">${label ? `<span class=\"text-[10px] font-bold mr-1\">${label}</span>` : ''}<i class="fa-${active ? 'solid' : 'regular'} fa-heart text-xs"></i></button>`;
+      return `<button type="button" onclick="event.stopPropagation(); toggleFavorite('${type}', '${safeKey}')" title="${active ? 'REMOVE FROM FAVORITES' : 'ADD TO FAVORITES'}" class="favorite-btn ${active ? 'favorite-active' : 'text-gray-500'} hover:text-pink-400 p-2 rounded-lg hover:bg-pink-500/10 transition">${label ? `<span class=\"text-[10px] font-bold mr-1\">${label}</span>` : ''}<i class="fa-${active ? 'solid' : 'regular'} fa-heart text-xs"></i></button>`;
     }
 
     function renderFavoriteButtons() {
@@ -1743,7 +1746,7 @@
         <button onclick="event.stopPropagation(); moveQueueToPlaying(${song.id})" title="MOVE TO PLAYING" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-blue-500/10 transition"><i class="fa-solid fa-crosshairs text-xs"></i></button>` : '';
       const fav = favoriteButtonHTML('song', song.id);
       return `
-        <div data-song-id="${song.id}" data-favorite-type="song" data-favorite-key="${song.id}" onclick="playSongFromList(${song.id}, '${queueSource}')" class="song-item-card flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
+        <div data-song-id="${song.id}" onclick="playSongFromList(${song.id}, '${queueSource}')" class="song-item-card flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
           <div class="flex items-center gap-4 overflow-hidden">
             <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
               <img src="${song.cover}" class="w-full h-full object-cover" alt="cover">
@@ -1771,66 +1774,46 @@
 
     function renderAlbumsView() {
       const container = document.getElementById('albumList');
+      if (!container) return;
       const albumsMap = {};
-
       songs.forEach(s => {
-        if (!albumsMap[s.album]) {
-          albumsMap[s.album] = { name: s.album, artist: s.artist, cover: s.cover, count: 0 };
-        }
+        if (!albumsMap[s.album]) albumsMap[s.album] = { name:s.album, artist:s.artist, cover:s.cover, count:0 };
         albumsMap[s.album].count++;
       });
-
-      let albumValues = Object.values(albumsMap).map(a => ({ ...a, type: albumType(a.name) }));
+      let albumValues = Object.values(albumsMap).map(a => ({...a, type:albumType(a.name)}));
       const sort = document.getElementById('albumSort')?.value || 'az';
-      albumValues.sort((a,b) => sort === 'za' ? b.name.localeCompare(a.name) : sort === 'artist' ? a.artist.localeCompare(b.artist) || a.name.localeCompare(b.name) : sort === 'type' ? a.type.localeCompare(b.type) || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
+      albumValues.sort((a,b) => sort==='za' ? b.name.localeCompare(a.name) : sort==='artist' ? a.artist.localeCompare(b.artist)||a.name.localeCompare(b.name) : sort==='type' ? a.type.localeCompare(b.type)||a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
       container.innerHTML = albumValues.map(alb => `
         <div class="glass-card p-5 rounded-2xl group flex flex-col items-start relative">
-          <button data-favorite-type="album" data-favorite-key="${alb.name}" onclick="event.stopPropagation(); toggleFavorite('album', ${JSON.stringify(alb.name)})" title="FAVORITE ALBUM" class="absolute top-7 right-7 z-10 ${isFavorite('album', alb.name) ? 'favorite-active' : 'text-gray-500'} p-2 rounded-lg bg-black/30 hover:bg-pink-500/10 transition"><i class="fa-${isFavorite('album', alb.name) ? 'solid' : 'regular'} fa-heart"></i></button>
+          <button data-favorite-type="album" data-favorite-key="${escapeHtmlAttr(alb.name)}" onclick="event.stopPropagation(); toggleFavorite('album', ${JSON.stringify(alb.name)})" title="FAVORITE ALBUM" class="absolute top-7 right-7 z-10 ${isFavorite('album', alb.name)?'favorite-active':'text-gray-500'} p-2 rounded-lg bg-black/30 hover:bg-pink-500/10 transition"><i class="fa-${isFavorite('album', alb.name)?'solid':'regular'} fa-heart"></i></button>
           <div onclick="openGroupDetail('album', ${JSON.stringify(alb.name)})" class="cursor-pointer w-full">
-          <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-4 shadow-xl">
-            <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
-            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-              <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40">
-                <i class="fa-solid fa-play text-base ml-0.5"></i>
-              </div>
+            <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-4 shadow-xl">
+              <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"><div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40"><i class="fa-solid fa-play text-base ml-0.5"></i></div></div>
             </div>
+            <h3 class="font-bold text-base text-white truncate w-full normal-case">${alb.name}</h3>
+            <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.type} • ${alb.artist} • ${alb.count} SONGS</p>
           </div>
-          <h3 class="font-bold text-base text-white truncate w-full normal-case">${alb.name}</h3>
-          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.type} • ${alb.artist} • ${alb.count} SONGS</p>
-        </div>
-      `).join('');
+        </div>`).join('');
     }
 
     function renderArtistsView() {
       const container = document.getElementById('artistList');
+      if (!container) return;
       const artistsMap = {};
-
-      songs.forEach(s => {
-        if (!artistsMap[s.artist]) {
-          artistsMap[s.artist] = { name: s.artist, cover: s.cover, count: 0 };
-        }
-        artistsMap[s.artist].count++;
-      });
-
+      songs.forEach(s => { if (!artistsMap[s.artist]) artistsMap[s.artist]={name:s.artist,cover:s.cover,count:0}; artistsMap[s.artist].count++; });
       let artistValues = Object.values(artistsMap);
       const sort = document.getElementById('artistSort')?.value || 'az';
-      artistValues.sort((a,b) => sort === 'za' ? b.name.localeCompare(a.name) : sort === 'songs' ? b.count - a.count || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
+      artistValues.sort((a,b) => sort==='za' ? b.name.localeCompare(a.name) : sort==='songs' ? b.count-a.count||a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
       container.innerHTML = artistValues.map(art => `
         <div class="glass-card p-5 rounded-2xl group flex flex-col items-center text-center relative">
-          <button data-favorite-type="artist" data-favorite-key="${art.name}" onclick="event.stopPropagation(); toggleFavorite('artist', ${JSON.stringify(art.name)})" title="FAVORITE ARTIST" class="absolute top-7 right-7 z-10 ${isFavorite('artist', art.name) ? 'favorite-active' : 'text-gray-500'} p-2 rounded-lg bg-black/30 hover:bg-pink-500/10 transition"><i class="fa-${isFavorite('artist', art.name) ? 'solid' : 'regular'} fa-heart"></i></button>
+          <button data-favorite-type="artist" data-favorite-key="${escapeHtmlAttr(art.name)}" onclick="event.stopPropagation(); toggleFavorite('artist', ${JSON.stringify(art.name)})" title="FAVORITE ARTIST" class="absolute top-7 right-7 z-10 ${isFavorite('artist', art.name)?'favorite-active':'text-gray-500'} p-2 rounded-lg bg-black/30 hover:bg-pink-500/10 transition"><i class="fa-${isFavorite('artist', art.name)?'solid':'regular'} fa-heart"></i></button>
           <div onclick="openGroupDetail('artist', ${JSON.stringify(art.name)})" class="cursor-pointer w-full flex flex-col items-center">
-          <div class="relative w-36 h-36 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-white/10">
-            <img src="${art.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="artist">
-            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-              <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40">
-                <i class="fa-solid fa-play text-sm ml-0.5"></i>
-              </div>
-            </div>
+            <div class="relative w-36 h-36 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-white/10"><img src="${art.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="artist"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"><div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40"><i class="fa-solid fa-play text-sm ml-0.5"></i></div></div></div>
+            <h3 class="font-bold text-base text-white truncate w-full uppercase">${art.name}</h3>
+            <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${art.count} TRACKS</p>
           </div>
-          <h3 class="font-bold text-base text-white truncate w-full uppercase">${art.name}</h3>
-          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${art.count} TRACKS</p>
-        </div>
-      `).join('');
+        </div>`).join('');
     }
 
     function openGroupDetail(type, key) {
