@@ -754,7 +754,7 @@
 
 
   <!-- FLOATING NAVIGATION CONTROLS -->
-  <div id="floatingNavControls" class="fixed right-5 bottom-28 z-45 flex flex-col gap-2 opacity-0 pointer-events-none translate-y-2 transition-all duration-300">
+  <div id="floatingNavControls" class="fixed right-5 bottom-28 z-50 flex flex-row gap-2 opacity-0 pointer-events-none translate-y-2 transition-all duration-300">
     <button id="scrollToTopBtn" onclick="scrollMainToTop()" title="BACK TO TOP" class="w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
       <i class="fa-solid fa-house"></i>
     </button>
@@ -2267,7 +2267,13 @@ function togglePlay() {
       const main = document.querySelector('main');
       const controls = document.getElementById('floatingNavControls');
       if (!main || !controls) return;
-      controls.classList.toggle('is-visible', main.scrollTop > 180);
+      const visible = main.scrollTop > 180;
+      controls.classList.toggle('opacity-100', visible);
+      controls.classList.toggle('pointer-events-auto', visible);
+      controls.classList.toggle('translate-y-0', visible);
+      controls.classList.toggle('opacity-0', !visible);
+      controls.classList.toggle('pointer-events-none', !visible);
+      controls.classList.toggle('translate-y-2', !visible);
     }
 
     const mainScroller = document.querySelector('main');
