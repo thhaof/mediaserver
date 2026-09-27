@@ -126,6 +126,9 @@
       box-shadow: 0 0 18px rgba(59, 130, 246, 0.16), inset 0 0 14px rgba(59, 130, 246, 0.08);
     }
     .playing-item img { box-shadow: 0 0 14px rgba(59, 130, 246, 0.5); }
+    .custom-sidebar-scroll { scrollbar-width: thin; scrollbar-color: #3f3f46 transparent; }
+    .favorite-active { color: #f472b6 !important; }
+    .song-item-card, .glass-card, button, a, input, select { transition-timing-function: cubic-bezier(.4,0,.2,1); }
 </style>
 </head>
 
@@ -197,6 +200,28 @@
     </div>
   </div>
 
+
+
+  <!-- SETTINGS MODAL -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden backdrop-blur-sm">
+    <div class="bg-[#181922] p-6 rounded-2xl w-[min(92vw,430px)] border border-gray-800 shadow-2xl view-transition">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-bold text-white uppercase">SETTINGS</h3>
+        <button onclick="closeModal('settingsModal')" class="text-gray-400 hover:text-white w-8 h-8 rounded-lg hover:bg-gray-800"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-4 rounded-xl bg-[#222331] border border-gray-700/60 mb-4">
+        <div class="flex items-center justify-between mb-3">
+          <div><p class="text-sm font-bold text-white uppercase">CROSSFADE</p><p class="text-[11px] text-gray-500 mt-1 uppercase">SMOOTHLY BLEND INTO THE NEXT SONG</p></div>
+          <span id="crossfadeValue" class="text-xs font-bold text-blue-400">0 SEC</span>
+        </div>
+        <input id="crossfadeRange" type="range" min="0" max="12" step="1" value="0" oninput="setCrossfade(this.value)" class="w-full h-1.5 cursor-pointer">
+        <div class="flex justify-between text-[9px] text-gray-600 mt-2"><span>0</span><span>3</span><span>6</span><span>9</span><span>12 SEC</span></div>
+      </div>
+      <button onclick="logout(); closeModal('settingsModal')" class="w-full px-4 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold uppercase transition flex items-center justify-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i> LOG OUT
+      </button>
+    </div>
+  </div>
 
   <!-- =========================================================
        CREATE PLAYLIST MODAL
@@ -296,9 +321,9 @@
          SIDEBAR NAVIGATION
     ======================================================== -->
     <aside
-      class="w-64 bg-[#12131b] flex flex-col justify-between border-r border-gray-800/60 z-20 flex-shrink-0"
+      class="w-64 bg-[#12131b] flex flex-col border-r border-gray-800/60 z-20 flex-shrink-0 min-h-0"
     >
-      <div>
+      <div class="flex-1 min-h-0 overflow-y-auto custom-sidebar-scroll">
         <!-- Logo / Welcome Banner -->
         <div class="p-6 flex items-center gap-3">
           <span
@@ -328,17 +353,20 @@
             <a href="#" onclick="switchView('albums'); return false;" id="nav-albums" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-compact-disc w-4 text-center text-indigo-400"></i>ALBUMS</a>
             <a href="#" onclick="switchView('artists'); return false;" id="nav-artists" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-microphone-lines w-4 text-center text-purple-400"></i>ARTISTS</a>
           </div>
+          <a href="#" onclick="switchView('favorites'); return false;" id="nav-favorites" class="nav-item flex items-center gap-4 px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase">
+            <i class="fa-solid fa-heart text-lg w-5 text-center text-pink-400"></i>FAVORITES
+          </a>
         </nav>
 
         <hr class="border-gray-800/80 my-5 mx-4">
 
         <!-- Playlists Header -->
-        <div class="px-6 flex items-center justify-between mb-3">
-          <span
-            class="text-xs font-bold text-gray-400 uppercase tracking-wider"
-          >
-            PLAYLISTS
-          </span>
+        <button type="button" onclick="togglePlaylistMenu()" class="w-full px-6 flex items-center justify-between mb-3 text-left">
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">PLAYLISTS</span>
+          <i id="playlistChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
+        </button>
+        <div id="playlistSection" class="px-3">
+          <div class="px-0 flex items-center justify-end mb-2">
           <button
             onclick="openModal('createPlaylistModal')"
             title="CREATE PLAYLIST"
@@ -346,58 +374,20 @@
           >
             <i class="fa-solid fa-plus text-xs"></i>
           </button>
+          </div>
+          <!-- Playlists Container -->
+          <div id="sidebarPlaylists" class="px-0 flex flex-col gap-1 max-h-52 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Playlists Container -->
-        <div
-          id="sidebarPlaylists"
-          class="px-3 flex flex-col gap-1 max-h-52 overflow-y-auto pr-1"
-        ></div>
-
-        <div class="px-6 mt-5 mb-3">
+        <button type="button" onclick="togglePublicPlaylistMenu()" class="w-full px-6 mt-5 mb-3 flex items-center justify-between text-left">
           <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">PUBLIC PLAYLISTS</span>
-        </div>
-        <div
-          id="publicSidebarPlaylists"
-          class="px-3 flex flex-col gap-1 max-h-44 overflow-y-auto pr-1"
-        ></div>
-      </div>
-
-      <!-- User Profile Footer -->
-      <div
-        class="p-4 border-t border-gray-800/60 flex items-center justify-between bg-[#151620]"
-      >
-        <div class="flex items-center gap-3 overflow-hidden">
-          <div
-            class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-sm font-extrabold flex-shrink-0"
-            id="userAvatar"
-          >
-            G
-          </div>
-          <div class="overflow-hidden">
-            <p
-              class="text-xs font-bold text-white truncate uppercase"
-              id="userNameDisplay"
-            >
-              GUEST
-            </p>
-            <p
-              class="text-[11px] text-gray-400 truncate uppercase"
-              id="userStatus"
-            >
-              FREE ACCOUNT
-            </p>
-          </div>
-        </div>
-
-        <button
-          onclick="logout()"
-          title="LOGOUT"
-          class="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition"
-        >
-          <i class="fa-solid fa-right-from-bracket text-sm"></i>
+          <i id="publicPlaylistChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
         </button>
+        <div id="publicPlaylistSection" class="px-3">
+          <div id="publicSidebarPlaylists" class="px-0 flex flex-col gap-1 max-h-44 overflow-y-auto pr-1"></div>
+        </div>
       </div>
+
     </aside>
 
 
@@ -408,7 +398,11 @@
       class="flex-1 bg-gradient-to-b from-[#161722] to-[#0f1016] overflow-y-auto p-8 lg:p-10 transition-all duration-300"
     >
       <!-- Top Bar / Header -->
-      <header class="flex items-center justify-end mb-8 gap-4 flex-wrap"></header>
+      <header class="flex items-center justify-end mb-8 gap-4 flex-wrap">
+        <button onclick="openSettings()" title="SETTINGS" class="text-gray-400 hover:text-white w-10 h-10 rounded-xl hover:bg-gray-800 flex items-center justify-center transition">
+          <i class="fa-solid fa-gear"></i>
+        </button>
+      </header>
 
 
       <!-- Dynamic Views Container -->
@@ -472,8 +466,12 @@
         <!-- ALL SONGS VIEW -->
         <div id="discoverView" class="hidden">
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ALL SONGS</h2>
-            <span id="totalSongsCount" class="text-xs text-gray-400 font-medium uppercase">0 SONGS</span>
+            <div class="flex items-center gap-4 flex-wrap">
+              <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ALL SONGS</h2>
+              <span id="totalSongsCount" class="text-xs text-gray-400 font-medium uppercase">0 SONGS</span>
+              <span id="totalSongsDuration" class="text-xs text-gray-500 font-medium uppercase">TOTAL DURATION: 0:00</span>
+            </div>
+            <button onclick="playAllQueue(songs)" class="bg-blue-600 hover:bg-blue-500 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition active:scale-95 uppercase"><i class="fa-solid fa-play"></i> PLAY ALL</button>
           </div>
           <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
             <div
@@ -481,6 +479,21 @@
               id="songList"
             ></div>
           </div>
+        </div>
+
+
+        <!-- FAVORITES VIEW -->
+        <div id="favoritesView" class="hidden">
+          <div class="flex items-center justify-between mb-6">
+            <div><h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">FAVORITES</h2><p id="favoritesCount" class="text-xs text-gray-400 mt-1 uppercase">YOUR SAVED MUSIC</p></div>
+          </div>
+          <div class="flex gap-2 mb-5">
+            <button onclick="setFavoriteFilter('all')" id="favFilterAll" class="fav-filter bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase">ALL</button>
+            <button onclick="setFavoriteFilter('song')" id="favFilterSong" class="fav-filter bg-white/5 text-gray-400 px-4 py-2 rounded-xl text-xs font-bold uppercase">SONGS</button>
+            <button onclick="setFavoriteFilter('album')" id="favFilterAlbum" class="fav-filter bg-white/5 text-gray-400 px-4 py-2 rounded-xl text-xs font-bold uppercase">ALBUMS</button>
+            <button onclick="setFavoriteFilter('artist')" id="favFilterArtist" class="fav-filter bg-white/5 text-gray-400 px-4 py-2 rounded-xl text-xs font-bold uppercase">ARTISTS</button>
+          </div>
+          <div id="favoritesContent" class="space-y-6"></div>
         </div>
 
         <!-- ALBUMS VIEW -->
@@ -529,6 +542,9 @@
                 <button id="groupAddToPlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase hidden">
                   <i class="fa-solid fa-plus text-xs"></i> ADD ALBUM TO PLAYLIST
                 </button>
+                <button id="groupFavoriteBtn" class="bg-white/5 text-gray-300 hover:bg-pink-500/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
+                  <i class="fa-regular fa-heart text-xs"></i> FAVORITE
+                </button>
               </div>
             </div>
           </div>
@@ -551,9 +567,6 @@
               <div class="flex items-center gap-3 flex-wrap">
                 <button id="playAllBtn" class="bg-blue-600 hover:bg-blue-500 px-7 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 shadow-xl shadow-blue-600/30 transition active:scale-95 uppercase">
                   <i class="fa-solid fa-play text-xs"></i> PLAY ALL
-                </button>
-                <button id="sharePlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
-                  <i class="fa-solid fa-share-nodes text-xs"></i> SHARE PLAYLIST
                 </button>
                 <button id="publicPlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
                   <i id="publicPlaylistIcon" class="fa-solid fa-lock text-xs"></i> <span id="publicPlaylistLabel">PRIVATE</span>
@@ -579,17 +592,18 @@
     <!-- =======================================================
          PLAYING QUEUE SIDEBAR (RIGHT)
     ======================================================== -->
-    <aside id="queueSidebar" class="w-80 bg-[#12131b] border-l border-gray-800/60 p-5 hidden flex flex-col justify-between z-20 flex-shrink-0">
+    <aside id="queueSidebar" class="fixed right-6 bottom-28 w-[min(92vw,390px)] max-h-[70vh] bg-[#12131b]/98 border border-gray-800/80 p-5 hidden flex flex-col justify-between z-50 rounded-2xl shadow-2xl backdrop-blur-xl">
       <div>
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-800">
-          <h3 class="font-bold text-sm flex items-center gap-2 text-white uppercase">
-            <i class="fa-solid fa-bars-staggered text-blue-500"></i> PLAYING QUEUE
-          </h3>
+          <div class="flex items-center gap-3">
+            <h3 class="font-bold text-sm flex items-center gap-2 text-white uppercase"><i class="fa-solid fa-bars-staggered text-blue-500"></i> PLAYING QUEUE</h3>
+            <button onclick="moveToPlaying()" title="MOVE TO PLAYING" class="text-[10px] text-gray-400 hover:text-blue-400 uppercase font-bold px-2 py-1 rounded-lg hover:bg-blue-500/10 transition"><i class="fa-solid fa-crosshairs mr-1"></i>MOVE TO PLAYING</button>
+          </div>
           <button onclick="toggleQueueSidebar()" class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg hover:bg-gray-800 flex items-center justify-center transition">
             <i class="fa-solid fa-xmark text-sm"></i>
           </button>
         </div>
-        <div id="queueListContainer" class="flex flex-col gap-2 max-h-[calc(100vh-140px)] overflow-y-auto pr-1"></div>
+        <div id="queueListContainer" class="flex flex-col gap-2 max-h-[calc(70vh-90px)] overflow-y-auto pr-1"></div>
       </div>
     </aside>
 
@@ -747,6 +761,7 @@
 
   <!-- AUDIO ELEMENT -->
   <audio id="audioPlayer" preload="metadata"></audio>
+  <audio id="crossfadeAudio" preload="auto"></audio>
 
 
   <!-- =========================================================
@@ -991,11 +1006,21 @@
     let viewHistory = [];
     let libraryOpen = false;
     let sharedPlaylistMode = false;
+    let favoriteFilter = 'all';
+    let favorites = { song: [], album: [], artist: [] };
+    let playlistMenuOpen = true;
+    let publicPlaylistMenuOpen = true;
+    let crossfadeSeconds = Number(localStorage.getItem('thhaof_crossfade') || 0);
+    let crossfadeTimer = null;
+    let crossfadeInProgress = false;
 
     let shuffleMode = false;
     let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
 
     const audio = document.getElementById('audioPlayer');
+    const crossfadeAudio = document.getElementById('crossfadeAudio');
+    let activeAudio = audio;
+    let standbyAudio = crossfadeAudio;
     const songDurations = {}; // Store duration cache
 
     // Helper: format time in mm:ss
@@ -1067,9 +1092,10 @@
 
     function updateDurationUI(songId, durationSec) {
       const formatted = formatTime(durationSec);
-      document.querySelectorAll(`.duration-song-${songId}`).forEach(el => {
-        el.innerText = formatted;
-      });
+      document.querySelectorAll(`.duration-song-${songId}`).forEach(el => { el.innerText = formatted; });
+      const allSongsDuration = songs.reduce((sum,s) => sum + (songDurations[s.id] || 0), 0);
+      const totalEl = document.getElementById('totalSongsDuration');
+      if (totalEl) totalEl.innerText = `TOTAL DURATION: ${formatFullDuration(allSongsDuration)}`;
     }
 
     /* =========================================================
@@ -1100,6 +1126,7 @@
       }
 
       currentUser = data.user;
+      await loadFavorites();
 
       // Ensure the profile exists for this authenticated user.
       const { error: profileError } = await supabaseClient
@@ -1111,10 +1138,7 @@
       }
 
       document.getElementById('authModal').classList.add('hidden');
-      document.getElementById('userNameDisplay').innerText = username.toUpperCase();
       document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
-      document.getElementById('userStatus').innerText = 'Premium Member';
-      document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
       document.getElementById('loginError').classList.add('hidden');
       document.getElementById('passwordInput').value = '';
 
@@ -1132,6 +1156,7 @@
       if (data.session && data.session.user) {
         const user = data.session.user;
         currentUser = user;
+        await loadFavorites();
 
         const { data: profile } = await supabaseClient
           .from('profiles')
@@ -1141,11 +1166,8 @@
 
         const username = profile?.username || user.email?.split('@')[0] || 'howie';
         document.getElementById('authModal').classList.add('hidden');
-        document.getElementById('userNameDisplay').innerText = username.toUpperCase();
-        document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
-        document.getElementById('userStatus').innerText = 'Premium Member';
-        document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
-        await loadSavedPlaylistsPermanent();
+          document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
+            await loadSavedPlaylistsPermanent();
         switchView('home');
       }
     }
@@ -1159,17 +1181,106 @@
       await supabaseClient.auth.signOut();
 
       currentUser = null;
+      favorites = { song: [], album: [], artist: [] };
       playlists = [];
       currentActivePlaylistId = null;
       document.getElementById('welcomeHeader').innerText = 'Welcome back, GUEST!';
-      document.getElementById('userNameDisplay').innerText = 'GUEST';
-      document.getElementById('userStatus').innerText = 'FREE ACCOUNT';
-      document.getElementById('userAvatar').innerText = 'G';
       renderSidebarPlaylists();
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('usernameInput').value = '';
       document.getElementById('passwordInput').value = '';
       document.getElementById('loginError').classList.add('hidden');
+    }
+
+    /* =========================================================
+       ACCOUNT FAVORITES — SUPABASE AUTH USER METADATA
+       Stored per account and never published as a playlist.
+    ========================================================== */
+    function normalizeFavorites(value) {
+      return {
+        song: Array.isArray(value?.song) ? value.song.map(Number).filter(Number.isFinite) : [],
+        album: Array.isArray(value?.album) ? value.album.map(String) : [],
+        artist: Array.isArray(value?.artist) ? value.artist.map(String) : []
+      };
+    }
+
+    async function loadFavorites() {
+      if (!currentUser) { favorites = { song: [], album: [], artist: [] }; return; }
+      const metadata = currentUser.user_metadata?.favorites || {};
+      favorites = normalizeFavorites(metadata);
+    }
+
+    async function persistFavorites() {
+      if (!currentUser) return false;
+      const { data, error } = await supabaseClient.auth.updateUser({ data: { favorites } });
+      if (error) { console.error('Favorite save error:', error); alert('Could not save favorite.'); return false; }
+      if (data?.user) currentUser = data.user;
+      return true;
+    }
+
+    async function toggleFavorite(type, key) {
+      if (!currentUser) { openModal('authModal'); return; }
+      const value = type === 'song' ? Number(key) : String(key);
+      const list = favorites[type] || [];
+      const index = list.findIndex(x => String(x) === String(value));
+      if (index >= 0) list.splice(index, 1); else list.push(value);
+      favorites[type] = list;
+      const saved = await persistFavorites();
+      if (!saved) { if (index >= 0) list.push(value); else list.pop(); return; }
+      renderFavoriteButtons();
+      if (currentViewName === 'favorites') renderFavoritesView();
+      if (currentViewName === 'group') {
+        const key = document.getElementById('groupDetailTitle')?.innerText;
+        const btn = document.getElementById('groupFavoriteBtn');
+        const t = currentGroupDetailType === 'album' ? 'album' : 'artist';
+        if (btn && key) { const active = isFavorite(t, key); btn.innerHTML = `<i class="fa-${active ? 'solid' : 'regular'} fa-heart text-xs"></i> ${active ? 'FAVORITED' : 'FAVORITE'}`; btn.classList.toggle('favorite-active', active); }
+      }
+    }
+
+    function isFavorite(type, key) {
+      return (favorites[type] || []).some(x => String(x) === String(key));
+    }
+
+    function favoriteButtonHTML(type, key, label='') {
+      const active = isFavorite(type, key);
+      const safeKey = String(key).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `<button onclick="event.stopPropagation(); toggleFavorite('${type}', '${safeKey}')" title="${active ? 'REMOVE FROM FAVORITES' : 'ADD TO FAVORITES'}" class="favorite-btn ${active ? 'favorite-active' : 'text-gray-500'} hover:text-pink-400 p-2 rounded-lg hover:bg-pink-500/10 transition">${label ? `<span class=\"text-[10px] font-bold mr-1\">${label}</span>` : ''}<i class="fa-${active ? 'solid' : 'regular'} fa-heart text-xs"></i></button>`;
+    }
+
+    function renderFavoriteButtons() {
+      document.querySelectorAll('[data-favorite-type][data-favorite-key]').forEach(el => {
+        const type = el.dataset.favoriteType, key = el.dataset.favoriteKey;
+        const active = isFavorite(type, key);
+        el.classList.toggle('favorite-active', active);
+        el.classList.toggle('text-gray-500', !active);
+        const icon = el.querySelector('i');
+        if (icon) icon.className = `fa-${active ? 'solid' : 'regular'} fa-heart text-xs`;
+      });
+    }
+
+    function setFavoriteFilter(filter) {
+      favoriteFilter = filter;
+      document.querySelectorAll('.fav-filter').forEach(btn => { btn.classList.remove('bg-blue-600','text-white'); btn.classList.add('bg-white/5','text-gray-400'); });
+      const active = document.getElementById(`favFilter${filter.charAt(0).toUpperCase()+filter.slice(1)}`);
+      if (active) { active.classList.add('bg-blue-600','text-white'); active.classList.remove('bg-white/5','text-gray-400'); }
+      renderFavoritesView();
+    }
+
+    function renderFavoritesView() {
+      const container = document.getElementById('favoritesContent');
+      if (!container) return;
+      const sections = [];
+      const show = type => favoriteFilter === 'all' || favoriteFilter === type;
+      const favSongs = songs.filter(s => isFavorite('song', s.id));
+      const favAlbums = [...new Set(favorites.album)].map(name => songs.find(s => s.album === name)).filter(Boolean);
+      const favArtists = [...new Set(favorites.artist)].map(name => songs.find(s => s.artist === name)).filter(Boolean);
+      if (show('song')) sections.push(`<section><h3 class="text-sm font-extrabold text-white uppercase mb-3">SONGS <span class="text-gray-500">${favSongs.length}</span></h3><div class="bg-[#151620]/70 rounded-2xl p-3 border border-gray-800/60">${favSongs.length ? favSongs.map((s,i)=>generateSongRowHTML(s,i,'favorites')).join('') : '<p class="text-xs text-gray-600 text-center py-8 uppercase">NO FAVORITE SONGS</p>'}</div></section>`);
+      if (show('album')) sections.push(`<section><h3 class="text-sm font-extrabold text-white uppercase mb-3">ALBUMS <span class="text-gray-500">${favAlbums.length}</span></h3><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">${favAlbums.map(s=>`<div class="glass-card p-5 rounded-2xl group relative"><button onclick="event.stopPropagation(); toggleFavorite('album', '${String(s.album).replace(/'/g,"\\'")}')" class="absolute top-7 right-7 z-10 text-pink-400 p-2 rounded-lg bg-black/30"><i class="fa-solid fa-heart"></i></button><div onclick="openGroupDetail('album', '${String(s.album).replace(/'/g,"\\'")}')" class="cursor-pointer"><img src="${s.cover}" class="w-full aspect-square object-cover rounded-xl mb-4"><h3 class="font-bold text-base text-white truncate normal-case">${s.album}</h3><p class="text-xs text-gray-400 mt-1 uppercase">${s.artist}</p></div></div>`).join('')}</div></section>`);
+      if (show('artist')) sections.push(`<section><h3 class="text-sm font-extrabold text-white uppercase mb-3">ARTISTS <span class="text-gray-500">${favArtists.length}</span></h3><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">${favArtists.map(s=>`<div class="glass-card p-5 rounded-2xl group relative text-center"><button onclick="event.stopPropagation(); toggleFavorite('artist', '${String(s.artist).replace(/'/g,"\\'")}')" class="absolute top-7 right-7 z-10 text-pink-400 p-2 rounded-lg bg-black/30"><i class="fa-solid fa-heart"></i></button><div onclick="openGroupDetail('artist', '${String(s.artist).replace(/'/g,"\\'")}')" class="cursor-pointer"><img src="${s.cover}" class="w-36 h-36 mx-auto rounded-full object-cover mb-4"><h3 class="font-bold text-base text-white truncate uppercase">${s.artist}</h3></div></div>`).join('')}</div></section>`);
+      container.innerHTML = sections.length ? sections.join('') : '<div class="text-center py-20 text-gray-600 text-sm uppercase">NO FAVORITES YET</div>';
+      const total = favorites.song.length + favorites.album.length + favorites.artist.length;
+      document.getElementById('favoritesCount').innerText = `${total} FAVORITES`;
+      setTimeout(renderFavoriteButtons,0);
     }
 
     /* =========================================================
@@ -1225,7 +1336,7 @@
       if (!container) return;
       const { data, error } = await supabaseClient
         .from('playlists')
-        .select('id,name,share_token,created_at,playlist_songs(song_id)')
+        .select('id,name,created_at,playlist_songs(song_id)')
         .eq('is_public', true)
         .order('created_at', { ascending: false })
         .limit(30);
@@ -1256,14 +1367,13 @@
       currentViewName = 'playlist';
       currentActivePlaylistId = null;
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
-      ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'].forEach(v => document.getElementById(v)?.classList.add('hidden'));
+      ['homeView','searchView','discoverView','albumsView','artistsView','favoritesView','groupDetailView'].forEach(v => document.getElementById(v)?.classList.add('hidden'));
       document.getElementById('playlistDetailView').classList.remove('hidden');
       document.getElementById('playlistDetailTitle').innerText = pl.name;
       document.getElementById('playlistDetailCount').innerText = `${playlistSongs.length} SONGS • PUBLIC PLAYLIST`;
       document.getElementById('playAllBtn').onclick = () => playAllQueue(playlistSongs);
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
       document.getElementById('renamePlaylistBtn').classList.add('hidden');
-      document.getElementById('sharePlaylistBtn').classList.add('hidden');
       document.getElementById('publicPlaylistBtn').classList.add('hidden');
       document.getElementById('playlistSongsList').innerHTML = playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
       document.querySelector('main').scrollTop = 0;
@@ -1509,6 +1619,31 @@
         requestAnimationFrame(() => { main.scrollTop = top; });
       });
     }
+    function togglePlaylistMenu(force) {
+      playlistMenuOpen = typeof force === 'boolean' ? force : !playlistMenuOpen;
+      document.getElementById('playlistSection')?.classList.toggle('hidden', !playlistMenuOpen);
+      document.getElementById('playlistChevron')?.classList.toggle('rotate-180', !playlistMenuOpen);
+    }
+
+    function togglePublicPlaylistMenu(force) {
+      publicPlaylistMenuOpen = typeof force === 'boolean' ? force : !publicPlaylistMenuOpen;
+      document.getElementById('publicPlaylistSection')?.classList.toggle('hidden', !publicPlaylistMenuOpen);
+      document.getElementById('publicPlaylistChevron')?.classList.toggle('rotate-180', !publicPlaylistMenuOpen);
+    }
+
+    function openSettings() {
+      document.getElementById('crossfadeRange').value = crossfadeSeconds;
+      document.getElementById('crossfadeValue').innerText = `${crossfadeSeconds} SEC`;
+      openModal('settingsModal');
+    }
+
+    function setCrossfade(value) {
+      crossfadeSeconds = Number(value) || 0;
+      localStorage.setItem('thhaof_crossfade', String(crossfadeSeconds));
+      const label = document.getElementById('crossfadeValue');
+      if (label) label.innerText = `${crossfadeSeconds} SEC`;
+    }
+
     function toggleLibraryMenu(force) {
       libraryOpen = typeof force === 'boolean' ? force : !libraryOpen;
       const menu = document.getElementById('libraryMenu');
@@ -1518,7 +1653,7 @@
     }
 
     function viewFromVisibleDOM() {
-      const map = { homeView:'home', searchView:'search', discoverView:'discover', albumsView:'albums', artistsView:'artists', groupDetailView:'group', playlistDetailView:'playlist' };
+      const map = { homeView:'home', searchView:'search', discoverView:'discover', albumsView:'albums', artistsView:'artists', favoritesView:'favorites', groupDetailView:'group', playlistDetailView:'playlist' };
       for (const [id,name] of Object.entries(map)) {
         const el=document.getElementById(id);
         if (el && !el.classList.contains('hidden')) return name;
@@ -1537,7 +1672,7 @@
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
       renderSidebarPlaylists();
 
-      const views = ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView','playlistDetailView'];
+      const views = ['homeView','searchView','discoverView','albumsView','artistsView','favoritesView','groupDetailView','playlistDetailView'];
       views.forEach(v => { const el=document.getElementById(v); if(el) el.classList.add('hidden'); });
 
       if (viewName === 'home') {
@@ -1564,6 +1699,10 @@
         document.getElementById('nav-artists').classList.add('active-nav');
         document.getElementById('artistsView').classList.remove('hidden');
         renderArtistsView();
+      } else if (viewName === 'favorites') {
+        document.getElementById('nav-favorites').classList.add('active-nav');
+        document.getElementById('favoritesView').classList.remove('hidden');
+        renderFavoritesView();
       }
       if (options.restoreScroll) restoreViewScroll(viewName);
       else if (!options.preserveScroll) document.querySelector('main').scrollTop = 0;
@@ -1599,50 +1738,34 @@
       const currentPlayingSong = currentQueue[currentSongIndex];
       const isThisPlaying = currentPlayingSong && currentPlayingSong.id === song.id;
       const durationText = songDurations[song.id] ? formatTime(songDurations[song.id]) : "0:00";
-
+      const queueControls = queueSource === 'queue' ? `
+        <button onclick="event.stopPropagation(); moveQueueToTop(${song.id})" title="MOVE TO TOP" class="text-gray-500 hover:text-white p-2 rounded-lg hover:bg-gray-700/50 transition"><i class="fa-solid fa-arrow-up text-xs"></i></button>
+        <button onclick="event.stopPropagation(); moveQueueToPlaying(${song.id})" title="MOVE TO PLAYING" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-blue-500/10 transition"><i class="fa-solid fa-crosshairs text-xs"></i></button>` : '';
+      const fav = favoriteButtonHTML('song', song.id);
       return `
-        <div data-song-id="${song.id}" onclick="playSongFromList(${song.id}, '${queueSource}')" class="song-item-card flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
+        <div data-song-id="${song.id}" data-favorite-type="song" data-favorite-key="${song.id}" onclick="playSongFromList(${song.id}, '${queueSource}')" class="song-item-card flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
           <div class="flex items-center gap-4 overflow-hidden">
-            <!-- Avatar Cover with Overlay Play/Pause Button -->
             <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
               <img src="${song.cover}" class="w-full h-full object-cover" alt="cover">
-              <button
-                onclick="event.stopPropagation(); playSongFromList(${song.id}, '${queueSource}', true)"
-                class="absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition duration-200"
-                title="PLAY / PAUSE"
-              >
-                <i class="fa-solid ${isThisPlaying && isPlaying ? 'fa-pause' : 'fa-play'} text-sm"></i>
-              </button>
+              <button onclick="event.stopPropagation(); playSongFromList(${song.id}, '${queueSource}', true)" class="absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition duration-200" title="PLAY / PAUSE"><i class="fa-solid ${isThisPlaying && isPlaying ? 'fa-pause' : 'fa-play'} text-sm"></i></button>
             </div>
-
-            <div class="overflow-hidden">
-              <p class="text-sm font-bold text-white truncate normal-case">${song.title}</p>
-              <p class="text-xs text-gray-400 truncate normal-case mt-0.5">${song.artist} • <span class="text-gray-500">${song.album}</span></p>
-            </div>
+            <div class="overflow-hidden"><p class="text-sm font-bold text-white truncate normal-case">${song.title}</p><p class="text-xs text-gray-400 truncate normal-case mt-0.5">${song.artist} • <span class="text-gray-500">${song.album}</span></p></div>
           </div>
-
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <!-- Duration -->
+          <div class="flex items-center gap-1 flex-shrink-0">
             <span class="text-xs font-semibold text-gray-400 duration-song-${song.id}">${durationText}</span>
-
-            <!-- Add to Playlist Button -->
-            <button onclick="event.stopPropagation(); openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-700/50 transition">
-              <i class="fa-solid fa-plus text-xs"></i>
-            </button>
-
-            ${queueSource === 'playlist' ? `
-            <!-- Remove from Current Playlist -->
-            <button onclick="event.stopPropagation(); removeSongFromPlaylist('${currentActivePlaylistId}', ${song.id})" title="REMOVE FROM PLAYLIST" class="text-gray-500 hover:text-red-400 p-2 rounded-lg hover:bg-red-500/10 transition">
-              <i class="fa-solid fa-trash text-xs"></i>
-            </button>` : ''}
+            ${fav}
+            ${queueControls}
+            ${queueSource !== 'queue' ? `<button onclick="event.stopPropagation(); openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-700/50 transition"><i class="fa-solid fa-plus text-xs"></i></button>` : ''}
+            ${queueSource === 'playlist' ? `<button onclick="event.stopPropagation(); removeSongFromPlaylist('${currentActivePlaylistId}', ${song.id})" title="REMOVE FROM PLAYLIST" class="text-gray-500 hover:text-red-400 p-2 rounded-lg hover:bg-red-500/10 transition"><i class="fa-solid fa-trash text-xs"></i></button>` : ''}
           </div>
-        </div>
-      `;
+        </div>`;
     }
 
     function renderAllSongsList(songArray) {
       const container = document.getElementById('songList');
       document.getElementById('totalSongsCount').innerText = `${songArray.length} SONGS`;
+      const total = songArray.reduce((sum,s) => sum + (songDurations[s.id] || 0), 0);
+      document.getElementById('totalSongsDuration').innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
       container.innerHTML = songArray.map((s, idx) => generateSongRowHTML(s, idx, 'all')).join('');
     }
 
@@ -1661,7 +1784,9 @@
       const sort = document.getElementById('albumSort')?.value || 'az';
       albumValues.sort((a,b) => sort === 'za' ? b.name.localeCompare(a.name) : sort === 'artist' ? a.artist.localeCompare(b.artist) || a.name.localeCompare(b.name) : sort === 'type' ? a.type.localeCompare(b.type) || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
       container.innerHTML = albumValues.map(alb => `
-        <div onclick="openGroupDetail('album', '${alb.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-start">
+        <div class="glass-card p-5 rounded-2xl group flex flex-col items-start relative">
+          <button data-favorite-type="album" data-favorite-key="${alb.name}" onclick="event.stopPropagation(); toggleFavorite('album', ${JSON.stringify(alb.name)})" title="FAVORITE ALBUM" class="absolute top-7 right-7 z-10 ${isFavorite('album', alb.name) ? 'favorite-active' : 'text-gray-500'} p-2 rounded-lg bg-black/30 hover:bg-pink-500/10 transition"><i class="fa-${isFavorite('album', alb.name) ? 'solid' : 'regular'} fa-heart"></i></button>
+          <div onclick="openGroupDetail('album', ${JSON.stringify(alb.name)})" class="cursor-pointer w-full">
           <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-4 shadow-xl">
             <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -1691,7 +1816,9 @@
       const sort = document.getElementById('artistSort')?.value || 'az';
       artistValues.sort((a,b) => sort === 'za' ? b.name.localeCompare(a.name) : sort === 'songs' ? b.count - a.count || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
       container.innerHTML = artistValues.map(art => `
-        <div onclick="openGroupDetail('artist', '${art.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-center text-center">
+        <div class="glass-card p-5 rounded-2xl group flex flex-col items-center text-center relative">
+          <button data-favorite-type="artist" data-favorite-key="${art.name}" onclick="event.stopPropagation(); toggleFavorite('artist', ${JSON.stringify(art.name)})" title="FAVORITE ARTIST" class="absolute top-7 right-7 z-10 ${isFavorite('artist', art.name) ? 'favorite-active' : 'text-gray-500'} p-2 rounded-lg bg-black/30 hover:bg-pink-500/10 transition"><i class="fa-${isFavorite('artist', art.name) ? 'solid' : 'regular'} fa-heart"></i></button>
+          <div onclick="openGroupDetail('artist', ${JSON.stringify(art.name)})" class="cursor-pointer w-full flex flex-col items-center">
           <div class="relative w-36 h-36 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-white/10">
             <img src="${art.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="artist">
             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -1717,7 +1844,7 @@
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
       currentActivePlaylistId = null;
       renderSidebarPlaylists();
-      const views = ['homeView','searchView','discoverView','albumsView','artistsView','playlistDetailView'];
+      const views = ['homeView','searchView','discoverView','albumsView','artistsView','favoritesView','playlistDetailView'];
       views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
       document.getElementById('groupDetailView').classList.remove('hidden');
 
@@ -1728,6 +1855,11 @@
       document.getElementById('groupDetailCount').innerText = `${filteredSongs.length} SONGS • TOTAL DURATION: ${formatFullDuration(totalSecs)}`;
       document.getElementById('groupDetailCover').src = filteredSongs[0]?.cover || '';
       document.getElementById('groupPlayAllBtn').onclick = () => playAllQueue(filteredSongs);
+      const groupFavBtn = document.getElementById('groupFavoriteBtn');
+      const favType = type === 'album' ? 'album' : 'artist';
+      groupFavBtn.onclick = () => toggleFavorite(favType, key);
+      groupFavBtn.innerHTML = `<i class="fa-${isFavorite(favType, key) ? 'solid' : 'regular'} fa-heart text-xs"></i> ${isFavorite(favType, key) ? 'FAVORITED' : 'FAVORITE'}`;
+      groupFavBtn.classList.toggle('favorite-active', isFavorite(favType, key));
       const albumBtn = document.getElementById('groupAddToPlaylistBtn');
       albumBtn.classList.toggle('hidden', type !== 'album');
       if (type === 'album') albumBtn.onclick = () => openAddAlbumToPlaylistModal(key);
@@ -1745,7 +1877,7 @@
       document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active-nav'));
       currentActivePlaylistId=playlistId;
       renderSidebarPlaylists();
-      const views=['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'];
+      const views=['homeView','searchView','discoverView','albumsView','artistsView','favoritesView','groupDetailView'];
       views.forEach(v=>document.getElementById(v)?.classList.add('hidden'));
       document.getElementById('playlistDetailView').classList.remove('hidden');
       const pl=playlists.find(p=>p.id===playlistId);
@@ -1758,11 +1890,9 @@
       // after visiting a public playlist.
       document.getElementById('deletePlaylistBtn').classList.remove('hidden');
       document.getElementById('renamePlaylistBtn').classList.remove('hidden');
-      document.getElementById('sharePlaylistBtn').classList.remove('hidden');
       document.getElementById('publicPlaylistBtn').classList.remove('hidden');
       document.getElementById('deletePlaylistBtn').onclick=()=>deletePlaylist(pl.id);
       document.getElementById('renamePlaylistBtn').onclick=()=>openRenamePlaylistModal(pl.id);
-      document.getElementById('sharePlaylistBtn').onclick=()=>sharePlaylist(pl.id);
       document.getElementById('publicPlaylistBtn').onclick=()=>togglePlaylistPublic(pl.id);
       const publicLabel = document.getElementById('publicPlaylistLabel');
       const publicIcon = document.getElementById('publicPlaylistIcon');
@@ -1793,56 +1923,6 @@
       renderSidebarPlaylists();
       await loadPublicPlaylists();
       openPlaylistDetail(playlistId);
-    }
-
-    async function sharePlaylist(playlistId) {
-      if (!currentUser) return;
-      const { data, error } = await supabaseClient
-        .from('playlists')
-        .update({ is_public: true })
-        .eq('id', playlistId)
-        .eq('user_id', currentUser.id)
-        .select('share_token')
-        .single();
-      if (error || !data?.share_token) {
-        console.error('Share playlist error:', error);
-        alert('Please run the Supabase sharing SQL first.');
-        return;
-      }
-      const url = `${window.location.href.split('?')[0]}?share=${encodeURIComponent(data.share_token)}`;
-      try { await navigator.clipboard.writeText(url); alert('Playlist share link copied!'); }
-      catch { prompt('Copy this playlist link:', url); }
-    }
-
-    async function loadSharedPlaylist(token) {
-      if (!token) return false;
-      const { data, error } = await supabaseClient
-        .from('playlists')
-        .select('id,name,share_token,playlist_songs(song_id)')
-        .eq('share_token', token)
-        .eq('is_public', true)
-        .maybeSingle();
-      if (error || !data) return false;
-      sharedPlaylistMode = true;
-      currentViewName='playlist';
-      document.getElementById('authModal').classList.add('hidden');
-      document.getElementById('welcomeHeader').innerText='SHARED PLAYLIST';
-      document.getElementById('userNameDisplay').innerText='SHARED';
-      document.getElementById('userStatus').innerText='PUBLIC PLAYLIST';
-      document.getElementById('userAvatar').innerText='S';
-      const ids=(data.playlist_songs||[]).map(x=>Number(x.song_id));
-      const playlistSongs=songs.filter(s=>ids.includes(s.id));
-      ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'].forEach(v=>document.getElementById(v)?.classList.add('hidden'));
-      document.getElementById('playlistDetailView').classList.remove('hidden');
-      document.getElementById('playlistDetailTitle').innerText=data.name;
-      document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
-      document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
-      document.getElementById('playAllBtn').onclick=()=>playAllQueue(playlistSongs);
-      document.getElementById('deletePlaylistBtn').classList.add('hidden');
-      document.getElementById('renamePlaylistBtn').classList.add('hidden');
-      document.getElementById('sharePlaylistBtn').classList.add('hidden');
-      document.getElementById('publicPlaylistBtn').classList.add('hidden');
-      return true;
     }
 
     async function deletePlaylist(id) {
@@ -1891,42 +1971,61 @@
     /* =========================================================
        AUDIO PLAYBACK ENGINE & QUEUE
     ========================================================== */
-    function loadSong(song) {
+    let suppressAutoScrollOnce = false;
+
+    function scrollToSongIfVisible(songId, behavior = 'smooth') {
+      const main = document.querySelector('main');
+      const card = document.querySelector(`.song-item-card[data-song-id="${songId}"]`);
+      if (!main || !card || card.offsetParent === null) return false;
+      const rect = card.getBoundingClientRect();
+      const mainRect = main.getBoundingClientRect();
+      if (rect.top < mainRect.top + 60 || rect.bottom > mainRect.bottom - 60) card.scrollIntoView({ behavior, block: 'center' });
+      return true;
+    }
+
+    function setAudioVolume(value) {
+      const v = Math.max(0, Math.min(1, Number(value)));
+      activeAudio.volume = v;
+      if (standbyAudio) standbyAudio.volume = 0;
+    }
+
+    function updateCurrentSongUI(song) {
       if (!song) return;
-      // Load only the selected track in the real player.
-      // The duration scanner above uses a separate, single metadata loader.
-      audio.src = song.src;
-      audio.preload = 'auto';
-      audio.load();
       document.getElementById('currentCover').src = song.cover;
       document.getElementById('currentTitle').innerText = song.title;
       document.getElementById('currentArtist').innerText = `${song.artist} — ${song.album}`;
+    }
 
+    function loadSong(song, options = {}) {
+      if (!song) return;
+      const autoScroll = options.autoScroll !== false && !suppressAutoScrollOnce;
+      suppressAutoScrollOnce = false;
+      activeAudio.pause();
+      activeAudio.volume = audio.volume;
+      activeAudio.src = song.src;
+      activeAudio.preload = 'auto';
+      activeAudio.load();
+      updateCurrentSongUI(song);
       updateHighlightItem();
       renderQueueSidebarList();
+      if (autoScroll) requestAnimationFrame(() => scrollToSongIfVisible(song.id));
     }
 
     function playSongFromList(songId, source, fromThumbnail = false) {
       const currentSong = currentQueue[currentSongIndex];
-      if (fromThumbnail && currentSong && currentSong.id === songId && audio.src) {
-        togglePlay();
-        return;
-      }
-      if (source === 'all' || source === 'home' || source === 'group' || source === 'playlist' || source === 'shared') {
+      if (fromThumbnail && currentSong && currentSong.id === songId && activeAudio.src) { togglePlay(); return; }
+      if (source === 'all' || source === 'home' || source === 'group' || source === 'playlist' || source === 'shared' || source === 'favorites') {
         if (!currentSong || !currentQueue.some(s => s.id === songId) || source !== 'queue') currentQueue = [...songs];
       } else if (source === 'search') {
         const q=(document.getElementById('searchInput')?.value||'').toLowerCase().trim();
         currentQueue=q?songs.filter(s=>s.title.toLowerCase().includes(q)||s.artist.toLowerCase().includes(q)||s.album.toLowerCase().includes(q)):[...songs];
       }
-
       const index = currentQueue.findIndex(s => s.id === songId);
       if (index !== -1) {
         currentSongIndex = index;
-        loadSong(currentQueue[currentSongIndex]);
-        audio.play().then(() => {
-          isPlaying = true;
-          updatePlayIconsUI();
-        }).catch(err => console.error("Playback error", err));
+        suppressAutoScrollOnce = true;
+        loadSong(currentQueue[currentSongIndex], { autoScroll: false });
+        activeAudio.play().then(() => { isPlaying = true; updatePlayIconsUI(); }).catch(err => console.error('Playback error', err));
       }
     }
 
@@ -1934,99 +2033,68 @@
       if (!songArray || songArray.length === 0) return;
       currentQueue = [...songArray];
       currentSongIndex = 0;
-      loadSong(currentQueue[0]);
-      audio.play().then(() => {
-        isPlaying = true;
-        updatePlayIconsUI();
-      }).catch(err => console.error("Play all error", err));
+      suppressAutoScrollOnce = true;
+      loadSong(currentQueue[0], { autoScroll: false });
+      activeAudio.play().then(() => { isPlaying = true; updatePlayIconsUI(); }).catch(err => console.error('Play all error', err));
     }
 
-function togglePlay() {
+    function togglePlay() {
       if (currentQueue.length === 0) return;
-
-      // Only load a song when no track is loaded yet.
-      // IMPORTANT: never call loadSong() when resuming a paused track,
-      // because assigning audio.src again resets the playback position.
-      if (!audio.src || !currentQueue[currentSongIndex]) {
-        currentSongIndex = 0;
-        loadSong(currentQueue[currentSongIndex]);
-      }
-
-      if (audio.paused) {
-        // audio.currentTime is intentionally NOT changed here.
-        // HTMLAudioElement.play() resumes from the exact paused position.
-        audio.play().then(() => {
-          isPlaying = true;
-          updatePlayIconsUI();
-        }).catch(err => {
-          console.error("Playback error:", err);
-          isPlaying = false;
-          updatePlayIconsUI();
-        });
+      if (!activeAudio.src || !currentQueue[currentSongIndex]) { currentSongIndex = 0; loadSong(currentQueue[currentSongIndex], { autoScroll: false }); }
+      if (activeAudio.paused) {
+        activeAudio.play().then(() => { isPlaying = true; updatePlayIconsUI(); }).catch(err => { console.error('Playback error:', err); isPlaying = false; updatePlayIconsUI(); });
       } else {
-        // pause() preserves audio.currentTime.
-        audio.pause();
-        isPlaying = false;
-        updatePlayIconsUI();
+        activeAudio.pause(); isPlaying = false; updatePlayIconsUI();
       }
     }
 
     function nextSong() {
       if (currentQueue.length === 0) return;
-
       if (shuffleMode) {
-        // Avoid immediately selecting the same song when possible.
-        if (currentQueue.length > 1) {
-          let nextIndex;
-          do {
-            nextIndex = Math.floor(Math.random() * currentQueue.length);
-          } while (nextIndex === currentSongIndex);
-          currentSongIndex = nextIndex;
-        } else {
-          currentSongIndex = 0;
-        }
-      } else {
-        currentSongIndex = (currentSongIndex + 1) % currentQueue.length;
-      }
-
+        if (currentQueue.length > 1) { let nextIndex; do { nextIndex = Math.floor(Math.random() * currentQueue.length); } while (nextIndex === currentSongIndex); currentSongIndex = nextIndex; } else currentSongIndex = 0;
+      } else currentSongIndex = (currentSongIndex + 1) % currentQueue.length;
       loadSong(currentQueue[currentSongIndex]);
-
-      audio.play().then(() => {
-        isPlaying = true;
-        updatePlayIconsUI();
-      }).catch(err => {
-        console.error("Next song playback error:", err);
-        isPlaying = false;
-        updatePlayIconsUI();
-      });
+      activeAudio.play().then(() => { isPlaying = true; updatePlayIconsUI(); }).catch(err => { console.error('Next song playback error:', err); isPlaying = false; updatePlayIconsUI(); });
     }
 
     function prevSong() {
       if (currentQueue.length === 0) return;
-
-      // If the current song has played for more than 3 seconds,
-      // BACK behaves like a normal music player and restarts this song.
-      if (audio.currentTime > 3) {
-        audio.currentTime = 0;
-        if (!audio.paused) {
-          audio.play().catch(err => console.error("Replay playback error:", err));
-        }
-        return;
-      }
-
-      currentSongIndex =
-        (currentSongIndex - 1 + currentQueue.length) % currentQueue.length;
-
+      if (activeAudio.currentTime > 3) { activeAudio.currentTime = 0; if (!activeAudio.paused) activeAudio.play().catch(err => console.error('Replay playback error:', err)); return; }
+      currentSongIndex = (currentSongIndex - 1 + currentQueue.length) % currentQueue.length;
       loadSong(currentQueue[currentSongIndex]);
+      activeAudio.play().then(() => { isPlaying = true; updatePlayIconsUI(); }).catch(err => { console.error('Previous song playback error:', err); isPlaying = false; updatePlayIconsUI(); });
+    }
 
-      audio.play().then(() => {
-        isPlaying = true;
-        updatePlayIconsUI();
-      }).catch(err => {
-        console.error("Previous song playback error:", err);
-        isPlaying = false;
-        updatePlayIconsUI();
-      });
+    function beginCrossfade() {
+      if (crossfadeSeconds <= 0 || crossfadeInProgress || currentQueue.length <= 1 || activeAudio.paused || !Number.isFinite(activeAudio.duration)) return false;
+      if (activeAudio.currentTime < Math.max(0, activeAudio.duration - crossfadeSeconds)) return false;
+      crossfadeInProgress = true;
+      const nextIndex = shuffleMode ? (() => { if (currentQueue.length === 1) return 0; let n; do { n=Math.floor(Math.random()*currentQueue.length); } while(n===currentSongIndex); return n; })() : (currentSongIndex + 1) % currentQueue.length;
+      currentSongIndex = nextIndex;
+      const next = currentQueue[nextIndex];
+      const outgoing = activeAudio;
+      const incoming = standbyAudio;
+      incoming.pause(); incoming.src = next.src; incoming.preload='auto'; incoming.currentTime=0; incoming.volume=0; incoming.load();
+      updateCurrentSongUI(next); updateHighlightItem(); renderQueueSidebarList();
+      const targetVolume = Number(document.getElementById('volumeBar')?.value || 80) / 100;
+      const startedAt = performance.now();
+      const fade = () => {
+        const elapsed = (performance.now() - startedAt) / 1000;
+        const ratio = Math.min(1, elapsed / crossfadeSeconds);
+        outgoing.volume = targetVolume * (1 - ratio);
+        incoming.volume = targetVolume * ratio;
+        if (ratio < 1) crossfadeTimer = requestAnimationFrame(fade);
+        else {
+          outgoing.pause(); outgoing.currentTime=0; outgoing.volume=0;
+          incoming.volume=targetVolume;
+          activeAudio = incoming; standbyAudio = outgoing;
+          crossfadeInProgress=false; isPlaying=true; updatePlayIconsUI();
+          if (currentQueue[currentSongIndex]) requestAnimationFrame(() => scrollToSongIfVisible(currentQueue[currentSongIndex].id));
+        }
+      };
+      incoming.play().catch(err => { console.error('Crossfade playback error:', err); crossfadeInProgress=false; nextSong(); });
+      fade();
+      return true;
     }
 
     function updatePlayIconsUI() {
@@ -2074,72 +2142,56 @@ function togglePlay() {
       inputEl.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${valuePercentage}%, #374151 ${valuePercentage}%, #374151 100%)`;
     }
 
-    audio.onloadedmetadata = () => {
-      const duration = audio.duration;
-      if (Number.isFinite(duration) && duration > 0) {
-        const activeSong = currentQueue[currentSongIndex];
-        if (activeSong) {
-          songDurations[activeSong.id] = duration;
-          updateDurationUI(activeSong.id, duration);
+    function bindAudioElement(el) {
+      el.onloadedmetadata = () => {
+        if (el !== activeAudio) return;
+        const duration = el.duration;
+        if (Number.isFinite(duration) && duration > 0) {
+          const activeSong = currentQueue[currentSongIndex];
+          if (activeSong) { songDurations[activeSong.id] = duration; updateDurationUI(activeSong.id, duration); }
+          document.getElementById('durationTime').innerText = formatTime(duration);
         }
-        document.getElementById('durationTime').innerText = formatTime(duration);
-      }
-    };
-
-    audio.ontimeupdate = () => {
-      const progress = document.getElementById('progressBar');
-      if (Number.isFinite(audio.duration) && audio.duration > 0) {
-        const pct = (audio.currentTime / audio.duration) * 100;
-        progress.value = pct;
-        updateRangeBackground(progress, pct);
-        document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
-        document.getElementById('durationTime').innerText = formatTime(audio.duration);
-      }
-    };
+      };
+      el.ontimeupdate = () => {
+        if (el !== activeAudio) return;
+        const progress = document.getElementById('progressBar');
+        if (Number.isFinite(el.duration) && el.duration > 0) {
+          const pct = (el.currentTime / el.duration) * 100;
+          progress.value = pct; updateRangeBackground(progress, pct);
+          document.getElementById('currentTime').innerText = formatTime(el.currentTime);
+          document.getElementById('durationTime').innerText = formatTime(el.duration);
+          beginCrossfade();
+        }
+      };
+      el.onplay = () => { if (el === activeAudio) { isPlaying=true; updatePlayIconsUI(); } };
+      el.onpause = () => { if (el === activeAudio && !crossfadeInProgress) { isPlaying=false; updatePlayIconsUI(); } };
+      el.onended = () => {
+        if (el !== activeAudio || crossfadeInProgress) return;
+        if (repeatMode === 2) { el.currentTime=0; el.play(); }
+        else if (repeatMode === 1 || currentSongIndex < currentQueue.length - 1) nextSong();
+        else { isPlaying=false; updatePlayIconsUI(); }
+      };
+    }
+    bindAudioElement(audio); bindAudioElement(crossfadeAudio);
 
     function seekAudio() {
       const progress = document.getElementById('progressBar');
-      const seekTo = (progress.value / 100) * audio.duration;
-      audio.currentTime = seekTo;
+      if (!Number.isFinite(activeAudio.duration)) return;
+      activeAudio.currentTime = (progress.value / 100) * activeAudio.duration;
       updateRangeBackground(progress, progress.value);
     }
 
     function setVolume() {
       const volumeBar = document.getElementById('volumeBar');
-      audio.volume = volumeBar.value / 100;
+      const value = volumeBar.value / 100;
+      activeAudio.volume = value;
+      if (standbyAudio) standbyAudio.volume = 0;
       updateRangeBackground(volumeBar, volumeBar.value);
-
       const icon = document.getElementById('volumeIcon');
-      if (audio.volume === 0) {
-        icon.className = "fa-solid fa-volume-xmark text-gray-500 text-sm";
-      } else if (audio.volume < 0.5) {
-        icon.className = "fa-solid fa-volume-low text-gray-400 text-sm";
-      } else {
-        icon.className = "fa-solid fa-volume-high text-gray-400 text-sm";
-      }
+      if (value === 0) icon.className='fa-solid fa-volume-xmark text-gray-500 text-sm';
+      else if (value < 0.5) icon.className='fa-solid fa-volume-low text-gray-400 text-sm';
+      else icon.className='fa-solid fa-volume-high text-gray-400 text-sm';
     }
-
-    audio.onplay = () => {
-      isPlaying = true;
-      updatePlayIconsUI();
-    };
-
-    audio.onpause = () => {
-      isPlaying = false;
-      updatePlayIconsUI();
-    };
-
-    audio.onended = () => {
-      if (repeatMode === 2) {
-        audio.currentTime = 0;
-        audio.play();
-      } else if (repeatMode === 1 || currentSongIndex < currentQueue.length - 1) {
-        nextSong();
-      } else {
-        isPlaying = false;
-        updatePlayIconsUI();
-      }
-    };
 
     function toggleShuffle() {
       shuffleMode = !shuffleMode;
@@ -2177,8 +2229,39 @@ function togglePlay() {
     ========================================================== */
     function toggleQueueSidebar() {
       const sidebar = document.getElementById('queueSidebar');
+      const willOpen = sidebar.classList.contains('hidden');
       sidebar.classList.toggle('hidden');
       renderQueueSidebarList();
+      if (willOpen) setTimeout(() => moveToPlaying(), 40);
+    }
+
+    function moveToPlaying() {
+      const active = currentQueue[currentSongIndex];
+      if (!active) return;
+      const row = document.querySelector(`#queueListContainer .song-item-card[data-song-id="${active.id}"]`);
+      row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function moveQueueToTop(songId) {
+      const index = currentQueue.findIndex(s => s.id === songId);
+      if (index <= 0) return;
+      const [song] = currentQueue.splice(index, 1);
+      currentQueue.unshift(song);
+      if (currentSongIndex === index) currentSongIndex = 0;
+      else if (currentSongIndex < index) currentSongIndex += 1;
+      else if (currentSongIndex >= index) currentSongIndex += 1;
+      renderQueueSidebarList();
+      updateHighlightItem();
+    }
+
+    function moveQueueToPlaying(songId) {
+      const index = currentQueue.findIndex(s => s.id === songId);
+      if (index < 0 || index === currentSongIndex) { moveToPlaying(); return; }
+      const [song] = currentQueue.splice(index, 1);
+      currentQueue.splice(currentSongIndex + 1, 0, song);
+      renderQueueSidebarList();
+      const row = document.querySelector(`#queueListContainer .song-item-card[data-song-id="${songId}"]`);
+      row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function renderQueueSidebarList() {
@@ -2193,18 +2276,15 @@ function togglePlay() {
       preloadDurations();
       // Initialize range bars styling
       setVolume();
+      if (crossfadeAudio) crossfadeAudio.volume = 0;
       updateRangeBackground(document.getElementById('progressBar'), 0);
 
       // Load initial default song into footer
       if (songs.length > 0) {
-        loadSong(songs[0]);
+        suppressAutoScrollOnce = true;
+        loadSong(songs[0], { autoScroll: false });
       }
 
-      const shareToken = new URLSearchParams(window.location.search).get('share');
-      if (shareToken) {
-        const loaded = await loadSharedPlaylist(shareToken);
-        if (loaded) return;
-      }
       await restoreSupabaseSession();
       if (!currentUser) {
         await loadPublicPlaylists();
