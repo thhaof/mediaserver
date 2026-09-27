@@ -128,6 +128,7 @@
     .playing-item img { box-shadow: 0 0 14px rgba(59, 130, 246, 0.5); }
     .custom-sidebar-scroll { scrollbar-width: thin; scrollbar-color: #3f3f46 transparent; }
     .favorite-active { color: #f472b6 !important; }
+    .favorite-btn.favorite-active i, [data-favorite-type].favorite-active i { color: #f472b6 !important; }
     .song-item-card, .glass-card, button, a, input, select { transition-timing-function: cubic-bezier(.4,0,.2,1); }
 </style>
 </head>
@@ -362,14 +363,13 @@
 
         <!-- Playlists Header -->
         <div class="px-6 flex items-center justify-between mb-3">
-          <button type="button" onclick="togglePlaylistMenu()" class="flex items-center gap-2 text-left">
+          <div class="flex items-center gap-1.5">
             <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">PLAYLISTS</span>
+            <button onclick="openModal('createPlaylistModal')" title="CREATE PLAYLIST" class="text-gray-400 hover:text-white text-sm w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition"><i class="fa-solid fa-plus text-xs"></i></button>
+          </div>
+          <button type="button" onclick="togglePlaylistMenu()" title="TOGGLE PLAYLISTS" class="text-gray-400 hover:text-white w-7 h-7 rounded-lg hover:bg-gray-800/60 flex items-center justify-center transition">
             <i id="playlistChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
           </button>
-          <div class="flex items-center gap-1">
-            <button onclick="openModal('createPlaylistModal')" title="CREATE PLAYLIST" class="text-gray-400 hover:text-white text-sm w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition"><i class="fa-solid fa-plus text-xs"></i></button>
-            <button onclick="alert('Albums are generated automatically from the album information in your songs.')" title="CREATE NEW ALBUM" class="text-gray-400 hover:text-white px-2 py-1.5 rounded-lg bg-gray-800/50 hover:bg-indigo-600 transition text-[10px] font-bold flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-plus text-[9px]"></i> TẠO ALBUM MỚI</button>
-          </div>
         </div>
         <div id="playlistSection" class="px-3">
           <!-- Playlists Container -->
@@ -1007,7 +1007,14 @@
     let favorites = { song: [], album: [], artist: [] };
     let playlistMenuOpen = true;
     let publicPlaylistMenuOpen = true;
-    let crossfadeSeconds = Number(localStorage.getItem('thhaof_crossfade') || 0);
+    let crossfadeSeconds = 0;
+    function crossfadeStorageKey() { return currentUser ? `thhaof_crossfade_${currentUser.id}` : null; }
+    function loadCrossfadeForCurrentUser() {
+      if (!currentUser) { crossfadeSeconds = 0; return; }
+      const key = crossfadeStorageKey();
+      const saved = localStorage.getItem(key);
+      crossfadeSeconds = saved === null ? 0 : Math.max(0, Math.min(12, Number(saved) || 0));
+    }
     let crossfadeTimer = null;
     let crossfadeInProgress = false;
 
@@ -1123,6 +1130,7 @@
       }
 
       currentUser = data.user;
+      loadCrossfadeForCurrentUser();
       await loadFavorites();
 
       // Ensure the profile exists for this authenticated user.
@@ -1153,6 +1161,7 @@
       if (data.session && data.session.user) {
         const user = data.session.user;
         currentUser = user;
+        loadCrossfadeForCurrentUser();
         await loadFavorites();
 
         const { data: profile } = await supabaseClient
@@ -1178,6 +1187,7 @@
       await supabaseClient.auth.signOut();
 
       currentUser = null;
+      crossfadeSeconds = 0;
       favorites = { song: [], album: [], artist: [] };
       playlists = [];
       currentActivePlaylistId = null;
@@ -1207,37 +1217,62 @@
 
     async function loadFavorites() {
       if (!currentUser) { favorites={song:[],album:[],artist:[]}; return; }
-      const key=favoriteStorageKey(); let local={};
+      const key=favoriteStorageKey();
+      let local={};
       try { local=JSON.parse(localStorage.getItem(key)||'{}'); } catch (_) {}
       const metadata=currentUser.user_metadata?.favorites||{};
-      const source=(Array.isArray(metadata.song)||Array.isArray(metadata.album)||Array.isArray(metadata.artist)) ? metadata : local;
-      favorites=normalizeFavorites(source);
+      const hasCloud = Array.isArray(metadata.song) || Array.isArray(metadata.album) || Array.isArray(metadata.artist);
+      // Prefer the account's local cache when it exists. This prevents one account's
+      // stale auth metadata from overwriting a newer favorite action.
+      favorites=normalizeFavorites(Object.keys(local).length ? local : (hasCloud ? metadata : {}));
       try { localStorage.setItem(key,JSON.stringify(favorites)); } catch (_) {}
+      renderFavoriteButtons();
     }
 
     async function persistFavorites() {
       if (!currentUser) return false;
       try { localStorage.setItem(favoriteStorageKey(),JSON.stringify(favorites)); } catch (_) {}
-      const {data,error}=await supabaseClient.auth.updateUser({data:{favorites:{...favorites}}});
+      const snapshot = normalizeFavorites(favorites);
+      const {data,error}=await supabaseClient.auth.updateUser({data:{favorites:snapshot}});
       if (error) console.warn('Favorite cloud save failed; account-local cache retained.',error);
       else if (data?.user) currentUser=data.user;
       return true;
     }
 
+    function updateFavoriteElement(el, active) {
+      if (!el) return;
+      el.classList.toggle('favorite-active', active);
+      el.classList.toggle('text-gray-500', !active);
+      el.title = active ? 'REMOVE FROM FAVORITES' : 'ADD TO FAVORITES';
+      const icon = el.querySelector('i');
+      if (icon) icon.className = `fa-${active ? 'solid' : 'regular'} fa-heart text-xs`;
+    }
+
     async function toggleFavorite(type,key) {
       if (!currentUser) { openModal('authModal'); return; }
+      if (!favorites[type]) return;
       const value=type==='song'?Number(key):String(key);
-      if ((type==='song'&&!Number.isFinite(value))||!favorites[type]) return;
-      const list=favorites[type]; const index=list.findIndex(x=>String(x)===String(value));
-      if(index>=0) list.splice(index,1); else list.push(value);
-      renderFavoriteButtons();
+      if (type==='song' && !Number.isFinite(value)) return;
+      const list=favorites[type];
+      const index=list.findIndex(x=>String(x)===String(value));
+      const willFavorite=index<0;
+      if(willFavorite) list.push(value); else list.splice(index,1);
+
+      // Update every visible heart immediately, before any network request.
+      document.querySelectorAll(`[data-favorite-type="${CSS.escape(type)}"]`).forEach(el=>{
+        if (String(el.dataset.favoriteKey) === String(value)) updateFavoriteElement(el, willFavorite);
+      });
+
       if(currentViewName==='favorites') renderFavoritesView();
-      await persistFavorites();
       if(currentViewName==='group') {
-        const title=document.getElementById('groupDetailTitle')?.innerText, btn=document.getElementById('groupFavoriteBtn');
-        const t=currentGroupDetailType==='album'?'album':'artist';
-        if(btn&&title){const active=isFavorite(t,title);btn.innerHTML=`<i class="fa-${active?'solid':'regular'} fa-heart text-xs"></i> ${active?'FAVORITED':'FAVORITE'}`;btn.classList.toggle('favorite-active',active);}
+        const btn=document.getElementById('groupFavoriteBtn');
+        const active=isFavorite(type,key);
+        if(btn){
+          btn.innerHTML=`<i class="fa-${active?'solid':'regular'} fa-heart text-xs"></i> ${active?'FAVORITED':'FAVORITE'}`;
+          updateFavoriteElement(btn,active);
+        }
       }
+      await persistFavorites();
     }
 
     function isFavorite(type, key) {
@@ -1247,17 +1282,12 @@
     function favoriteButtonHTML(type, key, label='') {
       const active = isFavorite(type, key);
       const safeKey = String(key).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      return `<button type="button" onclick="event.stopPropagation(); toggleFavorite('${type}', '${safeKey}')" title="${active ? 'REMOVE FROM FAVORITES' : 'ADD TO FAVORITES'}" class="favorite-btn ${active ? 'favorite-active' : 'text-gray-500'} hover:text-pink-400 p-2 rounded-lg hover:bg-pink-500/10 transition">${label ? `<span class=\"text-[10px] font-bold mr-1\">${label}</span>` : ''}<i class="fa-${active ? 'solid' : 'regular'} fa-heart text-xs"></i></button>`;
+      return `<button type="button" data-favorite-type="${type}" data-favorite-key="${escapeHtmlAttr(key)}" onclick="event.stopPropagation(); toggleFavorite('${type}', ${JSON.stringify(String(key))})" title="${active ? 'REMOVE FROM FAVORITES' : 'ADD TO FAVORITES'}" class="favorite-btn ${active ? 'favorite-active' : 'text-gray-500'} hover:text-pink-400 p-2 rounded-lg hover:bg-pink-500/10 transition">${label ? `<span class="text-[10px] font-bold mr-1">${label}</span>` : ''}<i class="fa-${active ? 'solid' : 'regular'} fa-heart text-xs"></i></button>`;
     }
 
     function renderFavoriteButtons() {
       document.querySelectorAll('[data-favorite-type][data-favorite-key]').forEach(el => {
-        const type = el.dataset.favoriteType, key = el.dataset.favoriteKey;
-        const active = isFavorite(type, key);
-        el.classList.toggle('favorite-active', active);
-        el.classList.toggle('text-gray-500', !active);
-        const icon = el.querySelector('i');
-        if (icon) icon.className = `fa-${active ? 'solid' : 'regular'} fa-heart text-xs`;
+        updateFavoriteElement(el, isFavorite(el.dataset.favoriteType, el.dataset.favoriteKey));
       });
     }
 
@@ -1641,8 +1671,8 @@
     }
 
     function setCrossfade(value) {
-      crossfadeSeconds = Number(value) || 0;
-      localStorage.setItem('thhaof_crossfade', String(crossfadeSeconds));
+      crossfadeSeconds = Math.max(0, Math.min(12, Number(value) || 0));
+      if (currentUser) localStorage.setItem(crossfadeStorageKey(), String(crossfadeSeconds));
       const label = document.getElementById('crossfadeValue');
       if (label) label.innerText = `${crossfadeSeconds} SEC`;
     }
