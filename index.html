@@ -421,7 +421,7 @@
         <!-- Playlists Container -->
         <div
           id="sidebarPlaylists"
-          class="px-3 flex flex-col gap-1 max-h-52 overflow-y-auto pr-1 sidebar-subscroll"
+          class="px-3 flex flex-col gap-1 pr-1"
         ></div>
 
         <div class="px-6 mt-5 mb-3 flex items-center justify-between">
@@ -432,7 +432,7 @@
         </div>
         <div
           id="publicSidebarPlaylists"
-          class="px-3 flex flex-col gap-1 max-h-44 overflow-y-auto pr-1 sidebar-subscroll"
+          class="px-3 flex flex-col gap-1 pr-1"
         ></div>
       </div>
     </aside>
@@ -1299,6 +1299,7 @@
       document.getElementById('loginError').classList.add('hidden');
       document.getElementById('passwordInput').value = '';
 
+      resetSidebarToggles();
       await loadSavedPlaylistsPermanent();
       switchView('home');
     }
@@ -1323,6 +1324,7 @@
         const username = profile?.username || user.email?.split('@')[0] || 'howie';
         document.getElementById('authModal').classList.add('hidden');
         document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
+        resetSidebarToggles();
         await loadSavedPlaylistsPermanent();
         switchView('home');
       }
@@ -1703,6 +1705,18 @@
         requestAnimationFrame(() => { main.scrollTop = top; });
       });
     }
+    function resetSidebarToggles() {
+      libraryOpen = false;
+      settingsOpen = false;
+      playlistsOpen = false;
+      publicPlaylistsOpen = false;
+
+      toggleLibraryMenu(false);
+      toggleSettingsMenu(false);
+      togglePlaylistMenu(false);
+      togglePublicPlaylistMenu(false);
+    }
+
     function toggleLibraryMenu(force) {
       libraryOpen = typeof force === 'boolean' ? force : !libraryOpen;
       const menu = document.getElementById('libraryMenu');
@@ -2636,22 +2650,24 @@ function togglePlay() {
       const playingBtn = document.getElementById('scrollToPlayingBtn');
       if (!main || !controls || !topBtn || !playingBtn) return;
 
-      // GO TO PLAYING SONG stays available whenever the current view
-      // contains a song list. It no longer depends on scroll position.
+      // GO TO PLAYING SONG is shown ONLY when a song is actively playing
+      // AND that exact song is actually visible in the current view.
+      // Hidden lists/views must never make this button appear.
       const activeSong = currentQueue[currentSongIndex];
-      const hasSongList = !!main.querySelector('.song-item-card');
-      // Show the button on every song-list view, even when the currently
-      // playing song belongs to another view. Clicking it will navigate
-      // only when that song exists in the current list.
-      playingBtn.classList.toggle('hidden', !hasSongList);
-      playingBtn.classList.toggle('pointer-events-none', !hasSongList);
+      const playingItem = activeSong
+        ? Array.from(main.querySelectorAll(`.song-item-card[data-song-id="${activeSong.id}"]`))
+            .find(el => !el.closest('.hidden') && el.offsetParent !== null)
+        : null;
+      const hasPlayingSong = !!isPlaying && !!activeSong && !!playingItem;
+      playingBtn.classList.toggle('hidden', !hasPlayingSong);
+      playingBtn.classList.toggle('pointer-events-none', !hasPlayingSong);
 
       // BACK TO TOP keeps its original scroll-dependent behavior.
       const topVisible = main.scrollTop > 180;
       topBtn.classList.toggle('hidden', !topVisible);
       topBtn.classList.toggle('pointer-events-none', !topVisible);
 
-      const anyVisible = topVisible || hasSongList;
+      const anyVisible = topVisible || hasPlayingSong;
       controls.classList.toggle('opacity-100', anyVisible);
       controls.classList.toggle('pointer-events-auto', anyVisible);
       controls.classList.toggle('translate-y-0', anyVisible);
@@ -2670,8 +2686,7 @@ function togglePlay() {
     ========================================================== */
     window.addEventListener('DOMContentLoaded', async () => {
       preloadDurations();
-      togglePlaylistMenu(true);
-      togglePublicPlaylistMenu(true);
+      resetSidebarToggles();
       updateFloatingNavControls();
       observeScrollReveals();
       // Initialize range bars styling
