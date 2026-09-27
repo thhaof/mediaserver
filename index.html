@@ -1697,8 +1697,9 @@
     }
 
     function albumType(name) {
-      if (name === 'bittersweet' || name === 'Lặng') return 'EP';
-      if (name === 'để dành cho em') return 'Single';
+      // Release type: edit this list when adding a new Single / EP.
+      if (name === 'bittersweet' || name === 'Lặng' || name === 'TINH HÀ SAY HI, TẬP 6 (TRẠM ĐẾN EM)') return 'EP';
+      if (name === 'để dành cho em (prod. DONAL)') return 'Single';
       return 'Album';
     }
 
