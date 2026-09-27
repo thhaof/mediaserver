@@ -127,8 +127,22 @@
     }
     .playing-item img { box-shadow: 0 0 14px rgba(59, 130, 246, 0.5); }
 
-    html { scroll-behavior: smooth; }
-    main { scroll-behavior: smooth; }
+    html { scroll-behavior: auto; }
+    main { scroll-behavior: auto; }
+
+    /* Keep the welcome banner visible while the sidebar content scrolls. */
+    .sidebar-welcome {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      margin: 0 12px 12px;
+      padding: 16px 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      background: rgba(18,19,27,0.96);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
 
 
     .scroll-nav-btn {
@@ -364,7 +378,7 @@
     >
       <div class="flex-1 min-h-0 overflow-y-auto sidebar-scroll pb-4">
         <!-- Logo / Welcome Banner -->
-        <div class="p-6 flex items-center gap-3">
+        <div class="sidebar-welcome flex items-center gap-3">
           <span
             id="welcomeHeader"
             class="font-extrabold text-base sm:text-lg tracking-wider bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent break-words leading-tight"
@@ -467,6 +481,9 @@
 
           <div class="flex items-center justify-between mb-5">
             <h2 class="text-xl font-extrabold text-white uppercase">RECOMMENDED FOR YOU</h2>
+            <button onclick="refreshRecommendedSongs()" title="REFRESH RECOMMENDED SONGS" class="text-xs font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-2 rounded-xl transition flex items-center gap-2 uppercase">
+              <i class="fa-solid fa-rotate"></i> REFRESH
+            </button>
           </div>
           <div id="homeRecommended" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-10"></div>
 
@@ -627,9 +644,14 @@
           <h3 class="font-bold text-sm flex items-center gap-2 text-white uppercase">
             <i class="fa-solid fa-bars-staggered text-blue-500"></i> PLAYING QUEUE
           </h3>
-          <button onclick="toggleQueueSidebar()" class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg hover:bg-gray-800/80 flex items-center justify-center transition">
-            <i class="fa-solid fa-xmark text-sm"></i>
-          </button>
+          <div class="flex items-center gap-1">
+            <button id="queueGoToPlayingBtn" onclick="scrollQueueToPlaying(true)" title="GO TO PLAYING SONG" class="hidden text-gray-400 hover:text-white text-xs px-2.5 py-1.5 rounded-lg hover:bg-gray-800/80 items-center gap-1.5 transition">
+              <i class="fa-solid fa-music text-[10px]"></i><span>GO TO PLAYING SONG</span>
+            </button>
+            <button onclick="toggleQueueSidebar()" class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg hover:bg-gray-800/80 flex items-center justify-center transition">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+          </div>
         </div>
         <div id="queueListContainer" class="flex flex-col gap-2 max-h-[min(65vh,560px)] overflow-y-auto pr-1"></div>
       </div>
@@ -769,15 +791,17 @@
     <!-- Volume & Queue Toggle -->
     <div class="flex items-center gap-4 w-1/4 justify-end">
       <div class="flex items-center gap-2.5">
-        <i
-          id="volumeIcon"
-          class="fa-solid fa-volume-high text-gray-400 text-sm"
-        ></i>
+        <button type="button" onclick="toggleMute()" title="MUTE / UNMUTE" class="w-7 h-7 rounded-lg hover:bg-gray-800/80 flex items-center justify-center transition">
+          <i
+            id="volumeIcon"
+            class="fa-solid fa-volume-high text-gray-400 text-sm"
+          ></i>
+        </button>
 
         <input
           type="range"
           id="volumeBar"
-          value="80"
+          value="50"
           min="0"
           max="100"
           oninput="setVolume()"
@@ -1151,8 +1175,8 @@
     let currentUser = null;
     let playlists = [];
     let currentActivePublicPlaylistId = null;
-    let currentQueue = [...songs];
-    let currentSongIndex = 0;
+    let currentQueue = [];
+    let currentSongIndex = -1;
     let isPlaying = false;
 
     // Each visible song list keeps its own playback context.
@@ -1177,6 +1201,8 @@
 
     let shuffleMode = false;
     let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
+    let lastVolumeBeforeMute = 0.5;
+    let recommendedOffset = 0;
 
     const audio = document.getElementById('audioPlayer');
     const songDurations = {}; // Store duration cache
@@ -1201,51 +1227,62 @@
       return `${mins} MIN ${secs} SEC`;
     }
 
-    // Load durations gently, one metadata request at a time.
-    // Do NOT create hundreds of Audio elements simultaneously: that can
-    // exhaust browser/network connections and interfere with real playback.
+    // Load metadata in small parallel batches so durations become available quickly
+    // after login without creating an unbounded number of Audio elements.
     let durationLoaderStarted = false;
     async function preloadDurations() {
       if (durationLoaderStarted) return;
       durationLoaderStarted = true;
 
-      const durationAudio = new Audio();
-      durationAudio.preload = 'metadata';
+      const pending = songs.filter(song => !songDurations[song.id]);
+      const concurrency = 8;
+      let cursor = 0;
 
-      for (const song of songs) {
-        if (songDurations[song.id]) continue;
+      async function worker() {
+        while (cursor < pending.length) {
+          const song = pending[cursor++];
+          try {
+            const duration = await new Promise((resolve, reject) => {
+              const metadataAudio = new Audio();
+              metadataAudio.preload = 'metadata';
+              let settled = false;
+              const finish = (ok, value) => {
+                if (settled) return;
+                settled = true;
+                metadataAudio.onloadedmetadata = null;
+                metadataAudio.onerror = null;
+                metadataAudio.onabort = null;
+                metadataAudio.removeAttribute('src');
+                metadataAudio.load();
+                ok ? resolve(value) : reject(value);
+              };
+              metadataAudio.onloadedmetadata = () => finish(true, metadataAudio.duration);
+              metadataAudio.onerror = () => finish(false, new Error('Metadata load failed'));
+              metadataAudio.onabort = () => finish(false, new Error('Metadata load aborted'));
+              metadataAudio.src = song.src;
+              metadataAudio.load();
+            });
 
-        try {
-          const duration = await new Promise((resolve, reject) => {
-            let settled = false;
-            const finish = (fn, value) => {
-              if (settled) return;
-              settled = true;
-              durationAudio.onloadedmetadata = null;
-              durationAudio.onerror = null;
-              durationAudio.onabort = null;
-              fn(value);
-            };
-
-            durationAudio.onloadedmetadata = () => finish(resolve, durationAudio.duration);
-            durationAudio.onerror = () => finish(reject, new Error('Metadata load failed'));
-            durationAudio.onabort = () => finish(reject, new Error('Metadata load aborted'));
-            durationAudio.src = song.src;
-            durationAudio.load();
-          });
-
-          if (Number.isFinite(duration) && duration > 0) {
-            songDurations[song.id] = duration;
-            updateDurationUI(song.id, duration);
+            if (Number.isFinite(duration) && duration > 0) {
+              songDurations[song.id] = duration;
+              updateDurationUI(song.id, duration);
+              updateTotalSongsDurationUI();
+            }
+          } catch (err) {
+            console.warn('Could not load duration for:', song.title, err);
           }
-        } catch (err) {
-          // A single failed metadata request must not stop the rest.
-          console.warn('Could not load duration for:', song.title, err);
         }
       }
 
-      durationAudio.removeAttribute('src');
-      durationAudio.load();
+      await Promise.all(Array.from({ length: Math.min(concurrency, pending.length) }, worker));
+      updateTotalSongsDurationUI();
+    }
+
+    function updateTotalSongsDurationUI() {
+      const durationEl = document.getElementById('totalSongsDuration');
+      if (!durationEl) return;
+      const total = songs.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0);
+      durationEl.innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
     }
 
     function updateDurationUI(songId, durationSec) {
@@ -1262,6 +1299,24 @@
       const normalized = username.trim().toLowerCase();
       if (normalized === 'howie') return 'howie@howie.xy';
       return `${normalized}@howie.xy`;
+    }
+
+    function resetPlaybackStateForLogin() {
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      currentQueue = [];
+      currentSongIndex = -1;
+      isPlaying = false;
+      document.getElementById('currentTitle').innerText = 'Unknown';
+      document.getElementById('currentArtist').innerText = "HOWIE'S MEDIA SERVER";
+      document.getElementById('currentTime').innerText = '0:00';
+      document.getElementById('durationTime').innerText = '0:00';
+      document.getElementById('progressBar').value = 0;
+      updateRangeBackground(document.getElementById('progressBar'), 0);
+      updatePlayIconsUI();
+      renderQueueSidebarList();
+      updateFloatingNavControls();
     }
 
     async function handleLogin(e) {
@@ -1283,6 +1338,7 @@
       }
 
       currentUser = data.user;
+      resetPlaybackStateForLogin();
 
       // Ensure the profile exists for this authenticated user.
       const { error: profileError } = await supabaseClient
@@ -1314,6 +1370,7 @@
       if (data.session && data.session.user) {
         const user = data.session.user;
         currentUser = user;
+        resetPlaybackStateForLogin();
 
         const { data: profile } = await supabaseClient
           .from('profiles')
@@ -1334,7 +1391,13 @@
       audio.pause();
       audio.currentTime = 0;
       isPlaying = false;
+      currentQueue = [];
+      currentSongIndex = -1;
+      audio.removeAttribute('src');
+      audio.load();
       updatePlayIconsUI();
+      updateFloatingNavControls();
+      renderQueueSidebarList();
 
       await supabaseClient.auth.signOut();
 
@@ -1459,7 +1522,7 @@
       document.getElementById('playlistSongsList').innerHTML = playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
       requestAnimationFrame(() => {
         const main = document.querySelector('main');
-        if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+        if (main) main.scrollTo({ top: 0, behavior: 'auto' });
         animateViewEntry(document.getElementById('playlistDetailView'));
         observeScrollReveals();
       });
@@ -1851,7 +1914,8 @@
       const activeView = document.getElementById(viewName === 'group' ? 'groupDetailView' : viewName === 'playlist' ? 'playlistDetailView' : `${viewName}View`);
       if (activeView) animateViewEntry(activeView);
       if (options.restoreScroll) restoreViewScroll(viewName);
-      else if (!options.preserveScroll) document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+      else if (!options.preserveScroll) document.querySelector('main')?.scrollTo({ top: 0, behavior: 'auto' });
+      updateFloatingNavControls();
       requestAnimationFrame(observeScrollReveals);
     }
 
@@ -1870,9 +1934,28 @@
       return 'Album';
     }
 
+    function getRandomSongs(list, count) {
+      const copy = [...list];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy.slice(0, count);
+    }
+
+    function refreshRecommendedSongs() {
+      const recommended = getRandomSongs(songs, Math.min(9, songs.length));
+      queueContexts.homeRecommended = [...recommended];
+      const container = document.getElementById('homeRecommended');
+      if (container) container.innerHTML = recommended.map((song, idx) => generateSongRowHTML(song, idx, 'homeRecommended')).join('');
+      requestAnimationFrame(observeScrollReveals);
+      updateFloatingNavControls();
+    }
+
     function renderHomeView() {
       const latest = [...songs].slice(-9).reverse();
-      const recommended = songs.filter((_, i) => i % 7 === 0).slice(0, 9);
+      const pool = [...songs];
+      const recommended = getRandomSongs(pool, Math.min(9, pool.length));
       queueContexts.homeNew = [...latest];
       queueContexts.homeRecommended = [...recommended];
       document.getElementById('homeNewSongs').innerHTML = latest.map((s, idx) => generateSongRowHTML(s, idx, 'homeNew')).join('');
@@ -1914,10 +1997,11 @@
             <!-- Duration -->
             <span class="text-xs font-semibold text-gray-400 duration-song-${song.id}">${durationText}</span>
 
+            ${queueSource !== 'queue' ? `
             <!-- Add to Playlist Button -->
             <button onclick="event.stopPropagation(); openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-700/50 transition">
               <i class="fa-solid fa-plus text-xs"></i>
-            </button>
+            </button>` : ''}
 
             ${queueSource === 'playlist' ? `
             <!-- Remove from Current Playlist -->
@@ -2026,6 +2110,7 @@
       if (type === 'album') albumBtn.onclick = () => openAddAlbumToPlaylistModal(key);
       document.getElementById('groupSongsList').innerHTML = filteredSongs.map((s,idx)=>generateSongRowHTML(s,idx,'group')).join('');
       document.querySelector('main').scrollTop=0;
+      updateFloatingNavControls();
     }
 
     function openPlaylistDetail(playlistId) {
@@ -2066,9 +2151,10 @@
       document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'playlist')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST YET</p>`;
       requestAnimationFrame(() => {
         const main = document.querySelector('main');
-        if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+        if (main) main.scrollTo({ top: 0, behavior: 'auto' });
         animateViewEntry(document.getElementById('playlistDetailView'));
         observeScrollReveals();
+        updateFloatingNavControls();
       });
     }
 
@@ -2143,9 +2229,10 @@
       document.getElementById('publicPlaylistBtn').classList.add('hidden');
       requestAnimationFrame(() => {
         const main = document.querySelector('main');
-        if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+        if (main) main.scrollTo({ top: 0, behavior: 'auto' });
         animateViewEntry(document.getElementById('playlistDetailView'));
         observeScrollReveals();
+        updateFloatingNavControls();
       });
       return true;
     }
@@ -2210,6 +2297,7 @@
 
       updateHighlightItem();
       renderQueueSidebarList();
+      updateFloatingNavControls();
       if (shouldAutoScroll) {
         requestAnimationFrame(() => scrollToPlayingSong(false));
       }
@@ -2417,12 +2505,7 @@ function togglePlay() {
         if (activeSong) {
           songDurations[activeSong.id] = duration;
           updateDurationUI(activeSong.id, duration);
-          const durationEl = document.getElementById('totalSongsDuration');
-          if (durationEl) {
-            const visibleSongs = (typeof songs !== 'undefined') ? songs : [];
-            const total = visibleSongs.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0);
-            durationEl.innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
-          }
+          updateTotalSongsDurationUI();
         }
         document.getElementById('durationTime').innerText = formatTime(duration);
       }
@@ -2448,27 +2531,47 @@ function togglePlay() {
 
     function setVolume() {
       const volumeBar = document.getElementById('volumeBar');
-      audio.volume = volumeBar.value / 100;
-      updateRangeBackground(volumeBar, volumeBar.value);
+      const nextVolume = Math.max(0, Math.min(1, Number(volumeBar.value) / 100));
+      audio.volume = nextVolume;
+      if (nextVolume > 0) lastVolumeBeforeMute = nextVolume;
+      updateRangeBackground(volumeBar, nextVolume * 100);
 
       const icon = document.getElementById('volumeIcon');
-      if (audio.volume === 0) {
+      if (nextVolume === 0) {
         icon.className = "fa-solid fa-volume-xmark text-gray-500 text-sm";
-      } else if (audio.volume < 0.5) {
+      } else if (nextVolume < 0.5) {
         icon.className = "fa-solid fa-volume-low text-gray-400 text-sm";
       } else {
         icon.className = "fa-solid fa-volume-high text-gray-400 text-sm";
       }
     }
 
+    function toggleMute() {
+      const volumeBar = document.getElementById('volumeBar');
+      if (audio.volume > 0) {
+        lastVolumeBeforeMute = audio.volume;
+        audio.volume = 0;
+        volumeBar.value = 0;
+      } else {
+        const restored = lastVolumeBeforeMute > 0 ? lastVolumeBeforeMute : 0.5;
+        audio.volume = restored;
+        volumeBar.value = Math.round(restored * 100);
+      }
+      setVolume();
+    }
+
     audio.onplay = () => {
       isPlaying = true;
       updatePlayIconsUI();
+      updateFloatingNavControls();
+      updateQueueGoToPlayingButton();
     };
 
     audio.onpause = () => {
       isPlaying = false;
       updatePlayIconsUI();
+      updateFloatingNavControls();
+      updateQueueGoToPlayingButton();
     };
 
     audio.onended = () => {
@@ -2562,10 +2665,23 @@ function togglePlay() {
     function renderQueueSidebarList() {
       const container = document.getElementById('queueListContainer');
       if (!container) return;
-      container.innerHTML = currentQueue.map((s, idx) => generateSongRowHTML(s, idx, 'queue')).join('');
+      if (!currentQueue.length || currentSongIndex < 0) {
+        container.innerHTML = `<div class="text-center py-10 px-4 text-xs text-gray-500 uppercase">NO SONG IS CURRENTLY PLAYING</div>`;
+      } else {
+        container.innerHTML = currentQueue.map((s, idx) => generateSongRowHTML(s, idx, 'queue')).join('');
+      }
+      updateQueueGoToPlayingButton();
       requestAnimationFrame(() => {
         if (!document.getElementById('queueSidebar')?.classList.contains('hidden')) { positionQueueSidebar(); scrollQueueToPlaying(); }
       });
+    }
+
+    function updateQueueGoToPlayingButton() {
+      const btn = document.getElementById('queueGoToPlayingBtn');
+      if (!btn) return;
+      const shouldShow = !!isPlaying && !!currentQueue[currentSongIndex];
+      btn.classList.toggle('hidden', !shouldShow);
+      btn.classList.toggle('flex', shouldShow);
     }
 
     window.addEventListener('scroll', () => {
@@ -2581,33 +2697,18 @@ function togglePlay() {
       if (!active) return;
       const container = document.getElementById('queueListContainer');
       const item = container?.querySelector(`[data-song-id="${active.id}"]`);
-      item?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      item?.scrollIntoView({ behavior: 'auto', block: 'center' });
     }
 
     // Fast wheel-like scrolling for the floating navigation buttons.
     // This intentionally does NOT use scrollIntoView()/CSS smooth scrolling:
     // the movement should feel like a quick mouse-wheel scroll, not a slow jump.
-    function fastScrollMainTo(targetTop, duration = 320) {
+    function fastScrollMainTo(targetTop) {
       const main = document.querySelector('main');
       if (!main) return;
-      const startTop = main.scrollTop;
       const maxTop = Math.max(0, main.scrollHeight - main.clientHeight);
       const endTop = Math.max(0, Math.min(targetTop, maxTop));
-      const distance = endTop - startTop;
-      if (Math.abs(distance) < 2) {
-        main.scrollTop = endTop;
-        return;
-      }
-
-      const startTime = performance.now();
-      const easeOut = t => 1 - Math.pow(1 - t, 3);
-
-      function step(now) {
-        const progress = Math.min(1, (now - startTime) / duration);
-        main.scrollTop = startTop + distance * easeOut(progress);
-        if (progress < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
+      main.scrollTo({ top: endTop, behavior: 'auto' });
     }
 
     function playScrollButtonEffect(buttonId) {
@@ -2643,6 +2744,20 @@ function togglePlay() {
       fastScrollMainTo(0, 300);
     }
 
+    function isPlayingSongVisibleInCurrentView() {
+      const activeSong = currentQueue[currentSongIndex];
+      if (!isPlaying || !activeSong) return false;
+
+      const view = viewFromVisibleDOM();
+      if (view === 'home' || view === 'search' || view === 'albums' || view === 'artists') return false;
+      if (view === 'discover') return true;
+
+      const main = document.querySelector('main');
+      if (!main) return false;
+      return Array.from(main.querySelectorAll(`.song-item-card[data-song-id="${activeSong.id}"]`))
+        .some(el => !el.closest('.hidden') && el.offsetParent !== null);
+    }
+
     function updateFloatingNavControls() {
       const main = document.querySelector('main');
       const controls = document.getElementById('floatingNavControls');
@@ -2650,19 +2765,10 @@ function togglePlay() {
       const playingBtn = document.getElementById('scrollToPlayingBtn');
       if (!main || !controls || !topBtn || !playingBtn) return;
 
-      // GO TO PLAYING SONG is shown ONLY when a song is actively playing
-      // AND that exact song is actually visible in the current view.
-      // Hidden lists/views must never make this button appear.
-      const activeSong = currentQueue[currentSongIndex];
-      const playingItem = activeSong
-        ? Array.from(main.querySelectorAll(`.song-item-card[data-song-id="${activeSong.id}"]`))
-            .find(el => !el.closest('.hidden') && el.offsetParent !== null)
-        : null;
-      const hasPlayingSong = !!isPlaying && !!activeSong && !!playingItem;
+      const hasPlayingSong = isPlayingSongVisibleInCurrentView();
       playingBtn.classList.toggle('hidden', !hasPlayingSong);
       playingBtn.classList.toggle('pointer-events-none', !hasPlayingSong);
 
-      // BACK TO TOP keeps its original scroll-dependent behavior.
       const topVisible = main.scrollTop > 180;
       topBtn.classList.toggle('hidden', !topVisible);
       topBtn.classList.toggle('pointer-events-none', !topVisible);
@@ -2674,6 +2780,7 @@ function togglePlay() {
       controls.classList.toggle('opacity-0', !anyVisible);
       controls.classList.toggle('pointer-events-none', !anyVisible);
       controls.classList.toggle('translate-y-2', !anyVisible);
+      updateQueueGoToPlayingButton();
     }
 
     const mainScroller = document.querySelector('main');
@@ -2690,13 +2797,12 @@ function togglePlay() {
       updateFloatingNavControls();
       observeScrollReveals();
       // Initialize range bars styling
+      document.getElementById('volumeBar').value = 50;
+      audio.volume = 0.5;
+      lastVolumeBeforeMute = 0.5;
       setVolume();
       updateRangeBackground(document.getElementById('progressBar'), 0);
-
-      // Load initial default song into footer
-      if (songs.length > 0) {
-        loadSong(songs[0]);
-      }
+      renderQueueSidebarList();
 
       const shareToken = new URLSearchParams(window.location.search).get('share');
       if (shareToken) {
