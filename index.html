@@ -2570,12 +2570,42 @@ function togglePlay() {
       item?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    function scrollToPlayingSong(force = false) {
-      const clickedBtn = document.getElementById('scrollToPlayingBtn');
+    // Fast wheel-like scrolling for the floating navigation buttons.
+    // This intentionally does NOT use scrollIntoView()/CSS smooth scrolling:
+    // the movement should feel like a quick mouse-wheel scroll, not a slow jump.
+    function fastScrollMainTo(targetTop, duration = 320) {
+      const main = document.querySelector('main');
+      if (!main) return;
+      const startTop = main.scrollTop;
+      const maxTop = Math.max(0, main.scrollHeight - main.clientHeight);
+      const endTop = Math.max(0, Math.min(targetTop, maxTop));
+      const distance = endTop - startTop;
+      if (Math.abs(distance) < 2) {
+        main.scrollTop = endTop;
+        return;
+      }
+
+      const startTime = performance.now();
+      const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+      function step(now) {
+        const progress = Math.min(1, (now - startTime) / duration);
+        main.scrollTop = startTop + distance * easeOut(progress);
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function playScrollButtonEffect(buttonId) {
+      const clickedBtn = document.getElementById(buttonId);
       clickedBtn?.classList.remove('scrolling');
       void clickedBtn?.offsetWidth;
       clickedBtn?.classList.add('scrolling');
       setTimeout(() => clickedBtn?.classList.remove('scrolling'), 500);
+    }
+
+    function scrollToPlayingSong(force = false) {
+      playScrollButtonEffect('scrollToPlayingBtn');
       const active = currentQueue[currentSongIndex];
       if (!active) return false;
       const main = document.querySelector('main');
@@ -2583,17 +2613,20 @@ function togglePlay() {
       const item = Array.from(main.querySelectorAll(`.song-item-card[data-song-id="${active.id}"]`))
         .find(el => !el.closest('.hidden'));
       if (!item) return false;
-      item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Calculate the item's position inside <main>, then perform one fast,
+      // continuous scroll to place it around the middle of the viewport.
+      const mainRect = main.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      const targetTop = main.scrollTop + (itemRect.top - mainRect.top)
+        - (main.clientHeight / 2) + (itemRect.height / 2);
+      fastScrollMainTo(targetTop, 320);
       return true;
     }
 
     function scrollMainToTop() {
-      const clickedBtn = document.getElementById('scrollToTopBtn');
-      clickedBtn?.classList.remove('scrolling');
-      void clickedBtn?.offsetWidth;
-      clickedBtn?.classList.add('scrolling');
-      setTimeout(() => clickedBtn?.classList.remove('scrolling'), 500);
-      document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+      playScrollButtonEffect('scrollToTopBtn');
+      fastScrollMainTo(0, 300);
     }
 
     function updateFloatingNavControls() {
