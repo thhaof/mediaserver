@@ -140,13 +140,18 @@
     }
 
     .scroll-reveal {
-      opacity: 0;
-      transform: translateY(18px);
-      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      opacity: 1;
+      transform: translateY(0);
+      animation: scrollRevealIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
     .scroll-reveal.is-visible {
       opacity: 1;
       transform: translateY(0);
+    }
+
+    @keyframes scrollRevealIn {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .song-item-card.scroll-reveal:nth-child(2) { transition-delay: 0.03s; }
