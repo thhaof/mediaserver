@@ -296,9 +296,9 @@
          SIDEBAR NAVIGATION
     ======================================================== -->
     <aside
-      class="w-64 bg-[#12131b] flex flex-col justify-between border-r border-gray-800/60 z-20 flex-shrink-0"
+      class="w-64 bg-[#12131b] flex flex-col justify-between border-r border-gray-800/60 z-20 flex-shrink-0 overflow-hidden"
     >
-      <div>
+      <div class="flex-1 min-h-0 overflow-y-auto sidebar-scroll pb-4">
         <!-- Logo / Welcome Banner -->
         <div class="p-6 flex items-center gap-3">
           <span
@@ -334,32 +334,32 @@
 
         <!-- Playlists Header -->
         <div class="px-6 flex items-center justify-between mb-3">
-          <span
-            class="text-xs font-bold text-gray-400 uppercase tracking-wider"
-          >
-            PLAYLISTS
-          </span>
-          <button
-            onclick="openModal('createPlaylistModal')"
-            title="CREATE PLAYLIST"
-            class="text-gray-400 hover:text-white text-sm w-7 h-7 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition"
-          >
-            <i class="fa-solid fa-plus text-xs"></i>
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">PLAYLISTS</span>
+            <button onclick="openModal('createPlaylistModal')" title="CREATE PLAYLIST" class="text-gray-400 hover:text-white text-[11px] w-6 h-6 rounded-lg bg-gray-800/60 hover:bg-blue-600 flex items-center justify-center transition flex-shrink-0">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+          <button type="button" onclick="togglePlaylistMenu()" title="TOGGLE PLAYLISTS" class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg hover:bg-gray-800 flex items-center justify-center transition flex-shrink-0">
+            <i id="playlistChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
           </button>
         </div>
 
         <!-- Playlists Container -->
         <div
           id="sidebarPlaylists"
-          class="px-3 flex flex-col gap-1 max-h-52 overflow-y-auto pr-1"
+          class="px-3 flex flex-col gap-1 max-h-52 overflow-y-auto pr-1 sidebar-subscroll"
         ></div>
 
-        <div class="px-6 mt-5 mb-3">
+        <div class="px-6 mt-5 mb-3 flex items-center justify-between">
           <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">PUBLIC PLAYLISTS</span>
+          <button type="button" onclick="togglePublicPlaylistMenu()" title="TOGGLE PUBLIC PLAYLISTS" class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg hover:bg-gray-800 flex items-center justify-center transition flex-shrink-0">
+            <i id="publicPlaylistChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
+          </button>
         </div>
         <div
           id="publicSidebarPlaylists"
-          class="px-3 flex flex-col gap-1 max-h-44 overflow-y-auto pr-1"
+          class="px-3 flex flex-col gap-1 max-h-44 overflow-y-auto pr-1 sidebar-subscroll"
         ></div>
       </div>
 
@@ -471,9 +471,17 @@
 
         <!-- ALL SONGS VIEW -->
         <div id="discoverView" class="hidden">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ALL SONGS</h2>
-            <span id="totalSongsCount" class="text-xs text-gray-400 font-medium uppercase">0 SONGS</span>
+          <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+            <div class="flex items-center gap-3 min-w-0">
+              <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ALL SONGS</h2>
+              <button id="songsPlayAllBtn" onclick="playAllQueue(songs)" class="bg-blue-600/90 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-[10px] font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition active:scale-95 uppercase flex-shrink-0" title="PLAY ALL SONGS">
+                <i class="fa-solid fa-play"></i> PLAY ALL
+              </button>
+            </div>
+            <div class="flex items-center gap-3">
+              <span id="totalSongsDuration" class="text-xs text-gray-400 font-medium uppercase">TOTAL DURATION: 0:00</span>
+              <span id="totalSongsCount" class="text-xs text-gray-400 font-medium uppercase">0 SONGS</span>
+            </div>
           </div>
           <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
             <div
@@ -577,19 +585,19 @@
 
 
     <!-- =======================================================
-         PLAYING QUEUE SIDEBAR (RIGHT)
+         PLAYING QUEUE POPUP
     ======================================================== -->
-    <aside id="queueSidebar" class="w-80 bg-[#12131b] border-l border-gray-800/60 p-5 hidden flex flex-col justify-between z-20 flex-shrink-0">
+    <aside id="queueSidebar" class="queue-popup hidden fixed left-5 bottom-[6.5rem] w-96 max-w-[calc(100vw-2rem)] bg-[#12131b]/75 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 z-50 shadow-2xl flex flex-col">
       <div>
-        <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-800">
+        <div class="flex items-center justify-between mb-3 pb-3 border-b border-white/10">
           <h3 class="font-bold text-sm flex items-center gap-2 text-white uppercase">
             <i class="fa-solid fa-bars-staggered text-blue-500"></i> PLAYING QUEUE
           </h3>
-          <button onclick="toggleQueueSidebar()" class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg hover:bg-gray-800 flex items-center justify-center transition">
+          <button onclick="toggleQueueSidebar()" class="text-gray-400 hover:text-white text-xs w-7 h-7 rounded-lg hover:bg-gray-800/80 flex items-center justify-center transition">
             <i class="fa-solid fa-xmark text-sm"></i>
           </button>
         </div>
-        <div id="queueListContainer" class="flex flex-col gap-2 max-h-[calc(100vh-140px)] overflow-y-auto pr-1"></div>
+        <div id="queueListContainer" class="flex flex-col gap-2 max-h-[min(65vh,560px)] overflow-y-auto pr-1"></div>
       </div>
     </aside>
 
@@ -633,6 +641,10 @@
           THHAOF PLAYER
         </p>
       </div>
+
+      <button onclick="toggleQueueSidebar()" title="PLAYING QUEUE" id="queueToggleBtn" class="text-gray-400 hover:text-white text-sm transition p-2 rounded-xl hover:bg-gray-800/80 flex-shrink-0">
+        <i class="fa-solid fa-list-check"></i>
+      </button>
 
       <button
         onclick="openAddToPlaylistCurrent()"
@@ -721,10 +733,6 @@
 
     <!-- Volume & Queue Toggle -->
     <div class="flex items-center gap-4 w-1/4 justify-end">
-      <button onclick="toggleQueueSidebar()" title="PLAYING QUEUE" id="queueToggleBtn" class="text-gray-400 hover:text-white text-sm transition p-2.5 rounded-xl hover:bg-gray-800">
-        <i class="fa-solid fa-list-check"></i>
-      </button>
-
       <div class="flex items-center gap-2.5">
         <i
           id="volumeIcon"
@@ -744,6 +752,16 @@
     </div>
   </footer>
 
+
+  <!-- FLOATING NAVIGATION CONTROLS -->
+  <div id="floatingNavControls" class="fixed right-5 bottom-28 z-45 flex flex-col gap-2 opacity-0 pointer-events-none translate-y-2 transition-all duration-300">
+    <button id="scrollToTopBtn" onclick="scrollMainToTop()" title="BACK TO TOP" class="w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
+      <i class="fa-solid fa-house"></i>
+    </button>
+    <button id="scrollToPlayingBtn" onclick="scrollToPlayingSong(true)" title="GO TO PLAYING SONG" class="w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
+      <i class="fa-solid fa-music"></i>
+    </button>
+  </div>
 
   <!-- AUDIO ELEMENT -->
   <audio id="audioPlayer" preload="metadata"></audio>
@@ -1517,6 +1535,22 @@
       chevron.style.transform = libraryOpen ? 'rotate(180deg)' : 'rotate(0deg)';
     }
 
+    function togglePlaylistMenu(force) {
+      playlistsOpen = typeof force === 'boolean' ? force : !playlistsOpen;
+      const el = document.getElementById('sidebarPlaylists');
+      const chev = document.getElementById('playlistChevron');
+      el?.classList.toggle('hidden', !playlistsOpen);
+      if (chev) chev.style.transform = playlistsOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+    }
+
+    function togglePublicPlaylistMenu(force) {
+      publicPlaylistsOpen = typeof force === 'boolean' ? force : !publicPlaylistsOpen;
+      const el = document.getElementById('publicSidebarPlaylists');
+      const chev = document.getElementById('publicPlaylistChevron');
+      el?.classList.toggle('hidden', !publicPlaylistsOpen);
+      if (chev) chev.style.transform = publicPlaylistsOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+    }
+
     function viewFromVisibleDOM() {
       const map = { homeView:'home', searchView:'search', discoverView:'discover', albumsView:'albums', artistsView:'artists', groupDetailView:'group', playlistDetailView:'playlist' };
       for (const [id,name] of Object.entries(map)) {
@@ -1643,6 +1677,8 @@
     function renderAllSongsList(songArray) {
       const container = document.getElementById('songList');
       document.getElementById('totalSongsCount').innerText = `${songArray.length} SONGS`;
+      const total = songArray.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0);
+      document.getElementById('totalSongsDuration').innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
       container.innerHTML = songArray.map((s, idx) => generateSongRowHTML(s, idx, 'all')).join('');
     }
 
@@ -1891,10 +1927,10 @@
     /* =========================================================
        AUDIO PLAYBACK ENGINE & QUEUE
     ========================================================== */
-    function loadSong(song) {
+    function loadSong(song, options = {}) {
       if (!song) return;
+      const shouldAutoScroll = options.autoScroll !== false && !suppressSongAutoScroll;
       // Load only the selected track in the real player.
-      // The duration scanner above uses a separate, single metadata loader.
       audio.src = song.src;
       audio.preload = 'auto';
       audio.load();
@@ -1904,6 +1940,10 @@
 
       updateHighlightItem();
       renderQueueSidebarList();
+      if (shouldAutoScroll) {
+        requestAnimationFrame(() => scrollToPlayingSong(false));
+      }
+      suppressSongAutoScroll = false;
     }
 
     function playSongFromList(songId, source, fromThumbnail = false) {
@@ -1922,7 +1962,8 @@
       const index = currentQueue.findIndex(s => s.id === songId);
       if (index !== -1) {
         currentSongIndex = index;
-        loadSong(currentQueue[currentSongIndex]);
+        suppressSongAutoScroll = true;
+        loadSong(currentQueue[currentSongIndex], { autoScroll: false });
         audio.play().then(() => {
           isPlaying = true;
           updatePlayIconsUI();
@@ -1934,7 +1975,7 @@
       if (!songArray || songArray.length === 0) return;
       currentQueue = [...songArray];
       currentSongIndex = 0;
-      loadSong(currentQueue[0]);
+      loadSong(currentQueue[0], { autoScroll: true });
       audio.play().then(() => {
         isPlaying = true;
         updatePlayIconsUI();
@@ -1949,7 +1990,7 @@ function togglePlay() {
       // because assigning audio.src again resets the playback position.
       if (!audio.src || !currentQueue[currentSongIndex]) {
         currentSongIndex = 0;
-        loadSong(currentQueue[currentSongIndex]);
+        loadSong(currentQueue[currentSongIndex], { autoScroll: false });
       }
 
       if (audio.paused) {
@@ -1989,7 +2030,7 @@ function togglePlay() {
         currentSongIndex = (currentSongIndex + 1) % currentQueue.length;
       }
 
-      loadSong(currentQueue[currentSongIndex]);
+      loadSong(currentQueue[currentSongIndex], { autoScroll: true });
 
       audio.play().then(() => {
         isPlaying = true;
@@ -2017,7 +2058,7 @@ function togglePlay() {
       currentSongIndex =
         (currentSongIndex - 1 + currentQueue.length) % currentQueue.length;
 
-      loadSong(currentQueue[currentSongIndex]);
+      loadSong(currentQueue[currentSongIndex], { autoScroll: true });
 
       audio.play().then(() => {
         isPlaying = true;
@@ -2081,6 +2122,12 @@ function togglePlay() {
         if (activeSong) {
           songDurations[activeSong.id] = duration;
           updateDurationUI(activeSong.id, duration);
+          const durationEl = document.getElementById('totalSongsDuration');
+          if (durationEl) {
+            const visibleSongs = (typeof songs !== 'undefined') ? songs : [];
+            const total = visibleSongs.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0);
+            durationEl.innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
+          }
         }
         document.getElementById('durationTime').innerText = formatTime(duration);
       }
@@ -2177,13 +2224,55 @@ function togglePlay() {
     ========================================================== */
     function toggleQueueSidebar() {
       const sidebar = document.getElementById('queueSidebar');
+      const opening = sidebar.classList.contains('hidden');
       sidebar.classList.toggle('hidden');
       renderQueueSidebarList();
+      if (opening) requestAnimationFrame(() => scrollQueueToPlaying());
     }
 
     function renderQueueSidebarList() {
       const container = document.getElementById('queueListContainer');
+      if (!container) return;
       container.innerHTML = currentQueue.map((s, idx) => generateSongRowHTML(s, idx, 'queue')).join('');
+      requestAnimationFrame(() => {
+        if (!document.getElementById('queueSidebar')?.classList.contains('hidden')) scrollQueueToPlaying();
+      });
+    }
+
+    function scrollQueueToPlaying() {
+      const active = currentQueue[currentSongIndex];
+      if (!active) return;
+      const container = document.getElementById('queueListContainer');
+      const item = container?.querySelector(`[data-song-id="${active.id}"]`);
+      item?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function scrollToPlayingSong(force = false) {
+      const active = currentQueue[currentSongIndex];
+      if (!active) return false;
+      const main = document.querySelector('main');
+      if (!main) return false;
+      const item = Array.from(main.querySelectorAll(`.song-item-card[data-song-id="${active.id}"]`))
+        .find(el => !el.closest('.hidden'));
+      if (!item) return false;
+      item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return true;
+    }
+
+    function scrollMainToTop() {
+      document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateFloatingNavControls() {
+      const main = document.querySelector('main');
+      const controls = document.getElementById('floatingNavControls');
+      if (!main || !controls) return;
+      controls.classList.toggle('is-visible', main.scrollTop > 180);
+    }
+
+    const mainScroller = document.querySelector('main');
+    if (mainScroller) {
+      mainScroller.addEventListener('scroll', updateFloatingNavControls, { passive: true });
     }
 
     /* =========================================================
@@ -2191,6 +2280,9 @@ function togglePlay() {
     ========================================================== */
     window.addEventListener('DOMContentLoaded', async () => {
       preloadDurations();
+      togglePlaylistMenu(true);
+      togglePublicPlaylistMenu(true);
+      updateFloatingNavControls();
       // Initialize range bars styling
       setVolume();
       updateRangeBackground(document.getElementById('progressBar'), 0);
