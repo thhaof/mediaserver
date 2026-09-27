@@ -126,6 +126,49 @@
       box-shadow: 0 0 18px rgba(59, 130, 246, 0.16), inset 0 0 14px rgba(59, 130, 246, 0.08);
     }
     .playing-item img { box-shadow: 0 0 14px rgba(59, 130, 246, 0.5); }
+
+    html { scroll-behavior: smooth; }
+    main { scroll-behavior: smooth; }
+
+    .view-enter {
+      animation: viewEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes viewEnter {
+      from { opacity: 0; transform: translateY(14px) scale(0.995); filter: blur(2px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .scroll-reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .song-item-card.scroll-reveal:nth-child(2) { transition-delay: 0.03s; }
+    .song-item-card.scroll-reveal:nth-child(3) { transition-delay: 0.06s; }
+    .song-item-card.scroll-reveal:nth-child(4) { transition-delay: 0.09s; }
+    .song-item-card.scroll-reveal:nth-child(5) { transition-delay: 0.12s; }
+
+    .login-success-effect {
+      animation: loginSuccess 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes loginSuccess {
+      0% { opacity: 0.55; transform: translateY(10px); filter: blur(4px); }
+      55% { opacity: 1; transform: translateY(0); filter: blur(0); box-shadow: inset 0 0 80px rgba(59,130,246,0.08); }
+      100% { opacity: 1; transform: none; box-shadow: none; }
+    }
+
+    #authModal.hidden { animation: authExit 0.38s ease both; }
+    @keyframes authExit {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
 </style>
 </head>
 
@@ -333,17 +376,6 @@
             <i id="settingsChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
           </button>
           <div id="settingsMenu" class="hidden ml-4 mr-1 mt-1 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
-            <div class="mb-4">
-              <div class="flex items-center justify-between mb-2">
-                <div>
-                  <p class="text-xs font-bold text-white uppercase">CROSSFADE</p>
-                  <p class="text-[10px] text-gray-500 mt-1">Smoothly blend songs together</p>
-                </div>
-                <span id="crossfadeValue" class="text-xs font-bold text-blue-400">0 SEC</span>
-              </div>
-              <input id="crossfadeRange" type="range" min="0" max="12" step="1" value="0" oninput="setCrossfade(this.value)" class="w-full h-1.5 rounded-lg appearance-none cursor-pointer">
-              <div class="flex justify-between text-[9px] text-gray-600 mt-1"><span>OFF</span><span>12 SEC</span></div>
-            </div>
             <button type="button" onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition uppercase">
               <i class="fa-solid fa-right-from-bracket w-4 text-center"></i> LOG OUT
             </button>
@@ -537,7 +569,7 @@
               <i class="fa-solid fa-music text-6xl text-white/80"></i>
             </div>
             <div class="flex-1">
-              <p class="text-xs uppercase font-bold text-purple-400 tracking-wider mb-1">MY PLAYLIST</p>
+              <p id="playlistDetailType" class="text-xs uppercase font-bold text-purple-400 tracking-wider mb-1">MY PLAYLIST</p>
               <h1 id="playlistDetailTitle" class="text-3xl sm:text-4xl font-extrabold mt-1 mb-3 text-white uppercase">MY PLAYLIST</h1>
               <p id="playlistDetailCount" class="text-xs text-gray-400 mb-5 font-medium uppercase">0 SONGS</p>
               <div class="flex items-center gap-3 flex-wrap">
@@ -1120,9 +1152,6 @@
     let libraryOpen = false;
     let sharedPlaylistMode = false;
     let settingsOpen = false;
-    let crossfadeSeconds = 0;
-    let crossfadeTransitioning = false;
-    let crossfadeAudio = null;
 
     let shuffleMode = false;
     let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
@@ -1243,12 +1272,12 @@
       }
 
       document.getElementById('authModal').classList.add('hidden');
+      triggerLoginSuccessEffect();
       document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
       document.getElementById('loginError').classList.add('hidden');
       document.getElementById('passwordInput').value = '';
 
       await loadSavedPlaylistsPermanent();
-      await loadCrossfadeSetting();
       switchView('home');
     }
 
@@ -1383,13 +1412,19 @@
       ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'].forEach(v => document.getElementById(v)?.classList.add('hidden'));
       document.getElementById('playlistDetailView').classList.remove('hidden');
       document.getElementById('playlistDetailTitle').innerText = pl.name;
-      document.getElementById('playlistDetailCount').innerText = `${playlistSongs.length} SONGS • PUBLIC PLAYLIST`;
+      document.getElementById('playlistDetailType').innerText = 'PUBLIC PLAYLIST';
+      document.getElementById('playlistDetailCount').innerText = `${playlistSongs.length} SONGS`;
       document.getElementById('playAllBtn').onclick = () => playAllQueue(playlistSongs);
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
       document.getElementById('renamePlaylistBtn').classList.add('hidden');
       document.getElementById('publicPlaylistBtn').classList.add('hidden');
       document.getElementById('playlistSongsList').innerHTML = playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
-      document.querySelector('main').scrollTop = 0;
+      requestAnimationFrame(() => {
+        const main = document.querySelector('main');
+        if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+        animateViewEntry(document.getElementById('playlistDetailView'));
+        observeScrollReveals();
+      });
     }
 
     /* =========================================================
@@ -1650,43 +1685,6 @@
       if (chev) chev.style.transform = settingsOpen ? 'rotate(180deg)' : 'rotate(0deg)';
     }
 
-    function updateCrossfadeRangeUI() {
-      const range = document.getElementById('crossfadeRange');
-      const value = document.getElementById('crossfadeValue');
-      if (!range || !value) return;
-      range.value = crossfadeSeconds;
-      value.innerText = crossfadeSeconds === 0 ? 'OFF' : `${crossfadeSeconds} SEC`;
-      const pct = (Number(crossfadeSeconds) / 12) * 100;
-      range.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${pct}%, #374151 ${pct}%, #374151 100%)`;
-    }
-
-    async function loadCrossfadeSetting() {
-      const localKey = `music_crossfade_${currentUser?.id || currentUser || 'guest'}`;
-      let value = Number(localStorage.getItem(localKey));
-      if (!Number.isFinite(value)) value = 0;
-      if (currentUser?.id) {
-        try {
-          const { data, error } = await supabaseClient.from('user_settings').select('crossfade_seconds').eq('user_id', currentUser.id).maybeSingle();
-          if (!error && data && Number.isFinite(Number(data.crossfade_seconds))) value = Number(data.crossfade_seconds);
-        } catch (err) { console.warn('Crossfade setting load failed:', err); }
-      }
-      crossfadeSeconds = Math.max(0, Math.min(12, Math.round(value)));
-      localStorage.setItem(localKey, String(crossfadeSeconds));
-      updateCrossfadeRangeUI();
-    }
-
-    async function setCrossfade(value) {
-      crossfadeSeconds = Math.max(0, Math.min(12, Math.round(Number(value) || 0)));
-      updateCrossfadeRangeUI();
-      const localKey = `music_crossfade_${currentUser?.id || currentUser || 'guest'}`;
-      localStorage.setItem(localKey, String(crossfadeSeconds));
-      if (currentUser?.id) {
-        try {
-          await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, crossfade_seconds: crossfadeSeconds }, { onConflict: 'user_id' });
-        } catch (err) { console.warn('Crossfade setting save failed:', err); }
-      }
-    }
-
     function getNextQueueIndex() {
       if (!currentQueue.length) return -1;
       if (!shuffleMode && repeatMode === 0 && currentSongIndex >= currentQueue.length - 1) return -1;
@@ -1697,55 +1695,6 @@
         return nextIndex;
       }
       return (currentSongIndex + 1) % currentQueue.length;
-    }
-
-    function startCrossfade() {
-      if (crossfadeTransitioning || crossfadeSeconds <= 0 || !isPlaying || repeatMode === 2 || !audio.duration || currentQueue.length < 2) return false;
-      const remaining = audio.duration - audio.currentTime;
-      if (remaining > crossfadeSeconds) return false;
-      const nextIndex = getNextQueueIndex();
-      if (nextIndex < 0 || nextIndex === currentSongIndex) return false;
-      crossfadeTransitioning = true;
-      const nextSongData = currentQueue[nextIndex];
-      const nextAudio = new Audio(nextSongData.src);
-      crossfadeAudio = nextAudio;
-      nextAudio.volume = 0;
-      nextAudio.preload = 'auto';
-      nextAudio.play().catch(() => { crossfadeTransitioning = false; crossfadeAudio = null; });
-      const durationMs = Math.max(250, crossfadeSeconds * 1000);
-      const startedAt = performance.now();
-      const fromVolume = audio.volume;
-      const fade = now => {
-        if (!crossfadeTransitioning || crossfadeAudio !== nextAudio) return;
-        const pct = Math.min(1, (now - startedAt) / durationMs);
-        audio.volume = fromVolume * (1 - pct);
-        nextAudio.volume = Math.min(1, fromVolume * pct);
-        if (pct < 1) requestAnimationFrame(fade);
-        else finishCrossfade(nextIndex, nextAudio);
-      };
-      requestAnimationFrame(fade);
-      return true;
-    }
-
-    function finishCrossfade(nextIndex, nextAudio) {
-      if (!crossfadeTransitioning) return;
-      currentSongIndex = nextIndex;
-      const elapsed = Math.min(crossfadeSeconds, nextAudio.currentTime || 0);
-      const song = currentQueue[currentSongIndex];
-      nextAudio.pause();
-      audio.pause();
-      audio.src = song.src;
-      audio.preload = 'auto';
-      audio.currentTime = elapsed;
-      audio.volume = Math.max(0.01, document.getElementById('volumeBar')?.value / 100 || 1);
-      document.getElementById('currentCover').src = song.cover;
-      document.getElementById('currentTitle').innerText = song.title;
-      document.getElementById('currentArtist').innerText = `${song.artist} — ${song.album}`;
-      updateHighlightItem();
-      renderQueueSidebarList();
-      crossfadeTransitioning = false;
-      crossfadeAudio = null;
-      audio.play().catch(() => {});
     }
 
     function togglePlaylistMenu(force) {
@@ -1771,6 +1720,39 @@
         if (el && !el.classList.contains('hidden')) return name;
       }
       return currentViewName || 'home';
+    }
+
+
+    let scrollRevealObserver = null;
+
+    function animateViewEntry(view) {
+      if (!view) return;
+      view.classList.remove('view-enter');
+      void view.offsetWidth;
+      view.classList.add('view-enter');
+    }
+
+    function observeScrollReveals() {
+      const main = document.querySelector('main');
+      if (!main) return;
+      if (scrollRevealObserver) scrollRevealObserver.disconnect();
+      scrollRevealObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('is-visible');
+        });
+      }, { root: main, threshold: 0.08 });
+      main.querySelectorAll('.scroll-reveal').forEach(el => scrollRevealObserver.observe(el));
+    }
+
+    function triggerLoginSuccessEffect() {
+      ['main', 'aside', 'footer'].forEach(selector => {
+        document.querySelector(selector)?.classList.add('login-success-effect');
+      });
+      setTimeout(() => {
+        ['main', 'aside', 'footer'].forEach(selector => {
+          document.querySelector(selector)?.classList.remove('login-success-effect');
+        });
+      }, 900);
     }
 
     function switchView(viewName, options = {}) {
@@ -1812,8 +1794,11 @@
         document.getElementById('artistsView').classList.remove('hidden');
         renderArtistsView();
       }
+      const activeView = document.getElementById(viewName === 'group' ? 'groupDetailView' : viewName === 'playlist' ? 'playlistDetailView' : `${viewName}View`);
+      if (activeView) animateViewEntry(activeView);
       if (options.restoreScroll) restoreViewScroll(viewName);
-      else if (!options.preserveScroll) document.querySelector('main').scrollTop = 0;
+      else if (!options.preserveScroll) document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+      requestAnimationFrame(observeScrollReveals);
     }
 
     function goBack() {
@@ -1851,7 +1836,7 @@
       const durationText = songDurations[song.id] ? formatTime(songDurations[song.id]) : "0:00";
 
       return `
-        <div data-song-id="${song.id}" onclick="playSongFromList(${song.id}, '${queueSource}')" class="song-item-card flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
+        <div data-song-id="${song.id}" onclick="playSongFromList(${song.id}, '${queueSource}')" class="song-item-card scroll-reveal flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
           <div class="flex items-center gap-4 overflow-hidden">
             <!-- Avatar Cover with Overlay Play/Pause Button -->
             <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
@@ -2005,6 +1990,7 @@
       const pl=playlists.find(p=>p.id===playlistId);
       if(!pl) return;
       document.getElementById('playlistDetailTitle').innerText=pl.name;
+      document.getElementById('playlistDetailType').innerText = pl.isPublic ? 'PUBLIC PLAYLIST' : 'MY PLAYLIST';
       const playlistSongs=songs.filter(s=>pl.songIds.includes(s.id));
       document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
       queueContexts.playlist = [...playlistSongs];
@@ -2022,6 +2008,12 @@
       publicLabel.innerText = pl.isPublic ? 'PUBLIC' : 'PRIVATE';
       publicIcon.className = `fa-solid ${pl.isPublic ? 'fa-globe text-purple-400' : 'fa-lock text-gray-400'} text-xs`;
       document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'playlist')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST YET</p>`;
+      requestAnimationFrame(() => {
+        const main = document.querySelector('main');
+        if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+        animateViewEntry(document.getElementById('playlistDetailView'));
+        observeScrollReveals();
+      });
     }
 
     async function togglePlaylistPublic(playlistId) {
@@ -2085,6 +2077,7 @@
       ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'].forEach(v=>document.getElementById(v)?.classList.add('hidden'));
       document.getElementById('playlistDetailView').classList.remove('hidden');
       document.getElementById('playlistDetailTitle').innerText=data.name;
+      document.getElementById('playlistDetailType').innerText = 'PUBLIC PLAYLIST';
       document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
       queueContexts.shared = [...playlistSongs];
       document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
@@ -2092,6 +2085,12 @@
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
       document.getElementById('renamePlaylistBtn').classList.add('hidden');
       document.getElementById('publicPlaylistBtn').classList.add('hidden');
+      requestAnimationFrame(() => {
+        const main = document.querySelector('main');
+        if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+        animateViewEntry(document.getElementById('playlistDetailView'));
+        observeScrollReveals();
+      });
       return true;
     }
 
@@ -2253,8 +2252,6 @@ function togglePlay() {
     }
 
     function nextSong() {
-      crossfadeTransitioning = false;
-      if (crossfadeAudio) { try { crossfadeAudio.pause(); } catch(e) {} crossfadeAudio = null; }
       if (currentQueue.length === 0) return;
 
       if (shuffleMode) {
@@ -2285,8 +2282,6 @@ function togglePlay() {
     }
 
     function prevSong() {
-      crossfadeTransitioning = false;
-      if (crossfadeAudio) { try { crossfadeAudio.pause(); } catch(e) {} crossfadeAudio = null; }
       if (currentQueue.length === 0) return;
 
       // If the current song has played for more than 3 seconds,
@@ -2378,7 +2373,6 @@ function togglePlay() {
     };
 
     audio.ontimeupdate = () => {
-      startCrossfade();
       const progress = document.getElementById('progressBar');
       if (Number.isFinite(audio.duration) && audio.duration > 0) {
         const pct = (audio.currentTime / audio.duration) * 100;
@@ -2582,10 +2576,10 @@ function togglePlay() {
     ========================================================== */
     window.addEventListener('DOMContentLoaded', async () => {
       preloadDurations();
-      loadCrossfadeSetting();
       togglePlaylistMenu(true);
       togglePublicPlaylistMenu(true);
       updateFloatingNavControls();
+      observeScrollReveals();
       // Initialize range bars styling
       setVolume();
       updateRangeBackground(document.getElementById('progressBar'), 0);
