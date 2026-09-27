@@ -328,6 +328,26 @@
             <a href="#" onclick="switchView('albums'); return false;" id="nav-albums" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-compact-disc w-4 text-center text-indigo-400"></i>ALBUMS</a>
             <a href="#" onclick="switchView('artists'); return false;" id="nav-artists" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-microphone-lines w-4 text-center text-purple-400"></i>ARTISTS</a>
           </div>
+          <button type="button" onclick="toggleSettingsMenu()" id="nav-settings" class="nav-item w-full flex items-center justify-between gap-4 px-4 py-3 mt-1 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase text-left">
+            <span class="flex items-center gap-4"><i class="fa-solid fa-gear text-lg w-5 text-center text-gray-400"></i>SETTINGS</span>
+            <i id="settingsChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
+          </button>
+          <div id="settingsMenu" class="hidden ml-4 mr-1 mt-1 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+            <div class="mb-4">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <p class="text-xs font-bold text-white uppercase">CROSSFADE</p>
+                  <p class="text-[10px] text-gray-500 mt-1">Smoothly blend songs together</p>
+                </div>
+                <span id="crossfadeValue" class="text-xs font-bold text-blue-400">0 SEC</span>
+              </div>
+              <input id="crossfadeRange" type="range" min="0" max="12" step="1" value="0" oninput="setCrossfade(this.value)" class="w-full h-1.5 rounded-lg appearance-none cursor-pointer">
+              <div class="flex justify-between text-[9px] text-gray-600 mt-1"><span>OFF</span><span>12 SEC</span></div>
+            </div>
+            <button type="button" onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition uppercase">
+              <i class="fa-solid fa-right-from-bracket w-4 text-center"></i> LOG OUT
+            </button>
+          </div>
         </nav>
 
         <hr class="border-gray-800/80 my-5 mx-4">
@@ -361,42 +381,6 @@
           id="publicSidebarPlaylists"
           class="px-3 flex flex-col gap-1 max-h-44 overflow-y-auto pr-1 sidebar-subscroll"
         ></div>
-      </div>
-
-      <!-- User Profile Footer -->
-      <div
-        class="p-4 border-t border-gray-800/60 flex items-center justify-between bg-[#151620]"
-      >
-        <div class="flex items-center gap-3 overflow-hidden">
-          <div
-            class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-sm font-extrabold flex-shrink-0"
-            id="userAvatar"
-          >
-            G
-          </div>
-          <div class="overflow-hidden">
-            <p
-              class="text-xs font-bold text-white truncate uppercase"
-              id="userNameDisplay"
-            >
-              GUEST
-            </p>
-            <p
-              class="text-[11px] text-gray-400 truncate uppercase"
-              id="userStatus"
-            >
-              FREE ACCOUNT
-            </p>
-          </div>
-        </div>
-
-        <button
-          onclick="logout()"
-          title="LOGOUT"
-          class="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition"
-        >
-          <i class="fa-solid fa-right-from-bracket text-sm"></i>
-        </button>
       </div>
     </aside>
 
@@ -560,9 +544,6 @@
                 <button id="playAllBtn" class="bg-blue-600 hover:bg-blue-500 px-7 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 shadow-xl shadow-blue-600/30 transition active:scale-95 uppercase">
                   <i class="fa-solid fa-play text-xs"></i> PLAY ALL
                 </button>
-                <button id="sharePlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
-                  <i class="fa-solid fa-share-nodes text-xs"></i> SHARE PLAYLIST
-                </button>
                 <button id="publicPlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
                   <i id="publicPlaylistIcon" class="fa-solid fa-lock text-xs"></i> <span id="publicPlaylistLabel">PRIVATE</span>
                 </button>
@@ -587,7 +568,7 @@
     <!-- =======================================================
          PLAYING QUEUE POPUP
     ======================================================== -->
-    <aside id="queueSidebar" class="queue-popup hidden fixed left-5 bottom-[6.5rem] w-96 max-w-[calc(100vw-2rem)] bg-[#12131b]/75 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 z-50 shadow-2xl flex flex-col">
+    <aside id="queueSidebar" class="queue-popup hidden fixed w-96 max-w-[calc(100vw-2rem)] bg-[#12131b]/75 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 z-50 shadow-2xl flex flex-col">
       <div>
         <div class="flex items-center justify-between mb-3 pb-3 border-b border-white/10">
           <h3 class="font-bold text-sm flex items-center gap-2 text-white uppercase">
@@ -642,10 +623,6 @@
         </p>
       </div>
 
-      <button onclick="toggleQueueSidebar()" title="PLAYING QUEUE" id="queueToggleBtn" class="text-gray-400 hover:text-white text-sm transition p-2 rounded-xl hover:bg-gray-800/80 flex-shrink-0">
-        <i class="fa-solid fa-list-check"></i>
-      </button>
-
       <button
         onclick="openAddToPlaylistCurrent()"
         title="ADD TO PLAYLIST"
@@ -698,6 +675,11 @@
         <button onclick="toggleRepeat()" title="REPEAT MODE" id="repeatBtn" class="text-gray-400 hover:text-white text-sm transition relative p-2">
           <i class="fa-solid fa-repeat"></i>
           <span id="repeatOneBadge" class="absolute -top-1 -right-1 text-[9px] font-extrabold bg-blue-600 text-white px-1.5 py-0.2 rounded-full hidden">1</span>
+        </button>
+
+        <!-- Playing Queue -->
+        <button onclick="toggleQueueSidebar()" title="PLAYING QUEUE" id="queueToggleBtn" class="text-gray-400 hover:text-white text-sm transition p-2 relative">
+          <i class="fa-solid fa-list-check"></i>
         </button>
       </div>
 
@@ -754,7 +736,7 @@
 
 
   <!-- FLOATING NAVIGATION CONTROLS -->
-  <div id="floatingNavControls" class="fixed right-5 bottom-28 z-50 flex flex-row gap-2 opacity-0 pointer-events-none translate-y-2 transition-all duration-300">
+  <div id="floatingNavControls" class="fixed right-5 bottom-28 z-50 flex flex-row gap-2 transition-all duration-300">
     <button id="scrollToTopBtn" onclick="scrollMainToTop()" title="BACK TO TOP" class="w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
       <i class="fa-solid fa-house"></i>
     </button>
@@ -1009,6 +991,10 @@
     let viewHistory = [];
     let libraryOpen = false;
     let sharedPlaylistMode = false;
+    let settingsOpen = false;
+    let crossfadeSeconds = 0;
+    let crossfadeTransitioning = false;
+    let crossfadeAudio = null;
 
     let shuffleMode = false;
     let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
@@ -1129,14 +1115,12 @@
       }
 
       document.getElementById('authModal').classList.add('hidden');
-      document.getElementById('userNameDisplay').innerText = username.toUpperCase();
       document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
-      document.getElementById('userStatus').innerText = 'Premium Member';
-      document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
       document.getElementById('loginError').classList.add('hidden');
       document.getElementById('passwordInput').value = '';
 
       await loadSavedPlaylistsPermanent();
+      await loadCrossfadeSetting();
       switchView('home');
     }
 
@@ -1159,10 +1143,7 @@
 
         const username = profile?.username || user.email?.split('@')[0] || 'howie';
         document.getElementById('authModal').classList.add('hidden');
-        document.getElementById('userNameDisplay').innerText = username.toUpperCase();
         document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
-        document.getElementById('userStatus').innerText = 'Premium Member';
-        document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
         await loadSavedPlaylistsPermanent();
         switchView('home');
       }
@@ -1180,9 +1161,6 @@
       playlists = [];
       currentActivePlaylistId = null;
       document.getElementById('welcomeHeader').innerText = 'Welcome back, GUEST!';
-      document.getElementById('userNameDisplay').innerText = 'GUEST';
-      document.getElementById('userStatus').innerText = 'FREE ACCOUNT';
-      document.getElementById('userAvatar').innerText = 'G';
       renderSidebarPlaylists();
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('usernameInput').value = '';
@@ -1281,7 +1259,6 @@
       document.getElementById('playAllBtn').onclick = () => playAllQueue(playlistSongs);
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
       document.getElementById('renamePlaylistBtn').classList.add('hidden');
-      document.getElementById('sharePlaylistBtn').classList.add('hidden');
       document.getElementById('publicPlaylistBtn').classList.add('hidden');
       document.getElementById('playlistSongsList').innerHTML = playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
       document.querySelector('main').scrollTop = 0;
@@ -1533,6 +1510,114 @@
       const chevron = document.getElementById('libraryChevron');
       menu.classList.toggle('hidden', !libraryOpen);
       chevron.style.transform = libraryOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    function toggleSettingsMenu(force) {
+      settingsOpen = typeof force === 'boolean' ? force : !settingsOpen;
+      const menu = document.getElementById('settingsMenu');
+      const chev = document.getElementById('settingsChevron');
+      if (!menu) return;
+      menu.classList.toggle('hidden', !settingsOpen);
+      menu.classList.toggle('settings-panel-open', settingsOpen);
+      if (chev) chev.style.transform = settingsOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    function updateCrossfadeRangeUI() {
+      const range = document.getElementById('crossfadeRange');
+      const value = document.getElementById('crossfadeValue');
+      if (!range || !value) return;
+      range.value = crossfadeSeconds;
+      value.innerText = crossfadeSeconds === 0 ? 'OFF' : `${crossfadeSeconds} SEC`;
+      const pct = (Number(crossfadeSeconds) / 12) * 100;
+      range.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${pct}%, #374151 ${pct}%, #374151 100%)`;
+    }
+
+    async function loadCrossfadeSetting() {
+      const localKey = `music_crossfade_${currentUser?.id || currentUser || 'guest'}`;
+      let value = Number(localStorage.getItem(localKey));
+      if (!Number.isFinite(value)) value = 0;
+      if (currentUser?.id) {
+        try {
+          const { data, error } = await supabaseClient.from('user_settings').select('crossfade_seconds').eq('user_id', currentUser.id).maybeSingle();
+          if (!error && data && Number.isFinite(Number(data.crossfade_seconds))) value = Number(data.crossfade_seconds);
+        } catch (err) { console.warn('Crossfade setting load failed:', err); }
+      }
+      crossfadeSeconds = Math.max(0, Math.min(12, Math.round(value)));
+      localStorage.setItem(localKey, String(crossfadeSeconds));
+      updateCrossfadeRangeUI();
+    }
+
+    async function setCrossfade(value) {
+      crossfadeSeconds = Math.max(0, Math.min(12, Math.round(Number(value) || 0)));
+      updateCrossfadeRangeUI();
+      const localKey = `music_crossfade_${currentUser?.id || currentUser || 'guest'}`;
+      localStorage.setItem(localKey, String(crossfadeSeconds));
+      if (currentUser?.id) {
+        try {
+          await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, crossfade_seconds: crossfadeSeconds }, { onConflict: 'user_id' });
+        } catch (err) { console.warn('Crossfade setting save failed:', err); }
+      }
+    }
+
+    function getNextQueueIndex() {
+      if (!currentQueue.length) return -1;
+      if (!shuffleMode && repeatMode === 0 && currentSongIndex >= currentQueue.length - 1) return -1;
+      if (shuffleMode) {
+        if (currentQueue.length === 1) return 0;
+        let nextIndex;
+        do { nextIndex = Math.floor(Math.random() * currentQueue.length); } while (nextIndex === currentSongIndex);
+        return nextIndex;
+      }
+      return (currentSongIndex + 1) % currentQueue.length;
+    }
+
+    function startCrossfade() {
+      if (crossfadeTransitioning || crossfadeSeconds <= 0 || !isPlaying || repeatMode === 2 || !audio.duration || currentQueue.length < 2) return false;
+      const remaining = audio.duration - audio.currentTime;
+      if (remaining > crossfadeSeconds) return false;
+      const nextIndex = getNextQueueIndex();
+      if (nextIndex < 0 || nextIndex === currentSongIndex) return false;
+      crossfadeTransitioning = true;
+      const nextSongData = currentQueue[nextIndex];
+      const nextAudio = new Audio(nextSongData.src);
+      crossfadeAudio = nextAudio;
+      nextAudio.volume = 0;
+      nextAudio.preload = 'auto';
+      nextAudio.play().catch(() => { crossfadeTransitioning = false; crossfadeAudio = null; });
+      const durationMs = Math.max(250, crossfadeSeconds * 1000);
+      const startedAt = performance.now();
+      const fromVolume = audio.volume;
+      const fade = now => {
+        if (!crossfadeTransitioning || crossfadeAudio !== nextAudio) return;
+        const pct = Math.min(1, (now - startedAt) / durationMs);
+        audio.volume = fromVolume * (1 - pct);
+        nextAudio.volume = Math.min(1, fromVolume * pct);
+        if (pct < 1) requestAnimationFrame(fade);
+        else finishCrossfade(nextIndex, nextAudio);
+      };
+      requestAnimationFrame(fade);
+      return true;
+    }
+
+    function finishCrossfade(nextIndex, nextAudio) {
+      if (!crossfadeTransitioning) return;
+      currentSongIndex = nextIndex;
+      const elapsed = Math.min(crossfadeSeconds, nextAudio.currentTime || 0);
+      const song = currentQueue[currentSongIndex];
+      nextAudio.pause();
+      audio.pause();
+      audio.src = song.src;
+      audio.preload = 'auto';
+      audio.currentTime = elapsed;
+      audio.volume = Math.max(0.01, document.getElementById('volumeBar')?.value / 100 || 1);
+      document.getElementById('currentCover').src = song.cover;
+      document.getElementById('currentTitle').innerText = song.title;
+      document.getElementById('currentArtist').innerText = `${song.artist} — ${song.album}`;
+      updateHighlightItem();
+      renderQueueSidebarList();
+      crossfadeTransitioning = false;
+      crossfadeAudio = null;
+      audio.play().catch(() => {});
     }
 
     function togglePlaylistMenu(force) {
@@ -1794,11 +1879,9 @@
       // after visiting a public playlist.
       document.getElementById('deletePlaylistBtn').classList.remove('hidden');
       document.getElementById('renamePlaylistBtn').classList.remove('hidden');
-      document.getElementById('sharePlaylistBtn').classList.remove('hidden');
       document.getElementById('publicPlaylistBtn').classList.remove('hidden');
       document.getElementById('deletePlaylistBtn').onclick=()=>deletePlaylist(pl.id);
       document.getElementById('renamePlaylistBtn').onclick=()=>openRenamePlaylistModal(pl.id);
-      document.getElementById('sharePlaylistBtn').onclick=()=>sharePlaylist(pl.id);
       document.getElementById('publicPlaylistBtn').onclick=()=>togglePlaylistPublic(pl.id);
       const publicLabel = document.getElementById('publicPlaylistLabel');
       const publicIcon = document.getElementById('publicPlaylistIcon');
@@ -1863,9 +1946,6 @@
       currentViewName='playlist';
       document.getElementById('authModal').classList.add('hidden');
       document.getElementById('welcomeHeader').innerText='SHARED PLAYLIST';
-      document.getElementById('userNameDisplay').innerText='SHARED';
-      document.getElementById('userStatus').innerText='PUBLIC PLAYLIST';
-      document.getElementById('userAvatar').innerText='S';
       const ids=(data.playlist_songs||[]).map(x=>Number(x.song_id));
       const playlistSongs=songs.filter(s=>ids.includes(s.id));
       ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'].forEach(v=>document.getElementById(v)?.classList.add('hidden'));
@@ -1876,7 +1956,6 @@
       document.getElementById('playAllBtn').onclick=()=>playAllQueue(playlistSongs);
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
       document.getElementById('renamePlaylistBtn').classList.add('hidden');
-      document.getElementById('sharePlaylistBtn').classList.add('hidden');
       document.getElementById('publicPlaylistBtn').classList.add('hidden');
       return true;
     }
@@ -2013,6 +2092,8 @@ function togglePlay() {
     }
 
     function nextSong() {
+      crossfadeTransitioning = false;
+      if (crossfadeAudio) { try { crossfadeAudio.pause(); } catch(e) {} crossfadeAudio = null; }
       if (currentQueue.length === 0) return;
 
       if (shuffleMode) {
@@ -2043,6 +2124,8 @@ function togglePlay() {
     }
 
     function prevSong() {
+      crossfadeTransitioning = false;
+      if (crossfadeAudio) { try { crossfadeAudio.pause(); } catch(e) {} crossfadeAudio = null; }
       if (currentQueue.length === 0) return;
 
       // If the current song has played for more than 3 seconds,
@@ -2134,6 +2217,7 @@ function togglePlay() {
     };
 
     audio.ontimeupdate = () => {
+      startCrossfade();
       const progress = document.getElementById('progressBar');
       if (Number.isFinite(audio.duration) && audio.duration > 0) {
         const pct = (audio.currentTime / audio.duration) * 100;
@@ -2222,12 +2306,37 @@ function togglePlay() {
     /* =========================================================
        RIGHT QUEUE SIDEBAR
     ========================================================== */
+    function positionQueueSidebar() {
+      const sidebar = document.getElementById('queueSidebar');
+      const button = document.getElementById('queueToggleBtn');
+      if (!sidebar || !button || sidebar.classList.contains('hidden')) return;
+
+      const rect = button.getBoundingClientRect();
+      const gap = 10;
+      const margin = 12;
+
+      // Place the queue directly above the Queue button and keep it anchored to it.
+      sidebar.style.bottom = 'auto';
+      sidebar.style.left = 'auto';
+      sidebar.style.top = `${Math.max(margin, rect.top - sidebar.offsetHeight - gap)}px`;
+
+      // Align the popup's right edge with the button's right edge.
+      let left = rect.right - sidebar.offsetWidth;
+      left = Math.max(margin, Math.min(left, window.innerWidth - sidebar.offsetWidth - margin));
+      sidebar.style.left = `${left}px`;
+    }
+
     function toggleQueueSidebar() {
       const sidebar = document.getElementById('queueSidebar');
       const opening = sidebar.classList.contains('hidden');
       sidebar.classList.toggle('hidden');
       renderQueueSidebarList();
-      if (opening) requestAnimationFrame(() => scrollQueueToPlaying());
+      if (opening) {
+        requestAnimationFrame(() => {
+          positionQueueSidebar();
+          scrollQueueToPlaying();
+        });
+      }
     }
 
     function renderQueueSidebarList() {
@@ -2235,9 +2344,17 @@ function togglePlay() {
       if (!container) return;
       container.innerHTML = currentQueue.map((s, idx) => generateSongRowHTML(s, idx, 'queue')).join('');
       requestAnimationFrame(() => {
-        if (!document.getElementById('queueSidebar')?.classList.contains('hidden')) scrollQueueToPlaying();
+        if (!document.getElementById('queueSidebar')?.classList.contains('hidden')) { positionQueueSidebar(); scrollQueueToPlaying(); }
       });
     }
+
+    window.addEventListener('scroll', () => {
+      if (!document.getElementById('queueSidebar')?.classList.contains('hidden')) positionQueueSidebar();
+    }, { passive: true });
+
+    window.addEventListener('resize', () => {
+      if (!document.getElementById('queueSidebar')?.classList.contains('hidden')) positionQueueSidebar();
+    });
 
     function scrollQueueToPlaying() {
       const active = currentQueue[currentSongIndex];
@@ -2266,14 +2383,32 @@ function togglePlay() {
     function updateFloatingNavControls() {
       const main = document.querySelector('main');
       const controls = document.getElementById('floatingNavControls');
-      if (!main || !controls) return;
-      const visible = main.scrollTop > 180;
-      controls.classList.toggle('opacity-100', visible);
-      controls.classList.toggle('pointer-events-auto', visible);
-      controls.classList.toggle('translate-y-0', visible);
-      controls.classList.toggle('opacity-0', !visible);
-      controls.classList.toggle('pointer-events-none', !visible);
-      controls.classList.toggle('translate-y-2', !visible);
+      const topBtn = document.getElementById('scrollToTopBtn');
+      const playingBtn = document.getElementById('scrollToPlayingBtn');
+      if (!main || !controls || !topBtn || !playingBtn) return;
+
+      // GO TO PLAYING SONG stays available whenever the current view
+      // contains a song list. It no longer depends on scroll position.
+      const activeSong = currentQueue[currentSongIndex];
+      const hasSongList = !!main.querySelector('.song-item-card');
+      // Show the button on every song-list view, even when the currently
+      // playing song belongs to another view. Clicking it will navigate
+      // only when that song exists in the current list.
+      playingBtn.classList.toggle('hidden', !hasSongList);
+      playingBtn.classList.toggle('pointer-events-none', !hasSongList);
+
+      // BACK TO TOP keeps its original scroll-dependent behavior.
+      const topVisible = main.scrollTop > 180;
+      topBtn.classList.toggle('hidden', !topVisible);
+      topBtn.classList.toggle('pointer-events-none', !topVisible);
+
+      const anyVisible = topVisible || hasSongList;
+      controls.classList.toggle('opacity-100', anyVisible);
+      controls.classList.toggle('pointer-events-auto', anyVisible);
+      controls.classList.toggle('translate-y-0', anyVisible);
+      controls.classList.toggle('opacity-0', !anyVisible);
+      controls.classList.toggle('pointer-events-none', !anyVisible);
+      controls.classList.toggle('translate-y-2', !anyVisible);
     }
 
     const mainScroller = document.querySelector('main');
@@ -2286,6 +2421,7 @@ function togglePlay() {
     ========================================================== */
     window.addEventListener('DOMContentLoaded', async () => {
       preloadDurations();
+      loadCrossfadeSetting();
       togglePlaylistMenu(true);
       togglePublicPlaylistMenu(true);
       updateFloatingNavControls();
