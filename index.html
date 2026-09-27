@@ -458,7 +458,7 @@
           <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
             <div class="flex items-center gap-3 min-w-0">
               <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ALL SONGS</h2>
-              <button id="songsPlayAllBtn" onclick="playAllQueue(songs)" class="bg-blue-600/90 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-[10px] font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition active:scale-95 uppercase flex-shrink-0" title="PLAY ALL SONGS">
+              <button id="songsPlayAllBtn" onclick="playAllQueue([...songs])" class="bg-blue-600/90 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-[10px] font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition active:scale-95 uppercase flex-shrink-0" title="PLAY ALL SONGS">
                 <i class="fa-solid fa-play"></i> PLAY ALL
               </button>
             </div>
@@ -1100,6 +1100,19 @@
     let currentQueue = [...songs];
     let currentSongIndex = 0;
     let isPlaying = false;
+
+    // Each visible song list keeps its own playback context.
+    // This prevents clicking a song in an Album/Artist/Playlist/Search list
+    // from replacing the Playing Queue with the global Songs list.
+    const queueContexts = {
+      all: songs,
+      homeNew: [],
+      homeRecommended: [],
+      search: [],
+      group: [],
+      playlist: [],
+      shared: []
+    };
     let currentActivePlaylistId = null;
     let currentGroupDetailType = null;
     let currentViewName = 'home';
@@ -1821,8 +1834,10 @@
     function renderHomeView() {
       const latest = [...songs].slice(-9).reverse();
       const recommended = songs.filter((_, i) => i % 7 === 0).slice(0, 9);
-      document.getElementById('homeNewSongs').innerHTML = latest.map((s, idx) => generateSongRowHTML(s, idx, 'home')).join('');
-      document.getElementById('homeRecommended').innerHTML = recommended.map((s, idx) => generateSongRowHTML(s, idx, 'home')).join('');
+      queueContexts.homeNew = [...latest];
+      queueContexts.homeRecommended = [...recommended];
+      document.getElementById('homeNewSongs').innerHTML = latest.map((s, idx) => generateSongRowHTML(s, idx, 'homeNew')).join('');
+      document.getElementById('homeRecommended').innerHTML = recommended.map((s, idx) => generateSongRowHTML(s, idx, 'homeRecommended')).join('');
 
       const albums = [...new Map(songs.map(s => [s.album, s])).values()].slice(-4).reverse();
       document.getElementById('homeNewAlbums').innerHTML = albums.map(s => `<div onclick="openGroupDetail('album', '${s.album.replace(/'/g, "\\'")}')" class="cursor-pointer group"><img src="${s.cover}" class="w-full aspect-square object-cover rounded-xl mb-2 group-hover:scale-[1.02] transition"><p class="text-xs font-bold text-white truncate normal-case">${s.album}</p><p class="text-[10px] text-gray-500 truncate uppercase">${s.artist} • ${albumType(s.album)}</p></div>`).join('');
@@ -1880,6 +1895,7 @@
       document.getElementById('totalSongsCount').innerText = `${songArray.length} SONGS`;
       const total = songArray.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0);
       document.getElementById('totalSongsDuration').innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
+      queueContexts.all = [...songArray];
       container.innerHTML = songArray.map((s, idx) => generateSongRowHTML(s, idx, 'all')).join('');
     }
 
@@ -1964,7 +1980,8 @@
       document.getElementById('groupDetailTitle').innerText = key;
       document.getElementById('groupDetailCount').innerText = `${filteredSongs.length} SONGS • TOTAL DURATION: ${formatFullDuration(totalSecs)}`;
       document.getElementById('groupDetailCover').src = filteredSongs[0]?.cover || '';
-      document.getElementById('groupPlayAllBtn').onclick = () => playAllQueue(filteredSongs);
+      queueContexts.group = [...filteredSongs];
+      document.getElementById('groupPlayAllBtn').onclick = () => playAllQueue([...filteredSongs]);
       const albumBtn = document.getElementById('groupAddToPlaylistBtn');
       albumBtn.classList.toggle('hidden', type !== 'album');
       if (type === 'album') albumBtn.onclick = () => openAddAlbumToPlaylistModal(key);
@@ -1990,7 +2007,8 @@
       document.getElementById('playlistDetailTitle').innerText=pl.name;
       const playlistSongs=songs.filter(s=>pl.songIds.includes(s.id));
       document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
-      document.getElementById('playAllBtn').onclick=()=>playAllQueue(playlistSongs);
+      queueContexts.playlist = [...playlistSongs];
+      document.getElementById('playAllBtn').onclick=()=>playAllQueue([...playlistSongs]);
       // This is the user's own playlist: always restore owner-only controls
       // after visiting a public playlist.
       document.getElementById('deletePlaylistBtn').classList.remove('hidden');
@@ -2068,8 +2086,9 @@
       document.getElementById('playlistDetailView').classList.remove('hidden');
       document.getElementById('playlistDetailTitle').innerText=data.name;
       document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
+      queueContexts.shared = [...playlistSongs];
       document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
-      document.getElementById('playAllBtn').onclick=()=>playAllQueue(playlistSongs);
+      document.getElementById('playAllBtn').onclick=()=>playAllQueue([...playlistSongs]);
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
       document.getElementById('renamePlaylistBtn').classList.add('hidden');
       document.getElementById('publicPlaylistBtn').classList.add('hidden');
@@ -2108,6 +2127,7 @@
 
       const container = document.getElementById('searchResults');
       if (container) {
+        queueContexts.search = [...filtered];
         container.innerHTML = filtered.map((s, idx) => generateSongRowHTML(s, idx, 'search')).join('');
         document.getElementById('searchResultCount').innerText = query ? `${filtered.length} RESULTS FOR "${query}"` : 'TYPE TO SEARCH YOUR MUSIC';
         document.getElementById('searchEmpty').classList.toggle('hidden', filtered.length !== 0 || !query);
@@ -2143,15 +2163,21 @@
 
     function playSongFromList(songId, source, fromThumbnail = false) {
       const currentSong = currentQueue[currentSongIndex];
+
       if (fromThumbnail && currentSong && currentSong.id === songId && audio.src) {
         togglePlay();
         return;
       }
-      if (source === 'all' || source === 'home' || source === 'group' || source === 'playlist' || source === 'shared') {
-        if (!currentSong || !currentQueue.some(s => s.id === songId) || source !== 'queue') currentQueue = [...songs];
-      } else if (source === 'search') {
-        const q=(document.getElementById('searchInput')?.value||'').toLowerCase().trim();
-        currentQueue=q?songs.filter(s=>s.title.toLowerCase().includes(q)||s.artist.toLowerCase().includes(q)||s.album.toLowerCase().includes(q)):[...songs];
+
+      // "queue" is the actual Playing Queue itself. Every other source
+      // uses the exact list that was rendered on screen.
+      if (source !== 'queue') {
+        const contextQueue = queueContexts[source];
+        if (Array.isArray(contextQueue) && contextQueue.length) {
+          currentQueue = [...contextQueue];
+        } else {
+          currentQueue = [...songs];
+        }
       }
 
       const index = currentQueue.findIndex(s => s.id === songId);
@@ -2167,14 +2193,33 @@
     }
 
     function playAllQueue(songArray) {
-      if (!songArray || songArray.length === 0) return;
+      if (!Array.isArray(songArray) || songArray.length === 0) return;
+
+      // Always create a fresh queue from the exact list represented by
+      // the Play All button that was clicked.
       currentQueue = [...songArray];
       currentSongIndex = 0;
-      loadSong(currentQueue[0], { autoScroll: true });
-      audio.play().then(() => {
+      suppressSongAutoScroll = false;
+
+      const firstSong = currentQueue[0];
+      loadSong(firstSong, { autoScroll: true });
+
+      // Keep Play All tied to the user's click gesture and handle the
+      // promise explicitly so every Play All button behaves consistently.
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.then(() => {
+          isPlaying = true;
+          updatePlayIconsUI();
+        }).catch(err => {
+          console.error("Play all error:", err);
+          isPlaying = false;
+          updatePlayIconsUI();
+        });
+      } else {
         isPlaying = true;
         updatePlayIconsUI();
-      }).catch(err => console.error("Play all error", err));
+      }
     }
 
 function togglePlay() {
