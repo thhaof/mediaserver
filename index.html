@@ -126,6 +126,13 @@
       box-shadow: 0 0 18px rgba(59, 130, 246, 0.16), inset 0 0 14px rgba(59, 130, 246, 0.08);
     }
     .playing-item img { box-shadow: 0 0 14px rgba(59, 130, 246, 0.5); }
+
+    .settings-panel { animation: settingsIn 0.22s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+    @keyframes settingsIn {
+      from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .settings-range-value { min-width: 4.5rem; text-align: right; }
 </style>
 </head>
 
@@ -288,6 +295,40 @@
 
 
   <!-- =========================================================
+       SETTINGS MODAL
+  ========================================================== -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/70 z-50 hidden items-start justify-end p-5 sm:p-7 backdrop-blur-sm">
+    <div class="settings-panel w-full max-w-sm bg-[#181922]/95 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
+        <div>
+          <h3 class="text-sm font-extrabold text-white tracking-wide">SETTINGS</h3>
+          <p class="text-[10px] text-gray-500 mt-1">ACCOUNT SETTINGS</p>
+        </div>
+        <button type="button" onclick="toggleSettingsModal(false)" class="w-8 h-8 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-5">
+        <section class="bg-white/[0.03] border border-white/5 rounded-xl p-4">
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <h4 class="text-xs font-bold text-white">CROSSFADE</h4>
+              <p class="text-[10px] text-gray-500 mt-1 leading-relaxed normal-case">Blend the end of one song into the beginning of the next.</p>
+            </div>
+            <span id="crossfadeValue" class="settings-range-value text-xs font-bold text-blue-400">OFF</span>
+          </div>
+          <input id="crossfadeRange" type="range" min="0" max="12" step="1" value="0" class="w-full h-1.5 rounded-lg appearance-none cursor-pointer" oninput="handleCrossfadeInput()" onchange="saveCrossfadeSetting()">
+          <div class="flex justify-between mt-2 text-[9px] text-gray-600 font-semibold"><span>OFF</span><span>12 SEC</span></div>
+        </section>
+        <button type="button" onclick="logout(); toggleSettingsModal(false);" class="w-full px-4 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/10 text-red-400 text-xs font-bold flex items-center justify-between transition">
+          <span class="flex items-center gap-3"><i class="fa-solid fa-right-from-bracket"></i> LOG OUT</span>
+          <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
        MAIN LAYOUT CONTAINER
   ========================================================== -->
   <div class="flex flex-1 overflow-hidden relative">
@@ -362,42 +403,6 @@
           class="px-3 flex flex-col gap-1 max-h-44 overflow-y-auto pr-1 sidebar-subscroll"
         ></div>
       </div>
-
-      <!-- User Profile Footer -->
-      <div
-        class="p-4 border-t border-gray-800/60 flex items-center justify-between bg-[#151620]"
-      >
-        <div class="flex items-center gap-3 overflow-hidden">
-          <div
-            class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-sm font-extrabold flex-shrink-0"
-            id="userAvatar"
-          >
-            G
-          </div>
-          <div class="overflow-hidden">
-            <p
-              class="text-xs font-bold text-white truncate uppercase"
-              id="userNameDisplay"
-            >
-              GUEST
-            </p>
-            <p
-              class="text-[11px] text-gray-400 truncate uppercase"
-              id="userStatus"
-            >
-              FREE ACCOUNT
-            </p>
-          </div>
-        </div>
-
-        <button
-          onclick="logout()"
-          title="LOGOUT"
-          class="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition"
-        >
-          <i class="fa-solid fa-right-from-bracket text-sm"></i>
-        </button>
-      </div>
     </aside>
 
 
@@ -408,7 +413,12 @@
       class="flex-1 bg-gradient-to-b from-[#161722] to-[#0f1016] overflow-y-auto p-8 lg:p-10 transition-all duration-300"
     >
       <!-- Top Bar / Header -->
-      <header class="flex items-center justify-end mb-8 gap-4 flex-wrap"></header>
+      <header class="flex items-center justify-end mb-3 gap-4 flex-wrap min-h-[2.5rem]">
+        <button id="settingsBtn" type="button" onclick="toggleSettingsModal()" title="SETTINGS"
+          class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-gray-400 hover:text-white flex items-center justify-center transition active:scale-95">
+          <i class="fa-solid fa-gear text-sm"></i>
+        </button>
+      </header>
 
 
       <!-- Dynamic Views Container -->
@@ -559,9 +569,6 @@
               <div class="flex items-center gap-3 flex-wrap">
                 <button id="playAllBtn" class="bg-blue-600 hover:bg-blue-500 px-7 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 shadow-xl shadow-blue-600/30 transition active:scale-95 uppercase">
                   <i class="fa-solid fa-play text-xs"></i> PLAY ALL
-                </button>
-                <button id="sharePlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
-                  <i class="fa-solid fa-share-nodes text-xs"></i> SHARE PLAYLIST
                 </button>
                 <button id="publicPlaylistBtn" class="bg-white/5 text-gray-300 hover:bg-white/10 px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition uppercase">
                   <i id="publicPlaylistIcon" class="fa-solid fa-lock text-xs"></i> <span id="publicPlaylistLabel">PRIVATE</span>
@@ -1013,7 +1020,13 @@
     let shuffleMode = false;
     let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
 
-    const audio = document.getElementById('audioPlayer');
+    let audio = document.getElementById('audioPlayer');
+    let crossfadeAudio = null;
+    let crossfadeRaf = null;
+    let crossfadeSongId = null;
+    let crossfadeInProgress = false;
+    let crossfadeSeconds = 0;
+    let settingsSaveTimer = null;
     const songDurations = {}; // Store duration cache
 
     // Helper: format time in mm:ss
@@ -1091,6 +1104,177 @@
     }
 
     /* =========================================================
+       ACCOUNT SETTINGS
+    ========================================================== */
+    function toggleSettingsModal(force) {
+      const modal = document.getElementById('settingsModal');
+      if (!modal) return;
+      const shouldOpen = typeof force === 'boolean' ? force : modal.classList.contains('hidden');
+      modal.classList.toggle('hidden', !shouldOpen);
+      modal.classList.toggle('flex', shouldOpen);
+      if (shouldOpen) updateCrossfadeUI();
+    }
+
+    function updateCrossfadeUI() {
+      const range = document.getElementById('crossfadeRange');
+      const value = document.getElementById('crossfadeValue');
+      if (!range || !value) return;
+      range.value = String(crossfadeSeconds);
+      value.innerText = crossfadeSeconds > 0 ? `${crossfadeSeconds} SEC` : 'OFF';
+      updateRangeBackground(range, (crossfadeSeconds / 12) * 100);
+    }
+
+    function handleCrossfadeInput() {
+      const range = document.getElementById('crossfadeRange');
+      if (!range) return;
+      crossfadeSeconds = Math.max(0, Math.min(12, Number(range.value) || 0));
+      updateCrossfadeUI();
+      clearTimeout(settingsSaveTimer);
+      settingsSaveTimer = setTimeout(saveCrossfadeSetting, 450);
+    }
+
+    async function saveCrossfadeSetting() {
+      clearTimeout(settingsSaveTimer);
+      if (!currentUser) return;
+      const { error } = await supabaseClient.from('user_settings').upsert({
+        user_id: currentUser.id,
+        crossfade_seconds: crossfadeSeconds,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      if (error) console.error('Could not save crossfade setting:', error);
+    }
+
+    async function loadUserSettings() {
+      crossfadeSeconds = 0;
+      if (!currentUser) { updateCrossfadeUI(); return; }
+      const { data, error } = await supabaseClient.from('user_settings').select('crossfade_seconds').eq('user_id', currentUser.id).maybeSingle();
+      if (error) console.warn('Could not load user settings. Run the supplied Supabase SQL:', error);
+      if (data) crossfadeSeconds = Math.max(0, Math.min(12, Number(data.crossfade_seconds) || 0));
+      updateCrossfadeUI();
+    }
+
+    function getNextQueueSong() {
+      if (!currentQueue.length || repeatMode === 2) return null;
+      if (shuffleMode) {
+        if (currentQueue.length <= 1) return null;
+        let idx = currentSongIndex;
+        while (idx === currentSongIndex) idx = Math.floor(Math.random() * currentQueue.length);
+        return currentQueue[idx];
+      }
+      if (currentSongIndex < currentQueue.length - 1) return currentQueue[currentSongIndex + 1];
+      return repeatMode === 1 ? currentQueue[0] : null;
+    }
+
+    function cancelCrossfade() {
+      if (crossfadeRaf) { cancelAnimationFrame(crossfadeRaf); crossfadeRaf = null; }
+      if (crossfadeAudio) {
+        try { crossfadeAudio.pause(); } catch {}
+        crossfadeAudio.volume = 0;
+        crossfadeAudio.removeAttribute('src');
+        crossfadeAudio.load();
+      }
+      crossfadeAudio = null;
+      crossfadeSongId = null;
+      crossfadeInProgress = false;
+    }
+
+    function bindAudioEvents(el) {
+      el.onloadedmetadata = () => {
+        if (el !== audio) return;
+        const duration = audio.duration;
+        if (Number.isFinite(duration) && duration > 0) {
+          const activeSong = currentQueue[currentSongIndex];
+          if (activeSong) {
+            songDurations[activeSong.id] = duration;
+            updateDurationUI(activeSong.id, duration);
+            const durationEl = document.getElementById('totalSongsDuration');
+            if (durationEl) {
+              const total = songs.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0);
+              durationEl.innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
+            }
+          }
+          document.getElementById('durationTime').innerText = formatTime(duration);
+        }
+      };
+      el.ontimeupdate = () => {
+        if (el !== audio) return;
+        if (crossfadeSeconds > 0 && isPlaying && Number.isFinite(audio.duration) && audio.duration > 0 && audio.duration - audio.currentTime <= crossfadeSeconds + 0.12) beginCrossfade();
+        const progress = document.getElementById('progressBar');
+        if (Number.isFinite(audio.duration) && audio.duration > 0) {
+          const pct = (audio.currentTime / audio.duration) * 100;
+          progress.value = pct;
+          updateRangeBackground(progress, pct);
+          document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+          document.getElementById('durationTime').innerText = formatTime(audio.duration);
+        }
+      };
+      el.onplay = () => { if (el === audio) { isPlaying = true; updatePlayIconsUI(); } };
+      el.onpause = () => { if (el === audio && !crossfadeInProgress) { isPlaying = false; updatePlayIconsUI(); } };
+      el.onended = () => {
+        if (el !== audio || crossfadeInProgress) return;
+        if (repeatMode === 2) { audio.currentTime = 0; audio.play(); }
+        else if (repeatMode === 1 || currentSongIndex < currentQueue.length - 1) nextSong();
+        else { isPlaying = false; updatePlayIconsUI(); }
+      };
+    }
+
+    function beginCrossfade() {
+      if (crossfadeInProgress || crossfadeSeconds <= 0 || !isPlaying || !audio.duration) return;
+      const next = getNextQueueSong();
+      if (!next || crossfadeSongId === next.id) return;
+      const remaining = audio.duration - audio.currentTime;
+      if (remaining > crossfadeSeconds + 0.12) return;
+
+      crossfadeInProgress = true;
+      crossfadeSongId = next.id;
+      const oldAudio = audio;
+      const volumeBar = document.getElementById('volumeBar');
+      const targetVolume = Number(volumeBar?.value || 80) / 100;
+      const nextAudio = new Audio();
+      crossfadeAudio = nextAudio;
+      nextAudio.preload = 'auto';
+      nextAudio.volume = 0;
+      nextAudio.src = next.src;
+      nextAudio.onloadedmetadata = () => {
+        if (!crossfadeInProgress || crossfadeAudio !== nextAudio) return;
+        nextAudio.play().catch(err => { console.error('Crossfade playback error:', err); cancelCrossfade(); });
+        const started = performance.now();
+        const durationMs = Math.max(250, crossfadeSeconds * 1000);
+        const fade = now => {
+          if (!crossfadeInProgress || crossfadeAudio !== nextAudio) return;
+          const t = Math.min(1, (now - started) / durationMs);
+          oldAudio.volume = targetVolume * (1 - t);
+          nextAudio.volume = targetVolume * t;
+          if (t < 1) {
+            crossfadeRaf = requestAnimationFrame(fade);
+          } else {
+            oldAudio.pause();
+            oldAudio.volume = 0;
+            audio = nextAudio;
+            bindAudioEvents(audio);
+            currentSongIndex = currentQueue.findIndex(s => s.id === next.id);
+            if (currentSongIndex < 0) currentSongIndex = 0;
+            document.getElementById('currentCover').src = next.cover;
+            document.getElementById('currentTitle').innerText = next.title;
+            document.getElementById('currentArtist').innerText = `${next.artist} — ${next.album}`;
+            updateHighlightItem();
+            renderQueueSidebarList();
+            requestAnimationFrame(() => scrollToPlayingSong(false));
+            crossfadeAudio = null;
+            crossfadeRaf = null;
+            crossfadeSongId = null;
+            crossfadeInProgress = false;
+            // Keep the old element around as the next reusable crossfade target.
+            nextAudio.volume = targetVolume;
+          }
+        };
+        crossfadeRaf = requestAnimationFrame(fade);
+      };
+      nextAudio.onerror = () => { console.error('Could not preload crossfade track:', next.title); cancelCrossfade(); };
+      nextAudio.load();
+    }
+
+    /* =========================================================
        AUTHENTICATION LOGIC
     ========================================================== */
     function usernameToEmail(username) {
@@ -1131,12 +1315,13 @@
       document.getElementById('authModal').classList.add('hidden');
       document.getElementById('userNameDisplay').innerText = username.toUpperCase();
       document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
-      document.getElementById('userStatus').innerText = 'Premium Member';
+      document.getElementById('userStatus').innerText = 'ACCOUNT';
       document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
       document.getElementById('loginError').classList.add('hidden');
       document.getElementById('passwordInput').value = '';
 
       await loadSavedPlaylistsPermanent();
+      await loadUserSettings();
       switchView('home');
     }
 
@@ -1161,9 +1346,10 @@
         document.getElementById('authModal').classList.add('hidden');
         document.getElementById('userNameDisplay').innerText = username.toUpperCase();
         document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
-        document.getElementById('userStatus').innerText = 'Premium Member';
+        document.getElementById('userStatus').innerText = 'ACCOUNT';
         document.getElementById('userAvatar').innerText = username.charAt(0).toUpperCase();
         await loadSavedPlaylistsPermanent();
+        await loadUserSettings();
         switchView('home');
       }
     }
@@ -1177,6 +1363,8 @@
       await supabaseClient.auth.signOut();
 
       currentUser = null;
+      crossfadeSeconds = 0;
+      updateCrossfadeUI();
       playlists = [];
       currentActivePlaylistId = null;
       document.getElementById('welcomeHeader').innerText = 'Welcome back, GUEST!';
@@ -1243,7 +1431,7 @@
       if (!container) return;
       const { data, error } = await supabaseClient
         .from('playlists')
-        .select('id,name,share_token,created_at,playlist_songs(song_id)')
+        .select('id,name,created_at,playlist_songs(song_id)')
         .eq('is_public', true)
         .order('created_at', { ascending: false })
         .limit(30);
@@ -1281,7 +1469,6 @@
       document.getElementById('playAllBtn').onclick = () => playAllQueue(playlistSongs);
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
       document.getElementById('renamePlaylistBtn').classList.add('hidden');
-      document.getElementById('sharePlaylistBtn').classList.add('hidden');
       document.getElementById('publicPlaylistBtn').classList.add('hidden');
       document.getElementById('playlistSongsList').innerHTML = playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
       document.querySelector('main').scrollTop = 0;
@@ -1794,11 +1981,9 @@
       // after visiting a public playlist.
       document.getElementById('deletePlaylistBtn').classList.remove('hidden');
       document.getElementById('renamePlaylistBtn').classList.remove('hidden');
-      document.getElementById('sharePlaylistBtn').classList.remove('hidden');
       document.getElementById('publicPlaylistBtn').classList.remove('hidden');
       document.getElementById('deletePlaylistBtn').onclick=()=>deletePlaylist(pl.id);
       document.getElementById('renamePlaylistBtn').onclick=()=>openRenamePlaylistModal(pl.id);
-      document.getElementById('sharePlaylistBtn').onclick=()=>sharePlaylist(pl.id);
       document.getElementById('publicPlaylistBtn').onclick=()=>togglePlaylistPublic(pl.id);
       const publicLabel = document.getElementById('publicPlaylistLabel');
       const publicIcon = document.getElementById('publicPlaylistIcon');
@@ -1829,56 +2014,6 @@
       renderSidebarPlaylists();
       await loadPublicPlaylists();
       openPlaylistDetail(playlistId);
-    }
-
-    async function sharePlaylist(playlistId) {
-      if (!currentUser) return;
-      const { data, error } = await supabaseClient
-        .from('playlists')
-        .update({ is_public: true })
-        .eq('id', playlistId)
-        .eq('user_id', currentUser.id)
-        .select('share_token')
-        .single();
-      if (error || !data?.share_token) {
-        console.error('Share playlist error:', error);
-        alert('Please run the Supabase sharing SQL first.');
-        return;
-      }
-      const url = `${window.location.href.split('?')[0]}?share=${encodeURIComponent(data.share_token)}`;
-      try { await navigator.clipboard.writeText(url); alert('Playlist share link copied!'); }
-      catch { prompt('Copy this playlist link:', url); }
-    }
-
-    async function loadSharedPlaylist(token) {
-      if (!token) return false;
-      const { data, error } = await supabaseClient
-        .from('playlists')
-        .select('id,name,share_token,playlist_songs(song_id)')
-        .eq('share_token', token)
-        .eq('is_public', true)
-        .maybeSingle();
-      if (error || !data) return false;
-      sharedPlaylistMode = true;
-      currentViewName='playlist';
-      document.getElementById('authModal').classList.add('hidden');
-      document.getElementById('welcomeHeader').innerText='SHARED PLAYLIST';
-      document.getElementById('userNameDisplay').innerText='SHARED';
-      document.getElementById('userStatus').innerText='PUBLIC PLAYLIST';
-      document.getElementById('userAvatar').innerText='S';
-      const ids=(data.playlist_songs||[]).map(x=>Number(x.song_id));
-      const playlistSongs=songs.filter(s=>ids.includes(s.id));
-      ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'].forEach(v=>document.getElementById(v)?.classList.add('hidden'));
-      document.getElementById('playlistDetailView').classList.remove('hidden');
-      document.getElementById('playlistDetailTitle').innerText=data.name;
-      document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
-      document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
-      document.getElementById('playAllBtn').onclick=()=>playAllQueue(playlistSongs);
-      document.getElementById('deletePlaylistBtn').classList.add('hidden');
-      document.getElementById('renamePlaylistBtn').classList.add('hidden');
-      document.getElementById('sharePlaylistBtn').classList.add('hidden');
-      document.getElementById('publicPlaylistBtn').classList.add('hidden');
-      return true;
     }
 
     async function deletePlaylist(id) {
@@ -1931,6 +2066,7 @@
       if (!song) return;
       const shouldAutoScroll = options.autoScroll !== false && !suppressSongAutoScroll;
       // Load only the selected track in the real player.
+      cancelCrossfade();
       audio.src = song.src;
       audio.preload = 'auto';
       audio.load();
@@ -2115,78 +2251,7 @@ function togglePlay() {
       inputEl.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${valuePercentage}%, #374151 ${valuePercentage}%, #374151 100%)`;
     }
 
-    audio.onloadedmetadata = () => {
-      const duration = audio.duration;
-      if (Number.isFinite(duration) && duration > 0) {
-        const activeSong = currentQueue[currentSongIndex];
-        if (activeSong) {
-          songDurations[activeSong.id] = duration;
-          updateDurationUI(activeSong.id, duration);
-          const durationEl = document.getElementById('totalSongsDuration');
-          if (durationEl) {
-            const visibleSongs = (typeof songs !== 'undefined') ? songs : [];
-            const total = visibleSongs.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0);
-            durationEl.innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
-          }
-        }
-        document.getElementById('durationTime').innerText = formatTime(duration);
-      }
-    };
-
-    audio.ontimeupdate = () => {
-      const progress = document.getElementById('progressBar');
-      if (Number.isFinite(audio.duration) && audio.duration > 0) {
-        const pct = (audio.currentTime / audio.duration) * 100;
-        progress.value = pct;
-        updateRangeBackground(progress, pct);
-        document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
-        document.getElementById('durationTime').innerText = formatTime(audio.duration);
-      }
-    };
-
-    function seekAudio() {
-      const progress = document.getElementById('progressBar');
-      const seekTo = (progress.value / 100) * audio.duration;
-      audio.currentTime = seekTo;
-      updateRangeBackground(progress, progress.value);
-    }
-
-    function setVolume() {
-      const volumeBar = document.getElementById('volumeBar');
-      audio.volume = volumeBar.value / 100;
-      updateRangeBackground(volumeBar, volumeBar.value);
-
-      const icon = document.getElementById('volumeIcon');
-      if (audio.volume === 0) {
-        icon.className = "fa-solid fa-volume-xmark text-gray-500 text-sm";
-      } else if (audio.volume < 0.5) {
-        icon.className = "fa-solid fa-volume-low text-gray-400 text-sm";
-      } else {
-        icon.className = "fa-solid fa-volume-high text-gray-400 text-sm";
-      }
-    }
-
-    audio.onplay = () => {
-      isPlaying = true;
-      updatePlayIconsUI();
-    };
-
-    audio.onpause = () => {
-      isPlaying = false;
-      updatePlayIconsUI();
-    };
-
-    audio.onended = () => {
-      if (repeatMode === 2) {
-        audio.currentTime = 0;
-        audio.play();
-      } else if (repeatMode === 1 || currentSongIndex < currentQueue.length - 1) {
-        nextSong();
-      } else {
-        isPlaying = false;
-        updatePlayIconsUI();
-      }
-    };
+    bindAudioEvents(audio);
 
     function toggleShuffle() {
       shuffleMode = !shuffleMode;
@@ -2289,6 +2354,10 @@ function togglePlay() {
       togglePlaylistMenu(true);
       togglePublicPlaylistMenu(true);
       updateFloatingNavControls();
+      document.getElementById('settingsModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'settingsModal') toggleSettingsModal(false);
+      });
+      updateCrossfadeUI();
       // Initialize range bars styling
       setVolume();
       updateRangeBackground(document.getElementById('progressBar'), 0);
@@ -2298,11 +2367,6 @@ function togglePlay() {
         loadSong(songs[0]);
       }
 
-      const shareToken = new URLSearchParams(window.location.search).get('share');
-      if (shareToken) {
-        const loaded = await loadSharedPlaylist(shareToken);
-        if (loaded) return;
-      }
       await restoreSupabaseSession();
       if (!currentUser) {
         await loadPublicPlaylists();
