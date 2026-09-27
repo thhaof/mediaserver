@@ -130,6 +130,22 @@
     html { scroll-behavior: smooth; }
     main { scroll-behavior: smooth; }
 
+
+    .scroll-nav-btn {
+      will-change: transform, opacity;
+    }
+    .scroll-nav-btn:active {
+      transform: translateY(2px) scale(0.94);
+    }
+    .scroll-nav-btn.scrolling {
+      animation: scrollButtonPulse 0.45s ease;
+    }
+    @keyframes scrollButtonPulse {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
     .view-enter {
       animation: viewEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
@@ -351,7 +367,7 @@
         <div class="p-6 flex items-center gap-3">
           <span
             id="welcomeHeader"
-            class="font-extrabold text-sm tracking-wider bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent break-words leading-tight"
+            class="font-extrabold text-base sm:text-lg tracking-wider bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent break-words leading-tight"
           >
             WELCOME BACK, GUEST
           </span>
@@ -568,7 +584,7 @@
 
         <!-- PLAYLIST DETAIL VIEW -->
         <div id="playlistDetailView" class="hidden">
-          <button type="button" onclick="goBack()" class="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white bg-gray-800/60 hover:bg-gray-800 px-4 py-2 rounded-xl transition cursor-pointer"><i class="fa-solid fa-arrow-left"></i> BACK</button>
+          <button id="playlistBackBtn" type="button" onclick="goBack()" class="hidden mb-4 flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white bg-gray-800/60 hover:bg-gray-800 px-4 py-2 rounded-xl transition cursor-pointer"><i class="fa-solid fa-arrow-left"></i> BACK</button>
           <div class="flex flex-col sm:flex-row items-start sm:items-end gap-6 mb-8 bg-gradient-to-r from-purple-950/40 via-transparent to-transparent p-6 rounded-2xl border border-white/5">
             <div class="w-44 h-44 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl border border-white/10 flex-shrink-0">
               <i class="fa-solid fa-music text-6xl text-white/80"></i>
@@ -774,10 +790,10 @@
 
   <!-- FLOATING NAVIGATION CONTROLS -->
   <div id="floatingNavControls" class="fixed right-5 bottom-28 z-50 flex flex-row gap-2 transition-all duration-300">
-    <button id="scrollToTopBtn" onclick="scrollMainToTop()" title="BACK TO TOP" class="w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
+    <button id="scrollToTopBtn" onclick="scrollMainToTop()" title="BACK TO TOP" class="scroll-nav-btn w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
       <i class="fa-solid fa-house"></i>
     </button>
-    <button id="scrollToPlayingBtn" onclick="scrollToPlayingSong(true)" title="GO TO PLAYING SONG" class="w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
+    <button id="scrollToPlayingBtn" onclick="scrollToPlayingSong(true)" title="GO TO PLAYING SONG" class="scroll-nav-btn w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
       <i class="fa-solid fa-music"></i>
     </button>
   </div>
@@ -1134,6 +1150,7 @@
     ========================================================== */
     let currentUser = null;
     let playlists = [];
+    let currentActivePublicPlaylistId = null;
     let currentQueue = [...songs];
     let currentSongIndex = 0;
     let isPlaying = false;
@@ -1322,6 +1339,7 @@
       currentUser = null;
       playlists = [];
       currentActivePlaylistId = null;
+      currentActivePublicPlaylistId = null;
       document.getElementById('welcomeHeader').innerText = 'Welcome back, GUEST!';
       renderSidebarPlaylists();
       document.getElementById('authModal').classList.remove('hidden');
@@ -1399,10 +1417,19 @@
       }
       data.forEach(pl => {
         const btn = document.createElement('button');
-        btn.className = 'w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition text-gray-400 hover:text-white hover:bg-gray-800/50';
+        btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${currentActivePublicPlaylistId === pl.id ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_18px_rgba(168,85,247,0.16)]' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`;
+        btn.dataset.publicPlaylistId = String(pl.id);
         btn.innerHTML = `<span class="truncate uppercase"><i class="fa-solid fa-globe mr-2.5 text-xs text-purple-400"></i>${pl.name}</span><span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded-full text-gray-400 font-bold">${(pl.playlist_songs || []).length}</span>`;
         btn.onclick = () => openPublicPlaylistDetail(pl);
         container.appendChild(btn);
+      });
+    }
+
+
+    function refreshPublicPlaylistActiveStyles() {
+      document.querySelectorAll('#publicSidebarPlaylists button[data-public-playlist-id]').forEach(btn => {
+        const active = String(currentActivePublicPlaylistId) === String(btn.dataset.publicPlaylistId);
+        btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${active ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_18px_rgba(168,85,247,0.16)]' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`;
       });
     }
 
@@ -1413,6 +1440,10 @@
       const playlistSongs = songs.filter(s => ids.includes(s.id));
       currentViewName = 'playlist';
       currentActivePlaylistId = null;
+      currentActivePublicPlaylistId = pl.id;
+      refreshPublicPlaylistActiveStyles();
+      renderSidebarPlaylists();
+      loadPublicPlaylists();
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
       ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'].forEach(v => document.getElementById(v)?.classList.add('hidden'));
       document.getElementById('playlistDetailView').classList.remove('hidden');
@@ -1768,6 +1799,10 @@
       }
       currentViewName = viewName;
       currentActivePlaylistId = null;
+      if (viewName !== 'playlist') {
+        currentActivePublicPlaylistId = null;
+        refreshPublicPlaylistActiveStyles();
+      }
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
       renderSidebarPlaylists();
 
@@ -1988,6 +2023,8 @@
       currentViewName = 'playlist';
       document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active-nav'));
       currentActivePlaylistId=playlistId;
+      currentActivePublicPlaylistId=null;
+      refreshPublicPlaylistActiveStyles();
       renderSidebarPlaylists();
       const views=['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'];
       views.forEach(v=>document.getElementById(v)?.classList.add('hidden'));
@@ -2499,6 +2536,15 @@ function togglePlay() {
       }
     }
 
+    // Close Playing Queue when clicking anywhere outside the popup or its toggle button.
+    document.addEventListener('click', (event) => {
+      const sidebar = document.getElementById('queueSidebar');
+      const toggle = document.getElementById('queueToggleBtn');
+      if (!sidebar || sidebar.classList.contains('hidden')) return;
+      if (sidebar.contains(event.target) || toggle?.contains(event.target)) return;
+      sidebar.classList.add('hidden');
+    });
+
     function renderQueueSidebarList() {
       const container = document.getElementById('queueListContainer');
       if (!container) return;
@@ -2525,6 +2571,11 @@ function togglePlay() {
     }
 
     function scrollToPlayingSong(force = false) {
+      const clickedBtn = document.getElementById('scrollToPlayingBtn');
+      clickedBtn?.classList.remove('scrolling');
+      void clickedBtn?.offsetWidth;
+      clickedBtn?.classList.add('scrolling');
+      setTimeout(() => clickedBtn?.classList.remove('scrolling'), 500);
       const active = currentQueue[currentSongIndex];
       if (!active) return false;
       const main = document.querySelector('main');
@@ -2537,6 +2588,11 @@ function togglePlay() {
     }
 
     function scrollMainToTop() {
+      const clickedBtn = document.getElementById('scrollToTopBtn');
+      clickedBtn?.classList.remove('scrolling');
+      void clickedBtn?.offsetWidth;
+      clickedBtn?.classList.add('scrolling');
+      setTimeout(() => clickedBtn?.classList.remove('scrolling'), 500);
       document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
