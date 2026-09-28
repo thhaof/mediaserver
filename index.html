@@ -393,7 +393,7 @@
           id="welcomeHeader"
           class="font-extrabold text-base sm:text-lg tracking-wider bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent break-words leading-tight"
         >
-          WELCOME BACK, GUEST
+          GREETING, GUEST
         </span>
       </div>
 
@@ -1407,7 +1407,7 @@
       // Only now enter the app.
       document.getElementById('authModal').classList.add('hidden');
       triggerLoginSuccessEffect();
-      document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
+      document.getElementById('welcomeHeader').innerText = `Greeting, ${username.toUpperCase()}!`;
       document.getElementById('loginError').classList.add('hidden');
       document.getElementById('passwordInput').value = '';
 
@@ -1440,7 +1440,7 @@
 
         const username = profile?.username || user.email?.split('@')[0] || 'howie';
         document.getElementById('authModal').classList.add('hidden');
-        document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
+        document.getElementById('welcomeHeader').innerText = `Greeting, ${username.toUpperCase()}!`;
         resetSidebarToggles();
         await loadSavedPlaylistsPermanent();
         switchView('home');
@@ -2034,7 +2034,7 @@
       const durationText = songDurations[song.id] ? formatTime(songDurations[song.id]) : "0:00";
 
       return `
-        <div data-song-id="${song.id}" onclick="playSongFromList(${song.id}, '${queueSource}')" class="song-item-card scroll-reveal flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
+        <div data-song-id="${song.id}" onclick="if ('${queueSource}' === 'queue') event.stopPropagation(); playSongFromList(${song.id}, '${queueSource}')" class="song-item-card scroll-reveal flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
           <div class="flex items-center gap-4 overflow-hidden">
             <!-- Avatar Cover with Overlay Play/Pause Button -->
             <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
@@ -2368,7 +2368,9 @@
     function playSongFromList(songId, source, fromThumbnail = false) {
       const currentSong = currentQueue[currentSongIndex];
 
-      if (fromThumbnail && currentSong && currentSong.id === songId && audio.src) {
+      // The Playing Queue follows the same Play/Pause behavior as the other song lists.
+      // Clicking the play/pause overlay on the current song resumes from the exact paused position.
+      if (currentSong && currentSong.id === songId && audio.src && (fromThumbnail || source === 'queue')) {
         togglePlay();
         return;
       }
@@ -2713,6 +2715,11 @@ function togglePlay() {
         });
       }
     }
+
+    // Interactions inside Playing Queue must never close it.
+    document.getElementById('queueSidebar')?.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
 
     // Close Playing Queue when clicking anywhere outside the popup or its toggle button.
     document.addEventListener('click', (event) => {
