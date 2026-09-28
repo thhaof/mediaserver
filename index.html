@@ -204,6 +204,28 @@
       100% { opacity: 1; transform: none; box-shadow: none; }
     }
 
+    .login-status {
+      display: block;
+      margin-top: 10px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      min-height: 16px;
+      transition: color 0.2s ease, opacity 0.2s ease;
+    }
+    .login-status.denied { color: #ef4444; }
+    .login-status.granted { color: #22c55e; }
+    .login-btn.denied { background: #dc2626 !important; box-shadow: 0 8px 22px rgba(220,38,38,.22) !important; }
+    .login-btn.granted { background: #16a34a !important; box-shadow: 0 8px 22px rgba(22,163,74,.22) !important; }
+    .login-btn.status-transition { animation: loginStatusReturn .35s cubic-bezier(.22,1,.36,1); }
+    @keyframes loginStatusReturn {
+      0% { transform: scale(1); filter: brightness(1); }
+      45% { transform: scale(.985); filter: brightness(1.08); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+    .login-btn { transition: background-color .2s ease, box-shadow .2s ease, transform .15s ease; }
+
     #authModal.hidden { animation: authExit 0.38s ease both; }
     @keyframes authExit {
       from { opacity: 1; }
@@ -264,11 +286,14 @@
         </div>
 
         <button
+          id="loginButton"
           type="submit"
-          class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg shadow-blue-600/20 active:scale-[0.98] uppercase"
+          class="login-btn w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg shadow-blue-600/20 active:scale-[0.98] uppercase"
         >
           LOGIN
         </button>
+
+        <p id="loginStatus" class="login-status" aria-live="polite"></p>
 
         <p
           id="loginError"
@@ -1324,12 +1349,41 @@
       updateFloatingNavControls();
     }
 
+    function setLoginStatus(type, message) {
+      const button = document.getElementById('loginButton');
+      if (!button) return;
+
+      button.classList.remove('denied', 'granted');
+      button.innerText = message || 'LOGIN';
+
+      if (type === 'denied') {
+        button.classList.add('denied');
+      } else if (type === 'granted') {
+        button.classList.add('granted');
+      }
+    }
+
+    function resetLoginStatus() {
+      const button = document.getElementById('loginButton');
+      if (!button) return;
+      button.classList.remove('status-transition');
+      void button.offsetWidth;
+      setLoginStatus('', 'LOGIN');
+      button.classList.add('status-transition');
+      setTimeout(() => button.classList.remove('status-transition'), 500);
+    }
+
     async function handleLogin(e) {
       e.preventDefault();
 
+      const loginButton = document.getElementById('loginButton');
       const username = document.getElementById('usernameInput').value.trim().toLowerCase();
       const password = document.getElementById('passwordInput').value;
       const email = usernameToEmail(username);
+
+      if (loginButton.dataset.processing === 'true') return;
+      loginButton.dataset.processing = 'true';
+      loginButton.disabled = true;
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
@@ -1338,9 +1392,21 @@
 
       if (error || !data.user) {
         console.error('Supabase login error:', error);
-        document.getElementById('loginError').classList.remove('hidden');
+        document.getElementById('loginError').classList.add('hidden');
+
+        setLoginStatus('denied', 'ACCESS DENIED!');
+
+        // Stay on the login screen for 0.5s, then restore the normal LOGIN button.
+        setTimeout(() => {
+          resetLoginStatus();
+          loginButton.disabled = false;
+          loginButton.dataset.processing = 'false';
+        }, 500);
         return;
       }
+
+      // Correct credentials: show ACCESS GRANTED in the button for 0.5 seconds.
+      setLoginStatus('granted', 'ACCESS GRANTED!');
 
       currentUser = data.user;
       resetPlaybackStateForLogin();
@@ -1354,6 +1420,9 @@
         console.error('Profile error:', profileError);
       }
 
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Only now enter the app.
       document.getElementById('authModal').classList.add('hidden');
       triggerLoginSuccessEffect();
       document.getElementById('welcomeHeader').innerText = `Welcome back, ${username.toUpperCase()}!`;
@@ -1363,6 +1432,10 @@
       resetSidebarToggles();
       await loadSavedPlaylistsPermanent();
       switchView('home');
+
+      loginButton.dataset.processing = 'false';
+      loginButton.disabled = false;
+      resetLoginStatus();
     }
 
     async function restoreSupabaseSession() {
@@ -1416,6 +1489,7 @@
       document.getElementById('usernameInput').value = '';
       document.getElementById('passwordInput').value = '';
       document.getElementById('loginError').classList.add('hidden');
+      resetLoginStatus();
     }
 
     /* =========================================================
