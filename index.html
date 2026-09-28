@@ -1396,12 +1396,12 @@
 
         setLoginStatus('denied', 'ACCESS DENIED!');
 
-        // Stay on the login screen for 0.5s, then restore the normal LOGIN button.
+        // Stay on the login screen for 1s, then restore the normal LOGIN button.
         setTimeout(() => {
           resetLoginStatus();
           loginButton.disabled = false;
           loginButton.dataset.processing = 'false';
-        }, 500);
+        }, 1000);
         return;
       }
 
