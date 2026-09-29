@@ -1543,6 +1543,8 @@
       currentSongIndex = -1;
       audio.removeAttribute('src');
       audio.load();
+      // Reset browser tab to the same default icon/title used when no song is playing.
+      updateBrowserTabMetadata(null, false);
       updatePlayIconsUI();
       updateFloatingNavControls();
       renderQueueSidebarList();
