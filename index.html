@@ -2199,7 +2199,7 @@
       artistValues.sort((a,b) => sort === 'za' ? b.name.localeCompare(a.name) : sort === 'songs' ? b.count - a.count || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
       container.innerHTML = artistValues.map(art => `
         <div onclick="openGroupDetail('artist', '${art.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-center text-center">
-          <div class="relative w-36 h-36 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-white/10">
+          <div class="relative w-44 h-44 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-white/10">
             <img src="${art.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="artist">
             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
               <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40">
@@ -2254,14 +2254,19 @@
               <h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2>
               <span class="text-[10px] text-gray-500 font-bold uppercase">${artistAlbums.length}</span>
             </div>
-            <div class="flex flex-col gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               ${artistAlbums.map(alb => `
-                <button type="button" onclick='openGroupDetail("album", ${JSON.stringify(alb.name)})' class="glass-card p-3 rounded-xl flex items-center gap-3 text-left group">
-                  <img src="${alb.cover}" class="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-lg" alt="album">
-                  <span class="min-w-0">
-                    <span class="block text-sm font-bold text-white truncate normal-case">${alb.name}</span>
-                    <span class="block text-[10px] text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS</span>
-                  </span>
+                <button type="button" onclick='openGroupDetail("album", ${JSON.stringify(alb.name)})' class="glass-card p-4 rounded-2xl text-left group">
+                  <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3 shadow-xl">
+                    <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                      <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40">
+                        <i class="fa-solid fa-play text-base ml-0.5"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
+                  <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS</span>
                 </button>
               `).join('')}
             </div>
@@ -2473,8 +2478,8 @@
       const defaultTitle = "Howie's Music Server";
       const defaultIcon = 'https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/icon%20browser%20tab.png';
 
-      // When nothing is playing, always restore the original browser tab.
-      if (!song || !playing) {
+      // No song in the player/queue: restore the default tab.
+      if (!song) {
         if (titleEl) titleEl.textContent = defaultTitle;
         if (favicon) {
           favicon.type = 'image/png';
@@ -2483,12 +2488,19 @@
         return;
       }
 
-      if (titleEl) titleEl.textContent = `Now Playing: ${song.title} - ${song.artist} (${song.album})`;
+      // Keep the current song in the tab even while paused.
+      if (titleEl) {
+        const state = playing ? 'Now Playing' : 'Pausing';
+        titleEl.textContent = `${state}: ${song.title} - ${song.artist} · ${song.album}`;
+      }
+
       if (favicon) {
-        // Use the exact cover image of the currently playing song as the tab icon.
-        // Let the browser infer the cover's actual image format (JPG/PNG/WebP/etc.).
-        favicon.removeAttribute('type');
-        favicon.href = song.cover || defaultIcon;
+        favicon.type = 'image/svg+xml';
+        // Use the song cover inside a slightly rounded SVG frame.
+        // This keeps the favicon visually rounded without changing the actual cover asset.
+        const safeCover = String(song.cover || defaultIcon).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><clipPath id="r"><rect x="3" y="3" width="94" height="94" rx="16" ry="16"/></clipPath></defs><image href="${safeCover}" x="3" y="3" width="94" height="94" preserveAspectRatio="xMidYMid slice" clip-path="url(#r)"/></svg>`;
+        favicon.href = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
       }
     }
 
