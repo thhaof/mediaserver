@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Howie's Media Server</title>
+  <link id="dynamicFavicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1016'/%3E%3Cpath d='M22 18v28a10 10 0 1 0 7-9.54V24h17v17a10 10 0 1 0 7-9.54V18H22z' fill='%233b82f6'/%3E%3C/svg%3E">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -133,7 +134,49 @@
 
     .scroll-nav-btn {
       will-change: transform, opacity;
+      transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease, color 0.2s ease;
     }
+
+    .scroll-nav-btn.is-hidden {
+      opacity: 0;
+      transform: translateY(10px) scale(0.88);
+      pointer-events: none;
+    }
+
+    .scroll-nav-btn.is-visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .playlist-theme-private {
+      background: linear-gradient(90deg, rgba(30,64,175,0.32), rgba(59,130,246,0.05)) !important;
+    }
+    .playlist-theme-public {
+      background: linear-gradient(90deg, rgba(88,28,135,0.36), rgba(168,85,247,0.06)) !important;
+    }
+    .playlist-accent-private { color: #60a5fa !important; }
+    .playlist-accent-public { color: #c084fc !important; }
+    .playlist-btn-private {
+      background: rgba(37,99,235,0.16) !important;
+      color: #93c5fd !important;
+      border: 1px solid rgba(59,130,246,0.22);
+    }
+    .playlist-btn-public {
+      background: rgba(147,51,234,0.16) !important;
+      color: #d8b4fe !important;
+      border: 1px solid rgba(168,85,247,0.22);
+    }
+
+    .artist-detail-grid {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.65fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .artist-detail-grid { grid-template-columns: 1fr; }
+    }
+
     .scroll-nav-btn:active {
       transform: translateY(2px) scale(0.94);
     }
@@ -414,8 +457,8 @@
           </button>
           <div id="libraryMenu" class="hidden pl-4 pr-1 flex flex-col gap-1">
             <a href="#" onclick="switchView('discover'); return false;" id="nav-discover" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-music w-4 text-center text-blue-400"></i>SONGS</a>
-            <a href="#" onclick="switchView('albums'); return false;" id="nav-albums" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-compact-disc w-4 text-center text-indigo-400"></i>ALBUMS</a>
-            <a href="#" onclick="switchView('artists'); return false;" id="nav-artists" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-microphone-lines w-4 text-center text-purple-400"></i>ARTISTS</a>
+            <a href="#" onclick="switchView('albums'); return false;" id="nav-albums" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-compact-disc w-4 text-center text-indigo-400"></i><span>ALBUMS <span id="navAlbumsCount" class="text-[10px] text-gray-500">(0)</span></span></a>
+            <a href="#" onclick="switchView('artists'); return false;" id="nav-artists" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-microphone-lines w-4 text-center text-purple-400"></i><span>ARTISTS <span id="navArtistsCount" class="text-[10px] text-gray-500">(0)</span></span></a>
           </div>
           <button type="button" onclick="toggleSettingsMenu()" id="nav-settings" class="nav-item w-full flex items-center justify-between gap-4 px-4 py-3 mt-1 text-sm text-gray-300 hover:text-white rounded-xl transition duration-200 uppercase text-left">
             <span class="flex items-center gap-4"><i class="fa-solid fa-gear text-lg w-5 text-center text-gray-400"></i>SETTINGS</span>
@@ -613,12 +656,12 @@
         <!-- PLAYLIST DETAIL VIEW -->
         <div id="playlistDetailView" class="hidden">
           <button id="playlistBackBtn" type="button" onclick="goBack()" class="hidden mb-4 flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white bg-gray-800/60 hover:bg-gray-800 px-4 py-2 rounded-xl transition cursor-pointer"><i class="fa-solid fa-arrow-left"></i> BACK</button>
-          <div class="flex flex-col sm:flex-row items-start sm:items-end gap-6 mb-8 bg-gradient-to-r from-purple-950/40 via-transparent to-transparent p-6 rounded-2xl border border-white/5">
+          <div id="playlistDetailHero" class="flex flex-col sm:flex-row items-start sm:items-end gap-6 mb-8 bg-gradient-to-r from-blue-950/40 via-transparent to-transparent p-6 rounded-2xl border border-white/5 playlist-theme-private">
             <div class="w-44 h-44 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl border border-white/10 flex-shrink-0">
               <i class="fa-solid fa-music text-6xl text-white/80"></i>
             </div>
             <div class="flex-1">
-              <p id="playlistDetailType" class="text-xs uppercase font-bold text-purple-400 tracking-wider mb-1">MY PLAYLIST</p>
+              <p id="playlistDetailType" class="text-xs uppercase font-bold playlist-accent-private tracking-wider mb-1">MY PLAYLIST</p>
               <h1 id="playlistDetailTitle" class="text-3xl sm:text-4xl font-extrabold mt-1 mb-3 text-white uppercase">MY PLAYLIST</h1>
               <p id="playlistDetailCount" class="text-xs text-gray-400 mb-5 font-medium uppercase">0 SONGS</p>
               <div class="flex items-center gap-3 flex-wrap">
@@ -825,10 +868,10 @@
 
   <!-- FLOATING NAVIGATION CONTROLS -->
   <div id="floatingNavControls" class="fixed right-5 bottom-28 z-50 flex flex-row gap-2 transition-all duration-300">
-    <button id="scrollToTopBtn" onclick="scrollMainToTop()" title="BACK TO TOP" class="scroll-nav-btn w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
+    <button id="scrollToTopBtn" onclick="scrollMainToTop()" title="BACK TO TOP" class="scroll-nav-btn is-hidden w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
       <i class="fa-solid fa-house"></i>
     </button>
-    <button id="scrollToPlayingBtn" onclick="scrollToPlayingSong(true)" title="GO TO PLAYING SONG" class="scroll-nav-btn w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
+    <button id="scrollToPlayingBtn" onclick="scrollToPlayingSong(true)" title="GO TO PLAYING SONG" class="scroll-nav-btn is-hidden w-11 h-11 rounded-full bg-[#181922]/85 backdrop-blur-xl border border-white/10 text-gray-300 hover:text-white hover:bg-blue-600/80 shadow-xl flex items-center justify-center transition active:scale-95">
       <i class="fa-solid fa-music"></i>
     </button>
   </div>
@@ -1217,7 +1260,8 @@
 
     let shuffleMode = false;
     let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
-    let lastVolumeBeforeMute = 0.5;
+    const VOLUME_STORAGE_KEY = 'howies-media-server-volume';
+    let lastVolumeBeforeMute = 1;
     let recommendedOffset = 0;
 
     const audio = document.getElementById('audioPlayer');
@@ -1326,6 +1370,7 @@
       isPlaying = false;
       document.getElementById('currentTitle').innerText = 'Unknown';
       document.getElementById('currentArtist').innerText = "HOWIE'S MEDIA SERVER";
+      updateBrowserTabMetadata(null, false);
       document.getElementById('currentTime').innerText = '0:00';
       document.getElementById('durationTime').innerText = '0:00';
       document.getElementById('progressBar').value = 0;
@@ -2087,6 +2132,19 @@
       container.innerHTML = songArray.map((s, idx) => generateSongRowHTML(s, idx, 'all')).join('');
     }
 
+    function updateLibraryCounts() {
+      const albumCount = new Set(songs.map(s => s.album)).size;
+      const artistCount = new Set(songs.map(s => s.artist)).size;
+      const albumNav = document.getElementById('navAlbumsCount');
+      const artistNav = document.getElementById('navArtistsCount');
+      if (albumNav) albumNav.textContent = `(${albumCount})`;
+      if (artistNav) artistNav.textContent = `(${artistCount})`;
+      const albumHeading = document.querySelector('#albumsView h2');
+      const artistHeading = document.querySelector('#artistsView h2');
+      if (albumHeading) albumHeading.textContent = `FEATURED ALBUMS (${albumCount})`;
+      if (artistHeading) artistHeading.textContent = `ARTISTS (${artistCount})`;
+    }
+
     function renderAlbumsView() {
       const container = document.getElementById('albumList');
       const albumsMap = {};
@@ -2173,7 +2231,44 @@
       const albumBtn = document.getElementById('groupAddToPlaylistBtn');
       albumBtn.classList.toggle('hidden', type !== 'album');
       if (type === 'album') albumBtn.onclick = () => openAddAlbumToPlaylistModal(key);
-      document.getElementById('groupSongsList').innerHTML = filteredSongs.map((s,idx)=>generateSongRowHTML(s,idx,'group')).join('');
+      const groupList = document.getElementById('groupSongsList');
+      if (type === 'artist') {
+        const artistAlbumsMap = {};
+        filteredSongs.forEach(s => {
+          if (!artistAlbumsMap[s.album]) artistAlbumsMap[s.album] = { name: s.album, cover: s.cover, count: 0, type: albumType(s.album) };
+          artistAlbumsMap[s.album].count++;
+        });
+        const artistAlbums = Object.values(artistAlbumsMap).sort((a,b) => a.name.localeCompare(b.name));
+        groupList.className = 'artist-detail-grid';
+        groupList.innerHTML = `
+          <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2>
+              <span class="text-[10px] text-gray-500 font-bold uppercase">${artistAlbums.length}</span>
+            </div>
+            <div class="flex flex-col gap-3">
+              ${artistAlbums.map(alb => `
+                <button type="button" onclick='openGroupDetail("album", ${JSON.stringify(alb.name)})' class="glass-card p-3 rounded-xl flex items-center gap-3 text-left group">
+                  <img src="${alb.cover}" class="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-lg" alt="album">
+                  <span class="min-w-0">
+                    <span class="block text-sm font-bold text-white truncate normal-case">${alb.name}</span>
+                    <span class="block text-[10px] text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS</span>
+                  </span>
+                </button>
+              `).join('')}
+            </div>
+          </section>
+          <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 min-w-0">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-extrabold text-white uppercase">ALL SONGS</h2>
+              <span class="text-[10px] text-gray-500 font-bold uppercase">${filteredSongs.length}</span>
+            </div>
+            <div class="flex flex-col gap-2">${filteredSongs.map((s,idx)=>generateSongRowHTML(s,idx,'group')).join('')}</div>
+          </section>`;
+      } else {
+        groupList.className = 'flex flex-col gap-2';
+        groupList.innerHTML = filteredSongs.map((s,idx)=>generateSongRowHTML(s,idx,'group')).join('');
+      }
       document.querySelector('main').scrollTop=0;
       updateFloatingNavControls();
     }
@@ -2196,7 +2291,13 @@
       const pl=playlists.find(p=>p.id===playlistId);
       if(!pl) return;
       document.getElementById('playlistDetailTitle').innerText=pl.name;
-      document.getElementById('playlistDetailType').innerText = pl.isPublic ? 'PUBLIC PLAYLIST' : 'MY PLAYLIST';
+      const playlistHero = document.getElementById('playlistDetailHero');
+      const playlistType = document.getElementById('playlistDetailType');
+      playlistHero?.classList.toggle('playlist-theme-public', !!pl.isPublic);
+      playlistHero?.classList.toggle('playlist-theme-private', !pl.isPublic);
+      playlistType?.classList.toggle('playlist-accent-public', !!pl.isPublic);
+      playlistType?.classList.toggle('playlist-accent-private', !pl.isPublic);
+      document.getElementById('playlistDetailType').innerText = pl.isPublic ? 'PUBLIC PLAYLIST' : 'PRIVATE PLAYLIST';
       const playlistSongs=songs.filter(s=>pl.songIds.includes(s.id));
       document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
       queueContexts.playlist = [...playlistSongs];
@@ -2212,7 +2313,10 @@
       const publicLabel = document.getElementById('publicPlaylistLabel');
       const publicIcon = document.getElementById('publicPlaylistIcon');
       publicLabel.innerText = pl.isPublic ? 'PUBLIC' : 'PRIVATE';
-      publicIcon.className = `fa-solid ${pl.isPublic ? 'fa-globe text-purple-400' : 'fa-lock text-gray-400'} text-xs`;
+      publicIcon.className = `fa-solid ${pl.isPublic ? 'fa-globe text-purple-400' : 'fa-lock text-blue-400'} text-xs`;
+      const visibilityBtn = document.getElementById('publicPlaylistBtn');
+      visibilityBtn?.classList.toggle('playlist-btn-public', !!pl.isPublic);
+      visibilityBtn?.classList.toggle('playlist-btn-private', !pl.isPublic);
       document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'playlist')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST YET</p>`;
       requestAnimationFrame(() => {
         const main = document.querySelector('main');
@@ -2349,6 +2453,23 @@
     /* =========================================================
        AUDIO PLAYBACK ENGINE & QUEUE
     ========================================================== */
+    function updateBrowserTabMetadata(song = null, playing = false) {
+      const titleEl = document.querySelector('title');
+      const favicon = document.getElementById('dynamicFavicon');
+      if (!song) {
+        if (titleEl) titleEl.textContent = "Howie's Media Server";
+        if (favicon) favicon.href = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0f1016"/><path d="M22 18v28a10 10 0 1 0 7-9.54V24h17v17a10 10 0 1 0 7-9.54V18H22z" fill="#3b82f6"/></svg>`)}`;
+        return;
+      }
+      if (titleEl) titleEl.textContent = `Now Playing: ${song.title} - ${song.artist} (${song.album})`;
+      const iconPath = playing
+        ? '<path d="M24 17l24 15-24 15z" fill="#3b82f6"/>'
+        : '<path d="M38 17v25.5a9.5 9.5 0 1 1-6-8.85V17h6zm-6 22.5a6.5 6.5 0 1 0-6.5 6.5A6.5 6.5 0 0 0 32 39.5z" fill="#3b82f6"/>';
+      if (favicon) {
+        favicon.href = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0f1016"/>${iconPath}</svg>`)}`;
+      }
+    }
+
     function loadSong(song, options = {}) {
       if (!song) return;
       const shouldAutoScroll = options.autoScroll !== false && !suppressSongAutoScroll;
@@ -2359,6 +2480,7 @@
       document.getElementById('currentCover').src = song.cover;
       document.getElementById('currentTitle').innerText = song.title;
       document.getElementById('currentArtist').innerText = `${song.artist} — ${song.album}`;
+      updateBrowserTabMetadata(song, false);
 
       updateHighlightItem();
       renderQueueSidebarList();
@@ -2601,6 +2723,7 @@ function togglePlay() {
       const nextVolume = Math.max(0, Math.min(1, Number(volumeBar.value) / 100));
       audio.volume = nextVolume;
       if (nextVolume > 0) lastVolumeBeforeMute = nextVolume;
+      try { localStorage.setItem(VOLUME_STORAGE_KEY, String(nextVolume)); } catch (e) { console.warn('Could not save volume:', e); }
       updateRangeBackground(volumeBar, nextVolume * 100);
 
       const icon = document.getElementById('volumeIcon');
@@ -2620,7 +2743,7 @@ function togglePlay() {
         audio.volume = 0;
         volumeBar.value = 0;
       } else {
-        const restored = lastVolumeBeforeMute > 0 ? lastVolumeBeforeMute : 0.5;
+        const restored = lastVolumeBeforeMute > 0 ? lastVolumeBeforeMute : 1;
         audio.volume = restored;
         volumeBar.value = Math.round(restored * 100);
       }
@@ -2629,6 +2752,7 @@ function togglePlay() {
 
     audio.onplay = () => {
       isPlaying = true;
+      updateBrowserTabMetadata(currentQueue[currentSongIndex] || null, true);
       updatePlayIconsUI();
       updateFloatingNavControls();
       updateQueueGoToPlayingButton();
@@ -2636,6 +2760,7 @@ function togglePlay() {
 
     audio.onpause = () => {
       isPlaying = false;
+      updateBrowserTabMetadata(currentQueue[currentSongIndex] || null, false);
       updatePlayIconsUI();
       updateFloatingNavControls();
       updateQueueGoToPlayingButton();
@@ -2853,12 +2978,12 @@ function togglePlay() {
       if (!main || !controls || !topBtn || !playingBtn) return;
 
       const hasPlayingSong = isPlayingSongVisibleInCurrentView();
-      playingBtn.classList.toggle('hidden', !hasPlayingSong);
-      playingBtn.classList.toggle('pointer-events-none', !hasPlayingSong);
+      playingBtn.classList.toggle('is-hidden', !hasPlayingSong);
+      playingBtn.classList.toggle('is-visible', hasPlayingSong);
 
       const topVisible = main.scrollTop > 180;
-      topBtn.classList.toggle('hidden', !topVisible);
-      topBtn.classList.toggle('pointer-events-none', !topVisible);
+      topBtn.classList.toggle('is-hidden', !topVisible);
+      topBtn.classList.toggle('is-visible', topVisible);
 
       const anyVisible = topVisible || hasPlayingSong;
       controls.classList.toggle('opacity-100', anyVisible);
@@ -2880,13 +3005,20 @@ function togglePlay() {
     ========================================================== */
     window.addEventListener('DOMContentLoaded', async () => {
       preloadDurations();
+      updateLibraryCounts();
+      updateBrowserTabMetadata(null, false);
       resetSidebarToggles();
       updateFloatingNavControls();
       observeScrollReveals();
-      // Initialize range bars styling
-      document.getElementById('volumeBar').value = 50;
-      audio.volume = 0.5;
-      lastVolumeBeforeMute = 0.5;
+      // Restore the volume saved on this device/browser. First visit defaults to 100%.
+      let savedVolume = null;
+      try { savedVolume = localStorage.getItem(VOLUME_STORAGE_KEY); } catch (e) {}
+      const initialVolume = savedVolume !== null && Number.isFinite(Number(savedVolume))
+        ? Math.max(0, Math.min(1, Number(savedVolume)))
+        : 1;
+      document.getElementById('volumeBar').value = Math.round(initialVolume * 100);
+      audio.volume = initialVolume;
+      lastVolumeBeforeMute = initialVolume > 0 ? initialVolume : 1;
       setVolume();
       updateRangeBackground(document.getElementById('progressBar'), 0);
       renderQueueSidebarList();
