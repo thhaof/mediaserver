@@ -625,7 +625,8 @@
                 <i class="fa-solid fa-play"></i> PLAY ALL
               </button>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 flex-wrap justify-end">
+              <select data-sort-kind="songs" onclick="handleSortSelectClick('songs', this)" onfocus="rememberSortSelectValue(this)" onchange="handleSortSelectChange('songs', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
               <span id="totalSongsDuration" class="text-xs text-gray-400 font-medium uppercase">TOTAL DURATION: 0:00</span>
               <span id="totalSongsCount" class="text-xs text-gray-400 font-medium uppercase">0 SONGS</span>
             </div>
@@ -642,9 +643,7 @@
         <div id="albumsView" class="hidden">
           <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
             <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">FEATURED ALBUMS</h2>
-            <select id="albumSort" onchange="renderAlbumsView()" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500">
-              <option value="az">A-Z</option><option value="za">Z-A</option><option value="artist">BY ARTIST</option><option value="type">BY TYPE</option>
-            </select>
+            <select data-sort-kind="albums" onclick="handleSortSelectClick('albums', this)" onfocus="rememberSortSelectValue(this)" onchange="handleSortSelectChange('albums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
           </div>
           <div id="albumList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
@@ -653,9 +652,7 @@
         <div id="artistsView" class="hidden">
           <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
             <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ARTISTS</h2>
-            <select id="artistSort" onchange="renderArtistsView()" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500">
-              <option value="az">A-Z</option><option value="za">Z-A</option><option value="songs">BY SONG COUNT</option>
-            </select>
+            <select data-sort-kind="artists" onclick="handleSortSelectClick('artists', this)" onfocus="rememberSortSelectValue(this)" onchange="handleSortSelectChange('artists', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="songs">SONG COUNT</option></select>
           </div>
           <div id="artistList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
@@ -720,6 +717,9 @@
             </div>
           </div>
           <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
+            <div class="flex items-center justify-end mb-4">
+              <select data-sort-kind="playlist" onclick="handleSortSelectClick('playlist', this)" onfocus="rememberSortSelectValue(this)" onchange="handleSortSelectChange('playlist', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="playlist">PLAYLIST ORDER</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
+            </div>
             <div id="playlistSongsList" class="flex flex-col gap-2"></div>
           </div>
         </div>
@@ -1653,7 +1653,8 @@
       const parent = viewFromVisibleDOM();
       if (parent !== 'playlist' && parent !== 'group') { rememberCurrentScroll(); viewHistory.push(parent); }
       const ids = (pl.playlist_songs || []).map(x => Number(x.song_id));
-      const playlistSongs = songs.filter(s => ids.includes(s.id));
+      const byId = new Map(songs.map(s => [Number(s.id), s]));
+      const playlistSongs = ids.map(id => byId.get(id)).filter(Boolean);
       currentViewName = 'playlist';
       currentActivePlaylistId = null;
       currentActivePublicPlaylistId = pl.id;
@@ -1672,11 +1673,16 @@
       publicType?.classList.add('playlist-accent-public');
       document.getElementById('playlistDetailType').innerText = 'PUBLIC PLAYLIST';
       document.getElementById('playlistDetailCount').innerText = `${playlistSongs.length} SONGS`;
-      document.getElementById('playAllBtn').onclick = () => playAllQueue(playlistSongs);
+      const sortedPublicSongs = sortPlaylistSongs(playlistSongs, sortStates.publicPlaylist);
+      queueContexts.shared = [...sortedPublicSongs];
+      document.getElementById('playAllBtn').onclick = () => playAllQueue([...sortedPublicSongs]);
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
       document.getElementById('renamePlaylistBtn').classList.add('hidden');
       document.getElementById('publicPlaylistBtn').classList.add('hidden');
-      document.getElementById('playlistSongsList').innerHTML = playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
+      document.getElementById('playlistSongsList').innerHTML = sortedPublicSongs.length ? sortedPublicSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
+      const playlistSort = document.querySelector('[data-sort-kind="playlist"]');
+      if (playlistSort) { playlistSort.dataset.sortKind = 'publicPlaylist'; playlistSort.setAttribute('data-sort-kind','publicPlaylist'); }
+      updateSortSelect('publicPlaylist');
       requestAnimationFrame(() => {
         const main = document.querySelector('main');
         if (main) main.scrollTo({ top: 0, behavior: 'auto' });
@@ -2172,13 +2178,211 @@
       `;
     }
 
+    /* =========================================================
+       SORTING
+    ========================================================== */
+    const sortStates = {
+      songs: { field: '', direction: 'asc' },
+      albums: { field: '', direction: 'asc' },
+      artists: { field: '', direction: 'desc' },
+      playlist: { field: '', direction: 'asc' },
+      publicPlaylist: { field: '', direction: 'asc' }
+    };
+
+    // Release dates are stored per release/album. If a song has a direct
+    // releaseDate property, that value takes priority.
+    const releaseDateByAlbum = {
+      '99% (prod. LOPEPHAM)': '02/03/2023',
+      'ái': '16/08/2023',
+      'ARIRANG': '19/03/2026',
+      'bittersweet': '20/11/2025',
+      'để dành cho em (prod. DONAL)': '26/02/2026',
+      'Get Up': '21/07/2023',
+      'GREENGREEN_playextended': '24/08/2026',
+      'HVL': '17/06/2026',
+      'Lặng': '27/06/2024',
+      'Lemon Tang': '22/06/2026',
+      'Loi Choi: The Neo Pop Punk (prod. itsnk)': '17/12/2023',
+      'Lợi Khuẩn (prod. Tuann)': '13/11/2025',
+      'MUSIC - SORRY 4 DA WAIT': '25/03/2025',
+      'Nổ (prod. itsnk)': '05/01/2026',
+      'PILLZCASSO': '08/07/2025',
+      'Tam Thái Tử': '05/09/2026',
+      'The Real Me': '10/07/2026',
+      'The Romantic': '27/02/2026',
+      'TINH HÀ SAY HI: TẬP 6 (TRẠM ĐẾN EM)': '08/08/2026',
+      'trái tim băng bó (prod. DONAL)': '17/06/2026',
+      'Voicenotes': '11/05/2018',
+      'xperiment - cartunez': '03/07/2026'
+    };
+
+    function getReleaseDate(song) {
+      return song?.releaseDate || releaseDateByAlbum[song?.album] || '';
+    }
+
+    function releaseDateValue(song) {
+      const value = getReleaseDate(song);
+      const m = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      return m ? Number(`${m[3]}${m[2]}${m[1]}`) : 0;
+    }
+
+    function compareText(a, b) {
+      return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base', numeric: true });
+    }
+
+    function applyDirection(result, direction) {
+      return direction === 'desc' ? -result : result;
+    }
+
+    function sortSongsArray(items, state) {
+      const copy = [...items];
+      if (!state?.field) return copy;
+      copy.sort((a, b) => {
+        let result = 0;
+        if (state.field === 'playlist') return 0;
+        if (state.field === 'title') result = compareText(a.title, b.title);
+        else if (state.field === 'artist') result = compareText(a.artist, b.artist);
+        else if (state.field === 'album') result = compareText(a.album, b.album);
+        else if (state.field === 'release') result = releaseDateValue(a) - releaseDateValue(b);
+        return applyDirection(result, state.direction);
+      });
+      return copy;
+    }
+
+    function sortPlaylistSongs(items, state) {
+      const copy = [...items];
+      if (!state?.field || state.field === 'playlist') {
+        return state?.direction === 'desc' ? copy.reverse() : copy;
+      }
+      copy.sort((a, b) => {
+        let result = 0;
+        if (state.field === 'title') result = compareText(a.title, b.title);
+        else if (state.field === 'artist') result = compareText(a.artist, b.artist);
+        else if (state.field === 'album') result = compareText(a.album, b.album);
+        else if (state.field === 'release') result = releaseDateValue(a) - releaseDateValue(b);
+        return applyDirection(result, state.direction);
+      });
+      return copy;
+    }
+
+    function cycleSort(kind, field) {
+      const state = sortStates[kind];
+      if (!state) return;
+      if (state.field !== field) {
+        state.field = field;
+        state.direction = field === 'release' ? 'desc' : field === 'playlist' ? 'asc' : 'asc';
+      } else {
+        state.direction = state.direction === 'asc' ? 'desc' : 'asc';
+      }
+      updateSortSelect(kind);
+      if (kind === 'songs') renderAllSongsList(songs);
+      else if (kind === 'albums') renderAlbumsView();
+      else if (kind === 'artists') renderArtistsView();
+      else if (kind === 'playlist' || kind === 'publicPlaylist') renderActivePlaylistSongs();
+    }
+
+    function handleSortSelectChange(kind, select) {
+      kind = select.dataset.sortKind || kind;
+      const field = select.value;
+      if (!field) {
+        sortStates[kind].field = '';
+        sortStates[kind].direction = 'asc';
+        updateSortSelect(kind);
+        if (kind === 'songs') renderAllSongsList(songs);
+        else if (kind === 'albums') renderAlbumsView();
+        else if (kind === 'artists') renderArtistsView();
+        else renderActivePlaylistSongs();
+        return;
+      }
+      cycleSort(kind, field);
+    }
+
+    function handleSortSelectClick(kind, select) {
+      kind = select.dataset.sortKind || kind;
+      const before = select.dataset.sortBefore;
+      if (before && before === select.value && select.value) {
+        cycleSort(kind, select.value);
+      }
+      select.dataset.sortBefore = select.value;
+    }
+
+    function rememberSortSelectValue(select) {
+      select.dataset.sortBefore = select.value;
+    }
+
+    function sortLabel(field, direction) {
+      if (!field) return 'SORT BY';
+      if (field === 'playlist') return `PLAYLIST ORDER (${direction === 'asc' ? 'ORIGINAL' : 'REVERSED'})`;
+      if (field === 'title') return `TITLE (${direction === 'asc' ? 'A-Z' : 'Z-A'})`;
+      if (field === 'artist') return `ARTIST (${direction === 'asc' ? 'A-Z' : 'Z-A'})`;
+      if (field === 'album') return `ALBUM (${direction === 'asc' ? 'A-Z' : 'Z-A'})`;
+      if (field === 'release') return `RELEASE DATE (${direction === 'desc' ? 'NEWEST' : 'OLDEST'})`;
+      if (field === 'songs') return `SONG COUNT (${direction === 'desc' ? 'MOST' : 'LEAST'})`;
+      return 'SORT BY';
+    }
+
+    function updateSortSelect(kind) {
+      const select = document.querySelector(`[data-sort-kind="${kind}"]`);
+      if (!select) return;
+      const state = sortStates[kind];
+      const baseLabels = {
+        '': 'SORT BY',
+        playlist: 'PLAYLIST ORDER',
+        title: 'TITLE',
+        artist: 'ARTIST',
+        album: 'ALBUM',
+        release: 'RELEASE DATE',
+        songs: 'SONG COUNT'
+      };
+      select.querySelectorAll('option').forEach(option => {
+        option.textContent = baseLabels[option.value] ?? option.textContent;
+      });
+      select.value = state.field || '';
+      const option = select.querySelector(`option[value="${state.field || ''}"]`);
+      if (option && state.field) option.textContent = sortLabel(state.field, state.direction);
+      select.dataset.sortBefore = select.value;
+    }
+
+    function getPlaylistSongsInOrder(pl) {
+      if (!pl) return [];
+      const byId = new Map(songs.map(s => [Number(s.id), s]));
+      return (pl.songIds || []).map(id => byId.get(Number(id))).filter(Boolean);
+    }
+
+    function renderActivePlaylistSongs() {
+      const container = document.getElementById('playlistSongsList');
+      if (!container) return;
+      const isPublic = currentActivePlaylistId == null && currentActivePublicPlaylistId != null;
+      let playlistSongs = [];
+      let kind = isPublic ? 'publicPlaylist' : 'playlist';
+
+      if (isPublic) {
+        const publicButtons = document.querySelectorAll('#publicSidebarPlaylists button[data-public-playlist-id]');
+        const activeButton = [...publicButtons].find(btn => String(btn.dataset.publicPlaylistId) === String(currentActivePublicPlaylistId));
+        // Public playlist data is cached on the current detail through its ordered queue context.
+        playlistSongs = [...(queueContexts.shared || [])];
+      } else {
+        const pl = playlists.find(p => p.id === currentActivePlaylistId);
+        playlistSongs = getPlaylistSongsInOrder(pl);
+      }
+
+      playlistSongs = sortPlaylistSongs(playlistSongs, sortStates[kind]);
+      if (isPublic) queueContexts.shared = [...playlistSongs]; else queueContexts.playlist = [...playlistSongs];
+      container.innerHTML = playlistSongs.length
+        ? playlistSongs.map((s, idx) => generateSongRowHTML(s, idx, isPublic ? 'shared' : 'playlist')).join('')
+        : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
+      updateSortSelect(kind);
+    }
+
     function renderAllSongsList(songArray) {
       const container = document.getElementById('songList');
-      document.getElementById('totalSongsCount').innerText = `${songArray.length} SONGS`;
-      const total = songArray.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0);
+      const sortedSongs = sortSongsArray(songArray, sortStates.songs);
+      document.getElementById('totalSongsCount').innerText = `${sortedSongs.length} SONGS`;
+      const total = sortedSongs.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0);
       document.getElementById('totalSongsDuration').innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
-      queueContexts.all = [...songArray];
-      container.innerHTML = songArray.map((s, idx) => generateSongRowHTML(s, idx, 'all')).join('');
+      queueContexts.all = [...sortedSongs];
+      container.innerHTML = sortedSongs.map((s, idx) => generateSongRowHTML(s, idx, 'all')).join('');
+      updateSortSelect('songs');
     }
 
     function updateLibraryCounts() {
@@ -2207,9 +2411,17 @@
         albumsMap[s.album].count++;
       });
 
-      let albumValues = Object.values(albumsMap).map(a => ({ ...a, type: albumType(a.name) }));
-      const sort = document.getElementById('albumSort')?.value || 'az';
-      albumValues.sort((a,b) => sort === 'za' ? b.name.localeCompare(a.name) : sort === 'artist' ? a.artist.localeCompare(b.artist) || a.name.localeCompare(b.name) : sort === 'type' ? a.type.localeCompare(b.type) || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
+      let albumValues = Object.values(albumsMap).map(a => ({ ...a, type: albumType(a.name), releaseDate: getReleaseDate(a) }));
+      const state = sortStates.albums;
+      if (state.field) {
+        albumValues.sort((a,b) => {
+          let result = 0;
+          if (state.field === 'title') result = compareText(a.name, b.name);
+          else if (state.field === 'artist') result = compareText(a.artist, b.artist) || compareText(a.name, b.name);
+          else if (state.field === 'release') result = releaseDateValue(a) - releaseDateValue(b);
+          return applyDirection(result, state.direction);
+        });
+      }
       container.innerHTML = albumValues.map(alb => `
         <div onclick="openGroupDetail('album', '${alb.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-start">
           <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-4 shadow-xl">
@@ -2224,6 +2436,7 @@
           <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.type} • ${alb.artist} • ${alb.count} SONGS</p>
         </div>
       `).join('');
+      updateSortSelect('albums');
     }
 
     function renderArtistsView() {
@@ -2238,8 +2451,13 @@
       });
 
       let artistValues = Object.values(artistsMap);
-      const sort = document.getElementById('artistSort')?.value || 'az';
-      artistValues.sort((a,b) => sort === 'za' ? b.name.localeCompare(a.name) : sort === 'songs' ? b.count - a.count || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
+      const state = sortStates.artists;
+      if (state.field) {
+        artistValues.sort((a,b) => {
+          let result = state.field === 'songs' ? a.count - b.count : compareText(a.name, b.name);
+          return applyDirection(result, state.direction);
+        });
+      }
       container.innerHTML = artistValues.map(art => `
         <div onclick="openGroupDetail('artist', '${art.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-center text-center">
           <div class="relative w-44 h-44 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-white/10">
@@ -2254,6 +2472,7 @@
           <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${art.count} TRACKS</p>
         </div>
       `).join('');
+      updateSortSelect('artists');
     }
 
     function openGroupDetail(type, key) {
@@ -2354,10 +2573,11 @@
       playlistType?.classList.toggle('playlist-accent-public', !!pl.isPublic);
       playlistType?.classList.toggle('playlist-accent-private', !pl.isPublic);
       document.getElementById('playlistDetailType').innerText = pl.isPublic ? 'PUBLIC PLAYLIST' : 'PRIVATE PLAYLIST';
-      const playlistSongs=songs.filter(s=>pl.songIds.includes(s.id));
+      const playlistSongs=getPlaylistSongsInOrder(pl);
       document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
-      queueContexts.playlist = [...playlistSongs];
-      document.getElementById('playAllBtn').onclick=()=>playAllQueue([...playlistSongs]);
+      const sortedPlaylistSongs = sortPlaylistSongs(playlistSongs, sortStates.playlist);
+      queueContexts.playlist = [...sortedPlaylistSongs];
+      document.getElementById('playAllBtn').onclick=()=>playAllQueue([...sortedPlaylistSongs]);
       // This is the user's own playlist: always restore owner-only controls
       // after visiting a public playlist.
       document.getElementById('deletePlaylistBtn').classList.remove('hidden');
@@ -2373,7 +2593,10 @@
       const visibilityBtn = document.getElementById('publicPlaylistBtn');
       visibilityBtn?.classList.toggle('playlist-btn-public', !!pl.isPublic);
       visibilityBtn?.classList.toggle('playlist-btn-private', !pl.isPublic);
-      document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'playlist')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST YET</p>`;
+      document.getElementById('playlistSongsList').innerHTML=sortedPlaylistSongs.length ? sortedPlaylistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'playlist')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST YET</p>`;
+      const playlistSort = document.querySelector('[data-sort-kind="publicPlaylist"]');
+      if (playlistSort) { playlistSort.setAttribute('data-sort-kind','playlist'); }
+      updateSortSelect('playlist');
       requestAnimationFrame(() => {
         const main = document.querySelector('main');
         if (main) main.scrollTo({ top: 0, behavior: 'auto' });
