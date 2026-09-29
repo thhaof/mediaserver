@@ -561,7 +561,7 @@
         <!-- HOME VIEW -->
         <div id="homeView">
           <div class="mb-8">
-            <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">HOWIE'S MUSIC SERVER</p>
+            <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">HOWIE'S MEDIA SERVER</p>
             <h1 class="text-3xl sm:text-4xl font-extrabold text-white">WELCOME BACK!</h1>
             <p class="text-sm text-gray-400 mt-2">Discover your latest songs, albums and artists.</p>
           </div>
@@ -626,7 +626,7 @@
               </button>
             </div>
             <div class="flex items-center gap-3 flex-wrap justify-end">
-              <select data-sort-kind="songs" onclick="handleSortSelectClick('songs', this)" onfocus="rememberSortSelectValue(this)" onchange="handleSortSelectChange('songs', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
+              <select data-sort-kind="songs" onchange="handleSortSelectChange('songs', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
               <span id="totalSongsDuration" class="text-xs text-gray-400 font-medium uppercase">TOTAL DURATION: 0:00</span>
               <span id="totalSongsCount" class="text-xs text-gray-400 font-medium uppercase">0 SONGS</span>
             </div>
@@ -643,7 +643,7 @@
         <div id="albumsView" class="hidden">
           <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
             <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">FEATURED ALBUMS</h2>
-            <select data-sort-kind="albums" onclick="handleSortSelectClick('albums', this)" onfocus="rememberSortSelectValue(this)" onchange="handleSortSelectChange('albums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
+            <select data-sort-kind="albums" onchange="handleSortSelectChange('albums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
           </div>
           <div id="albumList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
@@ -652,7 +652,7 @@
         <div id="artistsView" class="hidden">
           <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
             <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">ARTISTS</h2>
-            <select data-sort-kind="artists" onclick="handleSortSelectClick('artists', this)" onfocus="rememberSortSelectValue(this)" onchange="handleSortSelectChange('artists', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="songs">SONG COUNT</option></select>
+            <select data-sort-kind="artists" onchange="handleSortSelectChange('artists', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="songs">SONG COUNT</option></select>
           </div>
           <div id="artistList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
@@ -718,7 +718,7 @@
           </div>
           <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
             <div class="flex items-center justify-end mb-4">
-              <select data-sort-kind="playlist" onclick="handleSortSelectClick('playlist', this)" onfocus="rememberSortSelectValue(this)" onchange="handleSortSelectChange('playlist', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="playlist">PLAYLIST ORDER</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
+              <select data-sort-kind="playlist" onchange="handleSortSelectChange('playlist', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="playlist">PLAYLIST ORDER</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
             </div>
             <div id="playlistSongsList" class="flex flex-col gap-2"></div>
           </div>
@@ -761,10 +761,10 @@
   >
     <!-- Song Info -->
     <div class="flex items-center gap-4 w-1/4">
-      <div class="relative group flex-shrink-0">
+      <div id="currentCoverWrap" class="relative group flex-shrink-0 hidden">
         <img
           id="currentCover"
-          src="https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/icon%20browser%20tab.png"
+          src="https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/cover.jpg"
           class="w-14 h-14 rounded-xl object-cover shadow-lg border border-white/10"
           alt="Album cover"
         >
@@ -787,7 +787,7 @@
           id="currentArtist"
           class="text-xs text-gray-400 truncate font-medium normal-case"
         >
-          HOWIE'S MUSIC SERVER
+          HOWIE'S MEDIA SERVER
         </p>
       </div>
 
@@ -1299,7 +1299,7 @@
 
     let shuffleMode = false;
     let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
-    const VOLUME_STORAGE_KEY = 'howies-music-server-volume';
+    const VOLUME_STORAGE_KEY = 'howies-media-server-volume';
     let lastVolumeBeforeMute = 1;
     let recommendedOffset = 0;
 
@@ -1408,7 +1408,8 @@
       currentSongIndex = -1;
       isPlaying = false;
       document.getElementById('currentTitle').innerText = 'Unknown';
-      document.getElementById('currentArtist').innerText = "HOWIE'S MUSIC SERVER";
+      document.getElementById('currentCoverWrap')?.classList.add('hidden');
+      document.getElementById('currentArtist').innerText = "HOWIE'S MEDIA SERVER";
       updateBrowserTabMetadata(null, false);
       document.getElementById('currentTime').innerText = '0:00';
       document.getElementById('durationTime').innerText = '0:00';
@@ -2217,7 +2218,7 @@
     };
 
     function getReleaseDate(song) {
-      return song?.releaseDate || releaseDateByAlbum[song?.album] || '';
+      return song?.releaseDate || releaseDateByAlbum[song?.album || song?.name] || '';
     }
 
     function releaseDateValue(song) {
@@ -2243,7 +2244,7 @@
         if (state.field === 'title') result = compareText(a.title, b.title);
         else if (state.field === 'artist') result = compareText(a.artist, b.artist);
         else if (state.field === 'album') result = compareText(a.album, b.album);
-        else if (state.field === 'release') result = releaseDateValue(a) - releaseDateValue(b);
+        else if (state.field === 'release') result = (a.releaseDate ? releaseDateValue(a) : releaseDateValue({ name: a.name })) - (b.releaseDate ? releaseDateValue(b) : releaseDateValue({ name: b.name }));
         return applyDirection(result, state.direction);
       });
       return copy;
@@ -2284,30 +2285,8 @@
     function handleSortSelectChange(kind, select) {
       kind = select.dataset.sortKind || kind;
       const field = select.value;
-      if (!field) {
-        sortStates[kind].field = '';
-        sortStates[kind].direction = 'asc';
-        updateSortSelect(kind);
-        if (kind === 'songs') renderAllSongsList(songs);
-        else if (kind === 'albums') renderAlbumsView();
-        else if (kind === 'artists') renderArtistsView();
-        else renderActivePlaylistSongs();
-        return;
-      }
+      if (!field) return;
       cycleSort(kind, field);
-    }
-
-    function handleSortSelectClick(kind, select) {
-      kind = select.dataset.sortKind || kind;
-      const before = select.dataset.sortBefore;
-      if (before && before === select.value && select.value) {
-        cycleSort(kind, select.value);
-      }
-      select.dataset.sortBefore = select.value;
-    }
-
-    function rememberSortSelectValue(select) {
-      select.dataset.sortBefore = select.value;
     }
 
     function sortLabel(field, direction) {
@@ -2334,13 +2313,19 @@
         release: 'RELEASE DATE',
         songs: 'SONG COUNT'
       };
+
+      // Keep the native select as a menu only. The current sort is shown by
+      // the first option, while the actual choice is reset to the placeholder
+      // after every selection so the same criterion can be selected again.
+      const placeholder = select.querySelector('option[value=""]');
+      if (placeholder) placeholder.textContent = state.field
+        ? sortLabel(state.field, state.direction)
+        : 'SORT BY';
       select.querySelectorAll('option').forEach(option => {
-        option.textContent = baseLabels[option.value] ?? option.textContent;
+        if (option.value) option.textContent = baseLabels[option.value] ?? option.textContent;
       });
-      select.value = state.field || '';
-      const option = select.querySelector(`option[value="${state.field || ''}"]`);
-      if (option && state.field) option.textContent = sortLabel(state.field, state.direction);
-      select.dataset.sortBefore = select.value;
+      select.value = '';
+      select.dataset.sortBefore = '';
     }
 
     function getPlaylistSongsInOrder(pl) {
@@ -2775,6 +2760,7 @@
       audio.preload = 'auto';
       audio.load();
       document.getElementById('currentCover').src = song.cover;
+      document.getElementById('currentCoverWrap')?.classList.remove('hidden');
       document.getElementById('currentTitle').innerText = song.title;
       document.getElementById('currentArtist').innerText = `${song.artist} — ${song.album}`;
       updateBrowserTabMetadata(song, false);
