@@ -167,9 +167,29 @@
       border: 1px solid rgba(168,85,247,0.22);
     }
 
+    /* Playlist sidebar: neutral by default, glow only while hovering. */
+    .sidebar-playlist-btn {
+      background: transparent !important;
+      color: #9ca3af !important;
+      border: 1px solid transparent !important;
+      box-shadow: none !important;
+    }
+    .sidebar-playlist-btn:hover {
+      background: rgba(37,99,235,0.16) !important;
+      color: #93c5fd !important;
+      border-color: rgba(59,130,246,0.22) !important;
+      box-shadow: 0 0 18px rgba(59,130,246,0.12) !important;
+    }
+    .sidebar-playlist-btn.public:hover {
+      background: rgba(147,51,234,0.16) !important;
+      color: #d8b4fe !important;
+      border-color: rgba(168,85,247,0.22) !important;
+      box-shadow: 0 0 18px rgba(168,85,247,0.14) !important;
+    }
+
     .artist-detail-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
       gap: 1.5rem;
       align-items: start;
     }
@@ -187,7 +207,8 @@
       animation: scrollButtonPulse 0.45s ease;
     }
 
-    #floatingNavControls.playing-only #scrollToTopBtn {
+    /* Hidden floating buttons must not reserve flex space. */
+    #floatingNavControls .scroll-nav-btn.is-hidden {
       width: 0 !important;
       min-width: 0 !important;
       padding-left: 0 !important;
@@ -196,6 +217,10 @@
       margin-right: 0 !important;
       border-width: 0 !important;
       overflow: hidden;
+    }
+
+    #floatingNavControls.playing-only {
+      gap: 0 !important;
     }
     @keyframes scrollButtonPulse {
       0% { transform: scale(1); }
@@ -1708,14 +1733,8 @@
         const btn = document.createElement('button');
         btn.onclick = () => openPlaylistDetail(pl.id);
         const isActive = currentActivePlaylistId === pl.id;
-        const playlistTone = pl.isPublic
-          ? (isActive
-              ? 'bg-purple-600/25 text-purple-200 border border-purple-500/40 shadow-[0_0_18px_rgba(168,85,247,0.16)]'
-              : 'bg-purple-600/10 text-purple-300 border border-purple-500/20 hover:bg-purple-500/15 hover:text-purple-200')
-          : (isActive
-              ? 'bg-blue-600/20 text-blue-300 border border-blue-500/30'
-              : 'text-gray-400 hover:text-white hover:bg-gray-800/50');
-        btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${playlistTone}`;
+        const playlistTone = pl.isPublic ? 'public' : 'private';
+        btn.className = `sidebar-playlist-btn ${playlistTone} w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition`;
         btn.innerHTML = `
           <span class="truncate uppercase"><i class="fa-solid ${pl.isPublic ? 'fa-globe text-purple-400' : 'fa-list-ul text-blue-400'} mr-2.5 text-xs"></i>${pl.name}</span>
           <span class="text-[10px] ${pl.isPublic ? 'bg-purple-500/10 text-purple-300' : 'bg-gray-800 text-gray-400'} px-2 py-0.5 rounded-full font-bold">${pl.songIds.length}</span>
