@@ -169,12 +169,15 @@
 
     .artist-detail-grid {
       display: grid;
-      grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.65fr);
-      gap: 1.25rem;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: 1.5rem;
       align-items: start;
     }
-    @media (max-width: 900px) {
+    @media (max-width: 1100px) {
       .artist-detail-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .artist-detail-grid > section:first-child .artist-albums-grid { grid-template-columns: 1fr; }
     }
 
     .scroll-nav-btn:active {
@@ -182,6 +185,17 @@
     }
     .scroll-nav-btn.scrolling {
       animation: scrollButtonPulse 0.45s ease;
+    }
+
+    #floatingNavControls.playing-only #scrollToTopBtn {
+      width: 0 !important;
+      min-width: 0 !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      border-width: 0 !important;
+      overflow: hidden;
     }
     @keyframes scrollButtonPulse {
       0% { transform: scale(1); }
@@ -1693,10 +1707,18 @@
       playlists.forEach(pl => {
         const btn = document.createElement('button');
         btn.onclick = () => openPlaylistDetail(pl.id);
-        btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${currentActivePlaylistId === pl.id ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`;
+        const isActive = currentActivePlaylistId === pl.id;
+        const playlistTone = pl.isPublic
+          ? (isActive
+              ? 'bg-purple-600/25 text-purple-200 border border-purple-500/40 shadow-[0_0_18px_rgba(168,85,247,0.16)]'
+              : 'bg-purple-600/10 text-purple-300 border border-purple-500/20 hover:bg-purple-500/15 hover:text-purple-200')
+          : (isActive
+              ? 'bg-blue-600/20 text-blue-300 border border-blue-500/30'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800/50');
+        btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${playlistTone}`;
         btn.innerHTML = `
           <span class="truncate uppercase"><i class="fa-solid ${pl.isPublic ? 'fa-globe text-purple-400' : 'fa-list-ul text-blue-400'} mr-2.5 text-xs"></i>${pl.name}</span>
-          <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded-full text-gray-400 font-bold">${pl.songIds.length}</span>
+          <span class="text-[10px] ${pl.isPublic ? 'bg-purple-500/10 text-purple-300' : 'bg-gray-800 text-gray-400'} px-2 py-0.5 rounded-full font-bold">${pl.songIds.length}</span>
         `;
         container.appendChild(btn);
       });
@@ -2080,7 +2102,7 @@
       const albums = [...new Map(songs.map(s => [s.album, s])).values()].slice(-4).reverse();
       document.getElementById('homeNewAlbums').innerHTML = albums.map(s => `<div onclick="openGroupDetail('album', '${s.album.replace(/'/g, "\\'")}')" class="cursor-pointer group"><img src="${s.cover}" class="w-full aspect-square object-cover rounded-xl mb-2 group-hover:scale-[1.02] transition"><p class="text-xs font-bold text-white truncate normal-case">${s.album}</p><p class="text-[10px] text-gray-500 truncate uppercase">${s.artist} • ${albumType(s.album)}</p></div>`).join('');
       const artists = [...new Map(songs.map(s => [s.artist, s])).values()].slice(-4).reverse();
-      document.getElementById('homeNewArtists').innerHTML = artists.map(s => `<div onclick="openGroupDetail('artist', '${s.artist.replace(/'/g, "\\'")}')" class="cursor-pointer group text-center"><img src="${s.cover}" class="w-20 h-20 mx-auto rounded-full object-cover mb-2 border border-white/10 group-hover:scale-[1.03] transition"><p class="text-xs font-bold text-white truncate uppercase">${s.artist}</p></div>`).join('');
+      document.getElementById('homeNewArtists').innerHTML = artists.map(s => `<div onclick="openGroupDetail('artist', '${s.artist.replace(/'/g, "\\'")}')" class="cursor-pointer group text-center"><img src="${s.cover}" class="w-full aspect-square rounded-full object-cover mb-3 border border-white/10 group-hover:scale-[1.03] transition shadow-xl"><p class="text-xs font-bold text-white truncate uppercase">${s.artist}</p></div>`).join('');
     }
 
     function generateSongRowHTML(song, index, queueSource) {
@@ -2254,9 +2276,9 @@
               <h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2>
               <span class="text-[10px] text-gray-500 font-bold uppercase">${artistAlbums.length}</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
               ${artistAlbums.map(alb => `
-                <button type="button" onclick='openGroupDetail("album", ${JSON.stringify(alb.name)})' class="glass-card p-4 rounded-2xl text-left group">
+                <button type="button" onclick='openGroupDetail("album", ${JSON.stringify(alb.name)})' class="glass-card p-5 rounded-2xl text-left group">
                   <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3 shadow-xl">
                     <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -2490,17 +2512,14 @@
 
       // Keep the current song in the tab even while paused.
       if (titleEl) {
-        const state = playing ? 'Now Playing' : 'Pausing';
+        const state = playing ? 'NOW PLAYING' : 'PAUSING';
         titleEl.textContent = `${state}: ${song.title} - ${song.artist} · ${song.album}`;
       }
 
       if (favicon) {
-        favicon.type = 'image/svg+xml';
-        // Use the song cover inside a slightly rounded SVG frame.
-        // This keeps the favicon visually rounded without changing the actual cover asset.
-        const safeCover = String(song.cover || defaultIcon).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><clipPath id="r"><rect x="3" y="3" width="94" height="94" rx="16" ry="16"/></clipPath></defs><image href="${safeCover}" x="3" y="3" width="94" height="94" preserveAspectRatio="xMidYMid slice" clip-path="url(#r)"/></svg>`;
-        favicon.href = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+        // Use the original cover directly so the browser tab icon has no artificial rounded corners.
+        favicon.removeAttribute('type');
+        favicon.href = song.cover || defaultIcon;
       }
     }
 
@@ -3028,6 +3047,7 @@ function togglePlay() {
       controls.classList.toggle('opacity-0', !anyVisible);
       controls.classList.toggle('pointer-events-none', !anyVisible);
       controls.classList.toggle('translate-y-2', !anyVisible);
+       controls.classList.toggle('playing-only', hasPlayingSong && !topVisible);
       updateQueueGoToPlayingButton();
     }
 
