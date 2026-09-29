@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Howie's Media Server</title>
-  <link id="dynamicFavicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1016'/%3E%3Cpath d='M22 18v28a10 10 0 1 0 7-9.54V24h17v17a10 10 0 1 0 7-9.54V18H22z' fill='%233b82f6'/%3E%3C/svg%3E">
+  <title>Howie's Music Server</title>
+  <link id="dynamicFavicon" rel="icon" type="image/png" href="https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/icon%20browser%20tab.png">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -456,7 +456,7 @@
             <i id="libraryChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
           </button>
           <div id="libraryMenu" class="hidden pl-4 pr-1 flex flex-col gap-1">
-            <a href="#" onclick="switchView('discover'); return false;" id="nav-discover" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-music w-4 text-center text-blue-400"></i>SONGS</a>
+            <a href="#" onclick="switchView('discover'); return false;" id="nav-discover" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-music w-4 text-center text-blue-400"></i><span>SONGS <span id="navSongsCount" class="text-[10px] text-gray-500">(0)</span></span></a>
             <a href="#" onclick="switchView('albums'); return false;" id="nav-albums" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-compact-disc w-4 text-center text-indigo-400"></i><span>ALBUMS <span id="navAlbumsCount" class="text-[10px] text-gray-500">(0)</span></span></a>
             <a href="#" onclick="switchView('artists'); return false;" id="nav-artists" class="nav-item flex items-center gap-3 px-4 py-2.5 text-xs text-gray-400 hover:text-white rounded-xl transition uppercase"><i class="fa-solid fa-microphone-lines w-4 text-center text-purple-400"></i><span>ARTISTS <span id="navArtistsCount" class="text-[10px] text-gray-500">(0)</span></span></a>
           </div>
@@ -1592,9 +1592,9 @@
       }
       data.forEach(pl => {
         const btn = document.createElement('button');
-        btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${currentActivePublicPlaylistId === pl.id ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_18px_rgba(168,85,247,0.16)]' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`;
+        btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${currentActivePublicPlaylistId === pl.id ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_18px_rgba(168,85,247,0.16)]' : 'text-purple-300/80 hover:text-purple-200 hover:bg-purple-500/10'}`;
         btn.dataset.publicPlaylistId = String(pl.id);
-        btn.innerHTML = `<span class="truncate uppercase"><i class="fa-solid fa-globe mr-2.5 text-xs text-purple-400"></i>${pl.name}</span><span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded-full text-gray-400 font-bold">${(pl.playlist_songs || []).length}</span>`;
+        btn.innerHTML = `<span class="truncate uppercase"><i class="fa-solid fa-globe mr-2.5 text-xs text-purple-400"></i>${pl.name}</span><span class="text-[10px] bg-purple-500/10 px-2 py-0.5 rounded-full text-purple-300 font-bold">${(pl.playlist_songs || []).length}</span>`;
         btn.onclick = () => openPublicPlaylistDetail(pl);
         container.appendChild(btn);
       });
@@ -1604,7 +1604,7 @@
     function refreshPublicPlaylistActiveStyles() {
       document.querySelectorAll('#publicSidebarPlaylists button[data-public-playlist-id]').forEach(btn => {
         const active = String(currentActivePublicPlaylistId) === String(btn.dataset.publicPlaylistId);
-        btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${active ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_18px_rgba(168,85,247,0.16)]' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`;
+        btn.className = `w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${active ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_18px_rgba(168,85,247,0.16)]' : 'text-purple-300/80 hover:text-purple-200 hover:bg-purple-500/10'}`;
       });
     }
 
@@ -1623,6 +1623,12 @@
       ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'].forEach(v => document.getElementById(v)?.classList.add('hidden'));
       document.getElementById('playlistDetailView').classList.remove('hidden');
       document.getElementById('playlistDetailTitle').innerText = pl.name;
+      const publicHero = document.getElementById('playlistDetailHero');
+      const publicType = document.getElementById('playlistDetailType');
+      publicHero?.classList.remove('playlist-theme-private');
+      publicHero?.classList.add('playlist-theme-public');
+      publicType?.classList.remove('playlist-accent-private');
+      publicType?.classList.add('playlist-accent-public');
       document.getElementById('playlistDetailType').innerText = 'PUBLIC PLAYLIST';
       document.getElementById('playlistDetailCount').innerText = `${playlistSongs.length} SONGS`;
       document.getElementById('playAllBtn').onclick = () => playAllQueue(playlistSongs);
@@ -2135,8 +2141,10 @@
     function updateLibraryCounts() {
       const albumCount = new Set(songs.map(s => s.album)).size;
       const artistCount = new Set(songs.map(s => s.artist)).size;
+      const songNav = document.getElementById('navSongsCount');
       const albumNav = document.getElementById('navAlbumsCount');
       const artistNav = document.getElementById('navArtistsCount');
+      if (songNav) songNav.textContent = `(${songs.length})`;
       if (albumNav) albumNav.textContent = `(${albumCount})`;
       if (artistNav) artistNav.textContent = `(${artistCount})`;
       const albumHeading = document.querySelector('#albumsView h2');
@@ -2260,7 +2268,7 @@
           </section>
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 min-w-0">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg font-extrabold text-white uppercase">ALL SONGS</h2>
+              <h2 class="text-lg font-extrabold text-white uppercase">SONGS</h2>
               <span class="text-[10px] text-gray-500 font-bold uppercase">${filteredSongs.length}</span>
             </div>
             <div class="flex flex-col gap-2">${filteredSongs.map((s,idx)=>generateSongRowHTML(s,idx,'group')).join('')}</div>
@@ -2388,6 +2396,12 @@
       ['homeView','searchView','discoverView','albumsView','artistsView','groupDetailView'].forEach(v=>document.getElementById(v)?.classList.add('hidden'));
       document.getElementById('playlistDetailView').classList.remove('hidden');
       document.getElementById('playlistDetailTitle').innerText=data.name;
+      const sharedHero = document.getElementById('playlistDetailHero');
+      const sharedType = document.getElementById('playlistDetailType');
+      sharedHero?.classList.remove('playlist-theme-private');
+      sharedHero?.classList.add('playlist-theme-public');
+      sharedType?.classList.remove('playlist-accent-private');
+      sharedType?.classList.add('playlist-accent-public');
       document.getElementById('playlistDetailType').innerText = 'PUBLIC PLAYLIST';
       document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
       queueContexts.shared = [...playlistSongs];
@@ -2456,17 +2470,25 @@
     function updateBrowserTabMetadata(song = null, playing = false) {
       const titleEl = document.querySelector('title');
       const favicon = document.getElementById('dynamicFavicon');
-      if (!song) {
-        if (titleEl) titleEl.textContent = "Howie's Media Server";
-        if (favicon) favicon.href = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0f1016"/><path d="M22 18v28a10 10 0 1 0 7-9.54V24h17v17a10 10 0 1 0 7-9.54V18H22z" fill="#3b82f6"/></svg>`)}`;
+      const defaultTitle = "Howie's Music Server";
+      const defaultIcon = 'https://pub-c53200e2456046529b88e014d8a71fcb.r2.dev/icon%20browser%20tab.png';
+
+      // When nothing is playing, always restore the original browser tab.
+      if (!song || !playing) {
+        if (titleEl) titleEl.textContent = defaultTitle;
+        if (favicon) {
+          favicon.type = 'image/png';
+          favicon.href = defaultIcon;
+        }
         return;
       }
+
       if (titleEl) titleEl.textContent = `Now Playing: ${song.title} - ${song.artist} (${song.album})`;
-      const iconPath = playing
-        ? '<path d="M24 17l24 15-24 15z" fill="#3b82f6"/>'
-        : '<path d="M38 17v25.5a9.5 9.5 0 1 1-6-8.85V17h6zm-6 22.5a6.5 6.5 0 1 0-6.5 6.5A6.5 6.5 0 0 0 32 39.5z" fill="#3b82f6"/>';
       if (favicon) {
-        favicon.href = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0f1016"/>${iconPath}</svg>`)}`;
+        // Use the exact cover image of the currently playing song as the tab icon.
+        // Let the browser infer the cover's actual image format (JPG/PNG/WebP/etc.).
+        favicon.removeAttribute('type');
+        favicon.href = song.cover || defaultIcon;
       }
     }
 
@@ -2978,12 +3000,14 @@ function togglePlay() {
       if (!main || !controls || !topBtn || !playingBtn) return;
 
       const hasPlayingSong = isPlayingSongVisibleInCurrentView();
-      playingBtn.classList.toggle('is-hidden', !hasPlayingSong);
-      playingBtn.classList.toggle('is-visible', hasPlayingSong);
-
       const topVisible = main.scrollTop > 180;
+
+      // Keep the original visibility/interaction rules. The only addition is
+      // the transition class, so appearance/disappearance is animated.
       topBtn.classList.toggle('is-hidden', !topVisible);
       topBtn.classList.toggle('is-visible', topVisible);
+      playingBtn.classList.toggle('is-hidden', !hasPlayingSong);
+      playingBtn.classList.toggle('is-visible', hasPlayingSong);
 
       const anyVisible = topVisible || hasPlayingSong;
       controls.classList.toggle('opacity-100', anyVisible);
