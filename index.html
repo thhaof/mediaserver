@@ -561,7 +561,7 @@
         <!-- HOME VIEW -->
         <div id="homeView">
           <div class="mb-8">
-            <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">HOWIE'S MEDIA SERVER</p>
+            <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">HOWIE'S MUSIC SERVER</p>
             <h1 class="text-3xl sm:text-4xl font-extrabold text-white">WELCOME BACK!</h1>
             <p class="text-sm text-gray-400 mt-2">Discover your latest songs, albums and artists.</p>
           </div>
@@ -787,7 +787,7 @@
           id="currentArtist"
           class="text-xs text-gray-400 truncate font-medium normal-case"
         >
-          HOWIE'S MEDIA SERVER
+          HOWIE'S MUSIC SERVER
         </p>
       </div>
 
@@ -1299,7 +1299,7 @@
 
     let shuffleMode = false;
     let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat 1
-    const VOLUME_STORAGE_KEY = 'howies-media-server-volume';
+    const VOLUME_STORAGE_KEY = 'howies-music-server-volume';
     let lastVolumeBeforeMute = 1;
     let recommendedOffset = 0;
 
@@ -1409,7 +1409,7 @@
       isPlaying = false;
       document.getElementById('currentTitle').innerText = 'Unknown';
       document.getElementById('currentCoverWrap')?.classList.add('hidden');
-      document.getElementById('currentArtist').innerText = "HOWIE'S MEDIA SERVER";
+      document.getElementById('currentArtist').innerText = "HOWIE'S MUSIC SERVER";
       updateBrowserTabMetadata(null, false);
       document.getElementById('currentTime').innerText = '0:00';
       document.getElementById('durationTime').innerText = '0:00';
