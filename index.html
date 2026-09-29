@@ -596,14 +596,14 @@
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60">
               <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-extrabold text-white uppercase">NEW ALBUMS</h2>
+                <h2 class="text-lg font-extrabold text-white uppercase">NEW POSTED ALBUMS</h2>
                 <button onclick="switchView('albums')" class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase">VIEW ALL</button>
               </div>
               <div id="homeNewAlbums" class="grid grid-cols-2 gap-4"></div>
             </div>
             <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60">
               <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-extrabold text-white uppercase">NEW ARTISTS</h2>
+                <h2 class="text-lg font-extrabold text-white uppercase">NEW POSTED ARTISTS</h2>
                 <button onclick="switchView('artists')" class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase">VIEW ALL</button>
               </div>
               <div id="homeNewArtists" class="grid grid-cols-2 gap-4"></div>
@@ -1544,6 +1544,7 @@
 
       resetSidebarToggles();
       await loadSavedPlaylistsPermanent();
+      await loadSortPreferences();
       switchView('home');
 
       loginButton.dataset.processing = 'false';
@@ -1574,6 +1575,7 @@
         document.getElementById('welcomeHeader').innerText = `Greeting, ${username.toUpperCase()}!`;
         resetSidebarToggles();
         await loadSavedPlaylistsPermanent();
+        await loadSortPreferences();
         switchView('home');
       }
     }
@@ -1598,6 +1600,13 @@
       playlists = [];
       currentActivePlaylistId = null;
       currentActivePublicPlaylistId = null;
+      Object.assign(sortStates.songs, {field:'', direction:'asc'});
+      Object.assign(sortStates.albums, {field:'', direction:'asc'});
+      Object.assign(sortStates.artists, {field:'', direction:'desc'});
+      Object.assign(sortStates.playlist, {field:'', direction:'asc'});
+      Object.assign(sortStates.publicPlaylist, {field:'', direction:'asc'});
+      Object.assign(sortStates.category, {field:'', direction:'asc'});
+      ['songs','albums','artists','playlist','publicPlaylist','category'].forEach(updateSortSelect);
       document.getElementById('welcomeHeader').innerText = 'Welcome back, GUEST!';
       renderSidebarPlaylists();
       document.getElementById('authModal').classList.remove('hidden');
@@ -2119,6 +2128,8 @@
         document.getElementById('artistsView').classList.remove('hidden');
         renderArtistsView();
       } else if (viewName === 'category') {
+        categoryCountry = null;
+        categoryGenre = null;
         toggleLibraryMenu(true);
         document.getElementById('nav-category').classList.add('active-nav');
         document.getElementById('categoryView').classList.remove('hidden');
@@ -2234,7 +2245,8 @@
       albums: { field: '', direction: 'asc' },
       artists: { field: '', direction: 'desc' },
       playlist: { field: '', direction: 'asc' },
-      publicPlaylist: { field: '', direction: 'asc' }
+      publicPlaylist: { field: '', direction: 'asc' },
+      category: { field: '', direction: 'asc' }
     };
 
     // Release Date is taken directly from each song object in the source file.
@@ -2254,6 +2266,36 @@
 
     function applyDirection(result, direction) {
       return direction === 'desc' ? -result : result;
+    }
+
+    const SORT_PREFS_STORAGE_KEY = 'thhaof_sort_preferences_v1';
+    function getSortPreferencesSnapshot() { return JSON.parse(JSON.stringify(sortStates)); }
+    function applySortPreferences(prefs) {
+      if (!prefs || typeof prefs !== 'object') return;
+      Object.keys(sortStates).forEach(kind => {
+        const saved = prefs[kind]; if (!saved) return;
+        if (typeof saved.field === 'string' && ['', 'title', 'artist', 'album', 'release', 'songs', 'playlist'].includes(saved.field)) sortStates[kind].field = saved.field;
+        if (saved.direction === 'asc' || saved.direction === 'desc') sortStates[kind].direction = saved.direction;
+      });
+      ['songs','albums','artists','playlist','publicPlaylist','category'].forEach(updateSortSelect);
+    }
+    function saveSortPreferencesLocal() {
+      try { const key = currentUser?.id ? `${SORT_PREFS_STORAGE_KEY}_${currentUser.id}` : SORT_PREFS_STORAGE_KEY; localStorage.setItem(key, JSON.stringify(getSortPreferencesSnapshot())); } catch(e) {}
+    }
+    async function saveSortPreferences() {
+      saveSortPreferencesLocal(); if (!currentUser) return;
+      try {
+        const { error } = await supabaseClient.from('user_preferences').upsert({ user_id: currentUser.id, sort_preferences: getSortPreferencesSnapshot(), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        if (error) console.warn('Could not save sort preferences:', error.message);
+      } catch(e) { console.warn('Sort preference save skipped:', e); }
+    }
+    async function loadSortPreferences() {
+      let prefs = null;
+      try { const key = currentUser?.id ? `${SORT_PREFS_STORAGE_KEY}_${currentUser.id}` : SORT_PREFS_STORAGE_KEY; const raw = localStorage.getItem(key); if (raw) prefs = JSON.parse(raw); } catch(e) {}
+      if (currentUser) {
+        try { const { data, error } = await supabaseClient.from('user_preferences').select('sort_preferences').eq('user_id', currentUser.id).maybeSingle(); if (!error && data?.sort_preferences) prefs = data.sort_preferences; } catch(e) {}
+      }
+      if (prefs) applySortPreferences(prefs);
     }
 
     function sortSongsArray(items, state) {
@@ -2297,10 +2339,12 @@
         state.direction = state.direction === 'asc' ? 'desc' : 'asc';
       }
       updateSortSelect(kind);
+      saveSortPreferences();
       if (kind === 'songs') renderAllSongsList(songs);
       else if (kind === 'albums') renderAlbumsView();
       else if (kind === 'artists') renderArtistsView();
       else if (kind === 'playlist' || kind === 'publicPlaylist') renderActivePlaylistSongs();
+      else if (kind === 'category') renderCategoryView();
     }
 
     function handleSortSelectChange(kind, select) {
@@ -2488,8 +2532,10 @@
 
       if (categoryGenre) {
         const filtered = getCategorySongs(categoryCountry, categoryGenre);
-        songList.innerHTML = `<div class="flex items-center justify-between mb-4 gap-3 flex-wrap"><h3 class="text-lg font-extrabold text-white">${categoryGenre}</h3><span class="text-xs text-gray-400">${filtered.length} SONGS</span></div><div class="flex flex-col gap-2">${filtered.map((song, idx) => generateSongRowHTML(song, idx, 'category')).join('')}</div>`;
-        queueContexts.category = [...filtered];
+        const sortedCategorySongs = sortSongsArray(filtered, sortStates.category);
+        songList.innerHTML = `<div class="flex items-center justify-between mb-4 gap-3 flex-wrap"><div class="flex items-center gap-3 min-w-0"><h3 class="text-lg font-extrabold text-white">${categoryGenre}</h3><span class="text-xs text-gray-400">${filtered.length} SONGS</span></div><select data-sort-kind="category" onchange="handleSortSelectChange('category', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select></div><div class="flex flex-col gap-2">${sortedCategorySongs.map((song, idx) => generateSongRowHTML(song, idx, 'category')).join('')}</div>`;
+        updateSortSelect('category');
+        queueContexts.category = [...sortedCategorySongs];
       }
       requestAnimationFrame(() => { observeScrollReveals(); updateFloatingNavControls(); });
     }
