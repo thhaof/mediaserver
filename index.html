@@ -3240,7 +3240,7 @@
       // Keep the current song in the tab even while paused.
       if (titleEl) {
         const state = playing ? 'NOW PLAYING' : 'PAUSING';
-        titleEl.textContent = `${state}: ${song.title} - ${song.artist} • ${song.album}`;
+        titleEl.textContent = `${state}: ${song.title} by ${song.artist} • ${song.album}`;
       }
 
       if (favicon) {
