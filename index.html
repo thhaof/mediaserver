@@ -2848,7 +2848,7 @@
                 </div>
               </div>
               <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
-              <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS TOTAL DURATION: ${formatFullDuration(songs.filter(song => song.album === alb.name).reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}</span>
+              <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS • TOTAL DURATION: ${formatFullDuration(songs.filter(song => song.album === alb.name).reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}</span>
             </button>`).join('')}
         </div>`;
       updateSortSelect('categoryAlbums');
@@ -2876,7 +2876,7 @@
           const genres = [...new Set(countrySongs.flatMap(song => getSongCategory(song).genres))].sort(compareText);
           const releaseSummary = getCategoryReleaseSummary(countrySongs);
           const countryTotalDuration = countrySongs.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0);
-          const countryStats = [`${countrySongs.length} SONGS TOTAL DURATION: ${formatFullDuration(countryTotalDuration)}`];
+          const countryStats = [`${countrySongs.length} SONGS • TOTAL DURATION: ${formatFullDuration(countryTotalDuration)}`];
           if (genres.length) countryStats.push(`${genres.length} GENRES`);
           if (releaseSummary.text) countryStats.push(releaseSummary.text);
           return `<button type="button" onclick='openCategoryCountry(${JSON.stringify(country)})' class="glass-card p-5 rounded-2xl cursor-pointer group text-left w-full">
@@ -2897,7 +2897,7 @@
         const count = genreSongs.length;
         const releaseSummary = getCategoryReleaseSummary(genreSongs);
         const genreTotalDuration = genreSongs.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0);
-        const genreStats = [`${count} SONGS TOTAL DURATION: ${formatFullDuration(genreTotalDuration)}`];
+        const genreStats = [`${count} SONGS • TOTAL DURATION: ${formatFullDuration(genreTotalDuration)}`];
         if (releaseSummary.text) genreStats.push(releaseSummary.text);
         return `<div onclick='openCategoryGenre(${JSON.stringify(genre)})' class="glass-card p-5 rounded-2xl cursor-pointer group"><div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-400/10 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition"><i class="fa-solid fa-music text-blue-400"></i></div><h3 class="font-bold text-base text-white">${genre}</h3><p class="text-xs text-gray-400 mt-1">${genreStats.join(' • ')}</p></div>`;
       }).join('')}</div>`;
@@ -2942,7 +2942,7 @@
                     </div>
                   </div>
                   <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
-                  <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS TOTAL DURATION: ${formatFullDuration(songs.filter(song => song.album === alb.name).reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}</span>
+                  <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS • TOTAL DURATION: ${formatFullDuration(songs.filter(song => song.album === alb.name).reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}</span>
                 </button>`).join('')}
             </div>
           </section>
