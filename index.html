@@ -661,7 +661,7 @@
         <div id="albumsView" class="hidden">
           <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
             <h2 class="text-2xl font-extrabold tracking-tight text-white uppercase">FEATURED ALBUMS</h2>
-            <select data-sort-kind="albums" onchange="handleSortSelectChange('albums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
+            <select data-sort-kind="artistAlbums" onchange="handleSortSelectChange('artistAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
           </div>
           <div id="albumList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
@@ -2265,10 +2265,12 @@
       songs: { field: '', direction: 'asc' },
       artistSongs: { field: '', direction: 'asc' },
       albums: { field: '', direction: 'asc' },
+      artistAlbums: { field: '', direction: 'asc' },
       artists: { field: '', direction: 'desc' },
       playlist: { field: '', direction: 'asc' },
       publicPlaylist: { field: '', direction: 'asc' },
-      category: { field: '', direction: 'asc' }
+      category: { field: '', direction: 'asc' },
+      categoryAlbums: { field: '', direction: 'asc' }
     };
 
     // Release Date is taken directly from each song object in the source file.
@@ -2315,7 +2317,7 @@
         if (typeof saved.field === 'string' && ['', 'title', 'artist', 'album', 'release', 'songs', 'playlist'].includes(saved.field)) sortStates[kind].field = saved.field;
         if (saved.direction === 'asc' || saved.direction === 'desc') sortStates[kind].direction = saved.direction;
       });
-      ['songs','artistSongs','albums','artists','playlist','publicPlaylist','category'].forEach(updateSortSelect);
+      ['songs','artistSongs','albums','artistAlbums','artists','playlist','publicPlaylist','category','categoryAlbums'].forEach(updateSortSelect);
     }
     function saveSortPreferencesLocal() {
       try { const key = currentUser?.id ? `${SORT_PREFS_STORAGE_KEY}_${currentUser.id}` : SORT_PREFS_STORAGE_KEY; localStorage.setItem(key, JSON.stringify(getSortPreferencesSnapshot())); } catch(e) {}
@@ -2381,8 +2383,10 @@
       if (kind === 'songs') renderAllSongsList(songs);
       else if (kind === 'artistSongs') renderArtistGroupSongs();
       else if (kind === 'albums') renderAlbumsView();
+      else if (kind === 'artistAlbums') renderCurrentArtistAlbumSection();
       else if (kind === 'artists') renderArtistsView();
       else if (kind === 'playlist' || kind === 'publicPlaylist') renderActivePlaylistSongs();
+      else if (kind === 'categoryAlbums') renderCategoryAlbumsOnly();
       else if (kind === 'category') renderCategoryView();
     }
 
@@ -2452,6 +2456,8 @@
         songs: [['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
         artistSongs: [['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
         albums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
+        artistAlbums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
+        categoryAlbums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
         artists: [['title','TITLE'],['albums','ALBUM COUNT'],['songs','SONG COUNT']],
         playlist: [['playlist','PLAYLIST ORDER'],['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
         publicPlaylist: [['playlist','PLAYLIST ORDER'],['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
@@ -2530,6 +2536,8 @@
             songs: [['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
             artistSongs: [['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
             albums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
+            artistAlbums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
+            categoryAlbums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
             artists: [['title','TITLE'],['albums','ALBUM COUNT'],['songs','SONG COUNT']],
             playlist: [['playlist','PLAYLIST ORDER'],['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
             publicPlaylist: [['playlist','PLAYLIST ORDER'],['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
@@ -2616,6 +2624,19 @@
       if (artistHeading) artistHeading.textContent = `ARTISTS (${artistCount})`;
     }
 
+    function sortAlbumCollection(items, state) {
+      const copy = [...items];
+      if (!state?.field) return copy;
+      copy.sort((a, b) => {
+        let result = 0;
+        if (state.field === 'title') result = compareText(a.name, b.name);
+        else if (state.field === 'artist') result = compareText(a.artist, b.artist) || compareText(a.name, b.name);
+        else if (state.field === 'release') return compareReleaseDate(a, b, state.direction);
+        return applyDirection(result, state.direction);
+      });
+      return copy;
+    }
+
     function renderAlbumsView() {
       const container = document.getElementById('albumList');
       const albumsMap = {};
@@ -2627,17 +2648,10 @@
         albumsMap[s.album].count++;
       });
 
-      let albumValues = Object.values(albumsMap).map(a => ({ ...a, type: albumType(a.name) }));
-      const state = sortStates.albums;
-      if (state.field) {
-        albumValues.sort((a,b) => {
-          let result = 0;
-          if (state.field === 'title') result = compareText(a.name, b.name);
-          else if (state.field === 'artist') result = compareText(a.artist, b.artist) || compareText(a.name, b.name);
-          else if (state.field === 'release') return compareReleaseDate(a, b, state.direction);
-          return applyDirection(result, state.direction);
-        });
-      }
+      const albumValues = sortAlbumCollection(
+        Object.values(albumsMap).map(a => ({ ...a, type: albumType(a.name) })),
+        sortStates.albums
+      );
       container.innerHTML = albumValues.map(alb => `
         <div onclick="openGroupDetail('album', '${alb.name}')" class="glass-card p-5 rounded-2xl cursor-pointer group flex flex-col items-start">
           <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-4 shadow-xl">
@@ -2671,13 +2685,47 @@
       return { ...counts, total: names.length, text: parts.join(' • ') };
     }
 
+    function renderCategoryAlbumsOnly() {
+      if (!categoryCountry || !categoryGenre) return;
+      const songList = document.getElementById('categorySongList') || document.querySelector('#categoryView .artist-detail-grid');
+      const grid = document.querySelector('#categoryView .artist-detail-grid');
+      if (!grid) return;
+      const section = grid.querySelector('section');
+      if (!section) return;
+      const filtered = getCategorySongs(categoryCountry, categoryGenre);
+      const albumsMap = {};
+      filtered.forEach(s => {
+        if (!albumsMap[s.album]) albumsMap[s.album] = { name: s.album, artist: s.artist, cover: s.cover, count: 0, releaseDate: getReleaseDate(s), type: albumType(s.album) };
+        albumsMap[s.album].count++;
+      });
+      const categoryAlbums = sortAlbumCollection(Object.values(albumsMap), sortStates.categoryAlbums);
+      section.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-[10px] text-gray-500 font-bold uppercase">${categoryAlbums.length}</span></div>
+          <select data-sort-kind="categoryAlbums" onchange="handleSortSelectChange('categoryAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
+        </div>
+        <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
+          ${categoryAlbums.map(alb => `
+            <button type="button" onclick='openNestedAlbum("category", ${JSON.stringify({country: categoryCountry, genre: categoryGenre})}, ${JSON.stringify(alb.name)})' class="glass-card p-5 rounded-2xl text-left group">
+              <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3 shadow-xl">
+                <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                  <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40"><i class="fa-solid fa-play text-base ml-0.5"></i></div>
+                </div>
+              </div>
+              <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
+              <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS</span>
+            </button>`).join('')}
+        </div>`;
+      updateSortSelect('categoryAlbums');
+    }
+
     function renderCategoryView() {
       const countryList = document.getElementById('categoryCountryList');
       const genreList = document.getElementById('categoryGenreList');
       const songList = document.getElementById('categorySongList');
       const backBtn = document.getElementById('categoryBackBtn');
       const subtitle = document.getElementById('categorySubtitle');
-      const sectionTitle = document.getElementById('categorySectionTitle');
       if (!countryList || !genreList || !songList) return;
 
       const countries = [...new Set(songs.map(s => getSongCategory(s).country).filter(Boolean))].sort(compareText);
@@ -2708,8 +2756,6 @@
       const countrySongs = getCategorySongs(categoryCountry);
       const genres = [...new Set(countrySongs.flatMap(song => getSongCategory(song).genres))].sort(compareText);
       document.getElementById('categoryViewTitle').textContent = categoryCountry;
-      sectionTitle.textContent = categoryGenre ? categoryCountry : '';
-      sectionTitle.classList.toggle('hidden', !categoryGenre);
       subtitle.textContent = categoryGenre ? '' : 'SELECT A GENRE';
       genreList.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">${genres.map(genre => {
         const genreSongs = getCategorySongs(categoryCountry, genre);
@@ -2737,23 +2783,21 @@
         const genreCountText = genreCountParts.join(' • ');
         const albumsMap = {};
         filtered.forEach(s => {
-          if (!albumsMap[s.album]) albumsMap[s.album] = { name: s.album, cover: s.cover, count: 0, type: albumType(s.album) };
+          if (!albumsMap[s.album]) albumsMap[s.album] = { name: s.album, artist: s.artist, cover: s.cover, count: 0, releaseDate: getReleaseDate(s), type: albumType(s.album) };
           albumsMap[s.album].count++;
         });
-        const categoryAlbums = Object.values(albumsMap).sort((a,b) => compareText(a.name, b.name));
+        const categoryAlbums = sortAlbumCollection(Object.values(albumsMap), sortStates.categoryAlbums);
         document.getElementById('categoryViewTitle').textContent = categoryGenre;
-        sectionTitle.classList.add('hidden');
-        sectionTitle.textContent = '';
         subtitle.textContent = `${categoryCountry} • ${genreCountText}`;
         songList.innerHTML = `<div class="artist-detail-grid">
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 min-w-0">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2>
-              <span class="text-[10px] text-gray-500 font-bold uppercase">${categoryAlbums.length}</span>
+              <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-[10px] text-gray-500 font-bold uppercase">${categoryAlbums.length}</span></div>
+              <select data-sort-kind="categoryAlbums" onchange="handleSortSelectChange('categoryAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
             </div>
             <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
               ${categoryAlbums.map(alb => `
-                <button type="button" onclick='openGroupDetail("album", ${JSON.stringify(alb.name)})' class="glass-card p-5 rounded-2xl text-left group">
+                <button type="button" onclick='openNestedAlbum("category", ${JSON.stringify({country: categoryCountry, genre: categoryGenre})}, ${JSON.stringify(alb.name)})' class="glass-card p-5 rounded-2xl text-left group">
                   <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3 shadow-xl">
                     <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -2767,13 +2811,14 @@
           </section>
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 min-w-0">
             <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">${categoryGenre}</h2><span class="text-xs text-gray-400">${filtered.length} SONGS</span></div>
+              <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">SONGS</h2><span class="text-xs text-gray-400">${filtered.length} SONGS</span></div>
               <select data-sort-kind="category" onchange="handleSortSelectChange('category', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
             </div>
             <div class="flex flex-col gap-2">${sortedCategorySongs.map((song, idx) => generateSongRowHTML(song, idx, 'category')).join('')}</div>
           </section>
         </div>`;
         updateSortSelect('category');
+        updateSortSelect('categoryAlbums');
         queueContexts.category = [...sortedCategorySongs];
       }
       requestAnimationFrame(() => { observeScrollReveals(); updateFloatingNavControls(); });
@@ -2820,6 +2865,44 @@
       updateSortSelect('artists');
     }
 
+    function renderArtistAlbumsOnly() {
+      if (currentGroupDetailType !== 'artist') return;
+      const groupList = document.getElementById('groupSongsList');
+      if (!groupList) return;
+      const section = groupList.querySelector('section');
+      if (!section) return;
+      const filteredSongs = queueContexts.groupBase || [];
+      const artistAlbumsMap = {};
+      filteredSongs.forEach(s => {
+        if (!artistAlbumsMap[s.album]) artistAlbumsMap[s.album] = { name: s.album, artist: s.artist, cover: s.cover, count: 0, type: albumType(s.album), releaseDate: getReleaseDate(s) };
+        artistAlbumsMap[s.album].count++;
+      });
+      const artistAlbums = sortAlbumCollection(Object.values(artistAlbumsMap), sortStates.artistAlbums);
+      section.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-[10px] text-gray-500 font-bold uppercase">${artistAlbums.length}</span></div>
+          <select data-sort-kind="artistAlbums" onchange="handleSortSelectChange('artistAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
+        </div>
+        <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
+          ${artistAlbums.map(alb => `
+            <button type="button" onclick='openNestedAlbum("artist", ${JSON.stringify(filteredSongs[0]?.artist || '')}, ${JSON.stringify(alb.name)})' class="glass-card p-5 rounded-2xl text-left group">
+              <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3 shadow-xl">
+                <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                  <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40"><i class="fa-solid fa-play text-base ml-0.5"></i></div>
+                </div>
+              </div>
+              <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
+              <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS</span>
+            </button>`).join('')}
+        </div>`;
+      updateSortSelect('artistAlbums');
+    }
+
+    function renderCurrentArtistAlbumSection() {
+      renderArtistAlbumsOnly();
+    }
+
     function renderArtistGroupSongs() {
       if (currentGroupDetailType !== 'artist') return;
       const container = document.getElementById('artistGroupSongsList');
@@ -2829,6 +2912,14 @@
       container.innerHTML = artistSongs.map((s, idx) => generateSongRowHTML(s, idx, 'group')).join('');
       updateSortSelect('artistSongs');
       requestAnimationFrame(() => { observeScrollReveals(); updateFloatingNavControls(); });
+    }
+
+    let nestedAlbumReturn = null;
+
+    function openNestedAlbum(source, sourceKey, albumName) {
+      const main = document.querySelector('main');
+      nestedAlbumReturn = { source, sourceKey, scrollTop: main ? main.scrollTop : 0 };
+      openGroupDetail('album', albumName);
     }
 
     function openGroupDetail(type, key) {
@@ -2853,6 +2944,7 @@
       document.getElementById('groupDetailCount').innerText = `${filteredSongs.length} SONGS • TOTAL DURATION: ${formatFullDuration(totalSecs)}`;
       document.getElementById('groupDetailCover').src = filteredSongs[0]?.cover || '';
       queueContexts.group = [...filteredSongs];
+      queueContexts.groupBase = [...filteredSongs];
       document.getElementById('groupPlayAllBtn').onclick = () => playAllQueue([...filteredSongs]);
       const albumBtn = document.getElementById('groupAddToPlaylistBtn');
       albumBtn.classList.toggle('hidden', type !== 'album');
@@ -2861,20 +2953,20 @@
       if (type === 'artist') {
         const artistAlbumsMap = {};
         filteredSongs.forEach(s => {
-          if (!artistAlbumsMap[s.album]) artistAlbumsMap[s.album] = { name: s.album, cover: s.cover, count: 0, type: albumType(s.album) };
+          if (!artistAlbumsMap[s.album]) artistAlbumsMap[s.album] = { name: s.album, artist: s.artist, cover: s.cover, count: 0, type: albumType(s.album), releaseDate: getReleaseDate(s) };
           artistAlbumsMap[s.album].count++;
         });
-        const artistAlbums = Object.values(artistAlbumsMap).sort((a,b) => a.name.localeCompare(b.name));
+        const artistAlbums = sortAlbumCollection(Object.values(artistAlbumsMap), sortStates.artistAlbums);
         groupList.className = 'artist-detail-grid';
         groupList.innerHTML = `
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2>
-              <span class="text-[10px] text-gray-500 font-bold uppercase">${artistAlbums.length}</span>
+              <div class="flex items-center gap-3"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-[10px] text-gray-500 font-bold uppercase">${artistAlbums.length}</span></div>
+              <select data-sort-kind="artistAlbums" onchange="handleSortSelectChange('artistAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
             </div>
             <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
               ${artistAlbums.map(alb => `
-                <button type="button" onclick='openGroupDetail("album", ${JSON.stringify(alb.name)})' class="glass-card p-5 rounded-2xl text-left group">
+                <button type="button" onclick='openNestedAlbum("artist", ${JSON.stringify(filteredSongs[0]?.artist || '')}, ${JSON.stringify(alb.name)})' class="glass-card p-5 rounded-2xl text-left group">
                   <div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3 shadow-xl">
                     <img src="${alb.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="album">
                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -2900,6 +2992,7 @@
             <div id="artistGroupSongsList" class="flex flex-col gap-2"></div>
           </section>`;
         renderArtistGroupSongs();
+        updateSortSelect('artistAlbums');
       } else {
         groupList.className = 'flex flex-col gap-2';
         groupList.innerHTML = filteredSongs.map((s,idx)=>generateSongRowHTML(s,idx,'group')).join('');
@@ -3070,7 +3163,31 @@
       switchView('discover');
     }
 
-    function goBackFromGroupDetail() { goBack(); }
+    function goBackFromGroupDetail() {
+      if (nestedAlbumReturn) {
+        const ret = nestedAlbumReturn;
+        nestedAlbumReturn = null;
+        if (ret.source === 'artist') {
+          openGroupDetail('artist', ret.sourceKey);
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            const main = document.querySelector('main'); if (main) main.scrollTop = ret.scrollTop;
+          }));
+        } else if (ret.source === 'category') {
+          categoryCountry = ret.sourceKey.country;
+          categoryGenre = ret.sourceKey.genre;
+          const views = ['homeView','searchView','discoverView','albumsView','artistsView','categoryView','groupDetailView','playlistDetailView'];
+          views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
+          document.getElementById('categoryView')?.classList.remove('hidden');
+          currentViewName = 'category';
+          renderCategoryView();
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            const main = document.querySelector('main'); if (main) main.scrollTop = ret.scrollTop;
+          }));
+        }
+        return;
+      }
+      goBack();
+    }
 
     function filterSongs() {
       const input = document.getElementById('searchInput');
