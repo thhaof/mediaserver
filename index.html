@@ -2755,7 +2755,7 @@
       const categoryAlbums = sortAlbumCollection(Object.values(albumsMap), sortStates.categoryAlbums);
       section.innerHTML = `
         <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-[10px] text-gray-500 font-bold uppercase">${categoryAlbums.length}</span></div>
+          <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-400 uppercase">${categoryAlbums.length}</span></div>
           <select data-sort-kind="categoryAlbums" onchange="handleSortSelectChange('categoryAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="release">RELEASE DATE</option></select>
         </div>
         <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -2865,7 +2865,7 @@
           </section>
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 min-w-0">
             <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">SONGS</h2><span class="text-[10px] text-gray-500 font-bold uppercase">${filtered.length}</span></div>
+              <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">SONGS</h2><span class="text-xs text-gray-400 uppercase">${filtered.length}</span></div>
               <div class="flex items-center gap-3">
                 <button type="button" onclick="playAllQueue([...sortSongsArray(getCategorySongs(categoryCountry, categoryGenre), sortStates.category)])" class="bg-blue-600/90 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-[10px] font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition active:scale-95 uppercase" title="PLAY ALL SONGS"><i class="fa-solid fa-play"></i> PLAY ALL</button>
                 <select data-sort-kind="category" onchange="handleSortSelectChange('category', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
@@ -3042,7 +3042,7 @@
           </section>
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 min-w-0">
             <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">SONGS</h2><span class="text-[10px] text-gray-500 font-bold uppercase">${filteredSongs.length}</span></div>
+              <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">SONGS</h2><span class="text-xs text-gray-400 uppercase">${filteredSongs.length}</span></div>
               <div class="flex items-center gap-3">
                 <button type="button" onclick="playAllQueue([...sortSongsArray(queueContexts.groupBase || [], sortStates.artistSongs)])" class="bg-blue-600/90 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-[10px] font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition active:scale-95 uppercase" title="PLAY ALL SONGS"><i class="fa-solid fa-play"></i> PLAY ALL</button>
                 <select data-sort-kind="artistSongs" onchange="handleSortSelectChange('artistSongs', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
