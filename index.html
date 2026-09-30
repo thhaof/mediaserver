@@ -2870,7 +2870,7 @@
 
       if (!categoryCountry) {
         document.getElementById('categoryViewTitle').textContent = 'CATEGORIES';
-        subtitle.innerHTML = `<span class="text-xs text-gray-500 uppercase">${countries.length} COUNTRIES</span>`;
+        subtitle.innerHTML = `<span class="text-xs text-gray-400 uppercase">${countries.length} COUNTRIES</span>`;
         countryList.innerHTML = countries.map(country => {
           const countrySongs = getCategorySongs(country);
           const genres = [...new Set(countrySongs.flatMap(song => getSongCategory(song).genres))].sort(compareText);
