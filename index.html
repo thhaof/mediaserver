@@ -2751,7 +2751,7 @@
       if (songNav) songNav.textContent = `${songs.length}`;
       if (albumNav) albumNav.textContent = `${albumCount}`;
       if (artistNav) artistNav.textContent = `${artistCount}`;
-      if (categoryNav) categoryNav.textContent = `(${categoryCount})`;
+      if (categoryNav) categoryNav.textContent = `${categoryCount}`;
       const albumHeading = document.querySelector('#albumsView h2');
       const artistHeading = document.querySelector('#artistsView h2');
       if (albumHeading) albumHeading.innerHTML = `FEATURED ALBUMS <span class="text-xs font-medium text-gray-500 align-middle">${albumCount}</span>`;
