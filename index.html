@@ -2891,7 +2891,7 @@
       const countrySongs = getCategorySongs(categoryCountry);
       const genres = [...new Set(countrySongs.flatMap(song => getSongCategory(song).genres))].sort(compareText);
       document.getElementById('categoryViewTitle').textContent = categoryCountry;
-      subtitle.innerHTML = categoryGenre ? '' : `<span class="text-xs text-gray-500 uppercase">${genres.length} GENRES</span>`;
+      subtitle.innerHTML = categoryGenre ? '' : `<span class="text-xs text-gray-400 uppercase">${genres.length} GENRES</span>`;
       genreList.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">${genres.map(genre => {
         const genreSongs = getCategorySongs(categoryCountry, genre);
         const count = genreSongs.length;
