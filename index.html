@@ -3083,7 +3083,7 @@
       document.getElementById('groupDetailType').innerText = type === 'album' ? `${albumType(key)} BY ${filteredSongs[0]?.artist || ''}` : 'ARTIST';
       const totalSecs = filteredSongs.reduce((acc,s)=>acc+(songDurations[s.id]||0),0);
       document.getElementById('groupDetailTitle').innerText = key;
-      document.getElementById('groupDetailCount').innerText = `${filteredSongs.length} SONGS TOTAL DURATION: ${formatFullDuration(totalSecs)}`;
+      document.getElementById('groupDetailCount').innerText = `${filteredSongs.length} SONGS • TOTAL DURATION: ${formatFullDuration(totalSecs)}`;
       document.getElementById('groupDetailCover').src = filteredSongs[0]?.cover || '';
       queueContexts.group = [...filteredSongs];
       queueContexts.groupBase = [...filteredSongs];
