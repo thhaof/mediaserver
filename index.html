@@ -750,7 +750,7 @@
           </div>
           <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
             <div class="flex items-center justify-end mb-4">
-              <select data-sort-kind="playlist" onchange="handleSortSelectChange('playlist', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="playlist">PLAYLIST ORDER</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
+              <select data-sort-kind="playlist" onchange="handleSortSelectChange('playlist', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="playlist">PLAYLIST ORDER</option><option value="title">TITLE</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
             </div>
             <div id="playlistSongsList" class="flex flex-col gap-2"></div>
           </div>
@@ -1325,6 +1325,10 @@
       };
     }
 
+    function formatCountryName(country) {
+      return String(country || '').trim().toUpperCase();
+    }
+
     function getCategorySongs(country, genre = null) {
       return songs.filter(song => {
         const meta = getSongCategory(song);
@@ -1573,6 +1577,7 @@
       resetSidebarToggles();
       await loadSavedPlaylistsPermanent();
       await loadSortPreferences();
+      await loadVolumePreference();
       switchView('home');
 
       loginButton.dataset.processing = 'false';
@@ -1604,6 +1609,7 @@
         resetSidebarToggles();
         await loadSavedPlaylistsPermanent();
         await loadSortPreferences();
+        await loadVolumePreference();
         switchView('home');
       }
     }
@@ -1624,6 +1630,8 @@
 
       await supabaseClient.auth.signOut();
 
+      clearTimeout(volumeSaveTimer);
+      volumeSaveTimer = null;
       currentUser = null;
       playlists = [];
       currentActivePlaylistId = null;
@@ -1635,6 +1643,7 @@
       document.getElementById('passwordInput').value = '';
       document.getElementById('loginError').classList.add('hidden');
       resetLoginStatus();
+      updateVolumeUI(1);
     }
 
     /* =========================================================
@@ -2317,6 +2326,9 @@
         if (typeof saved.field === 'string' && ['', 'title', 'artist', 'album', 'release', 'songs', 'playlist'].includes(saved.field)) sortStates[kind].field = saved.field;
         if (saved.direction === 'asc' || saved.direction === 'desc') sortStates[kind].direction = saved.direction;
       });
+      // ARTIST is not an available sort field inside an Artist's Albums/Songs sections.
+      if (sortStates.artistSongs.field === 'artist') sortStates.artistSongs.field = '';
+      if (sortStates.artistAlbums.field === 'artist') sortStates.artistAlbums.field = '';
       ['songs','artistSongs','albums','artistAlbums','artists','playlist','publicPlaylist','category','categoryAlbums'].forEach(updateSortSelect);
     }
     function saveSortPreferencesLocal() {
@@ -2454,9 +2466,9 @@
 
       const options = {
         songs: [['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
-        artistSongs: [['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
+        artistSongs: [['title','TITLE'],['album','ALBUM'],['release','RELEASE DATE']],
         albums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
-        artistAlbums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
+        artistAlbums: [['title','TITLE'],['release','RELEASE DATE']],
         categoryAlbums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
         artists: [['title','TITLE'],['albums','ALBUM COUNT'],['songs','SONG COUNT']],
         playlist: [['playlist','PLAYLIST ORDER'],['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
@@ -2534,9 +2546,9 @@
         if (menu) {
               const options = {
             songs: [['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
-            artistSongs: [['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
+            artistSongs: [['title','TITLE'],['album','ALBUM'],['release','RELEASE DATE']],
             albums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
-            artistAlbums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
+            artistAlbums: [['title','TITLE'],['release','RELEASE DATE']],
             categoryAlbums: [['title','TITLE'],['artist','ARTIST'],['release','RELEASE DATE']],
             artists: [['title','TITLE'],['albums','ALBUM COUNT'],['songs','SONG COUNT']],
             playlist: [['playlist','PLAYLIST ORDER'],['title','TITLE'],['artist','ARTIST'],['album','ALBUM'],['release','RELEASE DATE']],
@@ -2589,6 +2601,10 @@
 
       playlistSongs = sortPlaylistSongs(playlistSongs, sortStates[kind]);
       if (isPublic) queueContexts.shared = [...playlistSongs]; else queueContexts.playlist = [...playlistSongs];
+      // Play All always uses the CURRENTLY SORTED list, so its first song is
+      // exactly the first song currently shown in this playlist.
+      const playAllButton = document.getElementById('playAllBtn');
+      if (playAllButton) playAllButton.onclick = () => playAllQueue([...playlistSongs]);
       container.innerHTML = playlistSongs.length
         ? playlistSongs.map((s, idx) => generateSongRowHTML(s, idx, isPublic ? 'shared' : 'playlist')).join('')
         : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
@@ -2620,8 +2636,8 @@
       if (categoryNav) categoryNav.textContent = `(${categoryCount})`;
       const albumHeading = document.querySelector('#albumsView h2');
       const artistHeading = document.querySelector('#artistsView h2');
-      if (albumHeading) albumHeading.textContent = `FEATURED ALBUMS ${albumCount}`;
-      if (artistHeading) artistHeading.textContent = `ARTISTS ${artistCount}`;
+      if (albumHeading) albumHeading.innerHTML = `FEATURED ALBUMS <span class="text-xs font-medium text-gray-500 align-middle">${albumCount}</span>`;
+      if (artistHeading) artistHeading.innerHTML = `ARTISTS <span class="text-xs font-medium text-gray-500 align-middle">${artistCount}</span>`;
     }
 
     function sortAlbumCollection(items, state) {
@@ -2702,7 +2718,7 @@
       section.innerHTML = `
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-[10px] text-gray-500 font-bold uppercase">${categoryAlbums.length}</span></div>
-          <select data-sort-kind="categoryAlbums" onchange="handleSortSelectChange('categoryAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
+          <select data-sort-kind="categoryAlbums" onchange="handleSortSelectChange('categoryAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="release">RELEASE DATE</option></select>
         </div>
         <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
           ${categoryAlbums.map(alb => `
@@ -2746,7 +2762,7 @@
           if (releaseSummary.text) countryStats.push(releaseSummary.text);
           return `<button type="button" onclick='openCategoryCountry(${JSON.stringify(country)})' class="glass-card p-5 rounded-2xl cursor-pointer group text-left w-full">
             <div class="w-full h-28 rounded-xl bg-gradient-to-br from-emerald-600/25 via-blue-600/10 to-purple-600/10 border border-white/5 flex items-center justify-center mb-4 group-hover:border-emerald-400/30 transition"><i class="fa-solid fa-earth-americas text-4xl text-emerald-400/80 group-hover:text-emerald-300 transition"></i></div>
-            <h3 class="font-bold text-base text-white">${country}</h3>
+            <h3 class="font-bold text-base text-white normal-case">${formatCountryName(country)}</h3>
             <p class="text-xs text-gray-400 mt-1">${countryStats.join(' • ')}</p>
           </button>`;
         }).join('');
@@ -2793,7 +2809,7 @@
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 min-w-0">
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-400 uppercase">${categoryAlbums.length}</span></div>
-              <select data-sort-kind="categoryAlbums" onchange="handleSortSelectChange('categoryAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
+              <select data-sort-kind="categoryAlbums" onchange="handleSortSelectChange('categoryAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="release">RELEASE DATE</option></select>
             </div>
             <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
               ${categoryAlbums.map(alb => `
@@ -2814,7 +2830,7 @@
               <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">SONGS</h2><span class="text-[10px] text-gray-500 font-bold uppercase">${filtered.length}</span></div>
               <div class="flex items-center gap-3">
                 <button type="button" onclick="playAllQueue([...sortSongsArray(getCategorySongs(categoryCountry, categoryGenre), sortStates.category)])" class="bg-blue-600/90 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-[10px] font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition active:scale-95 uppercase" title="PLAY ALL SONGS"><i class="fa-solid fa-play"></i> PLAY ALL</button>
-                <select data-sort-kind="category" onchange="handleSortSelectChange('category', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
+                <select data-sort-kind="category" onchange="handleSortSelectChange('category', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
               </div>
             </div>
             <div class="flex flex-col gap-2">${sortedCategorySongs.map((song, idx) => generateSongRowHTML(song, idx, 'category')).join('')}</div>
@@ -2884,7 +2900,7 @@
       section.innerHTML = `
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-400 uppercase">${artistAlbums.length}</span></div>
-          <select data-sort-kind="artistAlbums" onchange="handleSortSelectChange('artistAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
+          <select data-sort-kind="artistAlbums" onchange="handleSortSelectChange('artistAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="release">RELEASE DATE</option></select>
         </div>
         <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
           ${artistAlbums.map(alb => `
@@ -2967,7 +2983,7 @@
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60">
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-400 uppercase">${artistAlbums.length}</span></div>
-              <select data-sort-kind="artistAlbums" onchange="handleSortSelectChange('artistAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="release">RELEASE DATE</option></select>
+              <select data-sort-kind="artistAlbums" onchange="handleSortSelectChange('artistAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="release">RELEASE DATE</option></select>
             </div>
             <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
               ${artistAlbums.map(alb => `
@@ -2991,7 +3007,7 @@
               <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">SONGS</h2><span class="text-[10px] text-gray-500 font-bold uppercase">${filteredSongs.length}</span></div>
               <div class="flex items-center gap-3">
                 <button type="button" onclick="playAllQueue([...sortSongsArray(queueContexts.groupBase || [], sortStates.artistSongs)])" class="bg-blue-600/90 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-[10px] font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition active:scale-95 uppercase" title="PLAY ALL SONGS"><i class="fa-solid fa-play"></i> PLAY ALL</button>
-                <select data-sort-kind="artistSongs" onchange="handleSortSelectChange('artistSongs', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
+                <select data-sort-kind="artistSongs" onchange="handleSortSelectChange('artistSongs', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
                 </div>
             </div>
             <div id="artistGroupSongsList" class="flex flex-col gap-2"></div>
@@ -3133,9 +3149,10 @@
       sharedType?.classList.add('playlist-accent-public');
       document.getElementById('playlistDetailType').innerText = 'PUBLIC PLAYLIST';
       document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
-      queueContexts.shared = [...playlistSongs];
-      document.getElementById('playlistSongsList').innerHTML=playlistSongs.length ? playlistSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
-      document.getElementById('playAllBtn').onclick=()=>playAllQueue([...playlistSongs]);
+      const sortedSharedSongs = sortPlaylistSongs(playlistSongs, sortStates.publicPlaylist);
+      queueContexts.shared = [...sortedSharedSongs];
+      document.getElementById('playlistSongsList').innerHTML=sortedSharedSongs.length ? sortedSharedSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
+      document.getElementById('playAllBtn').onclick=()=>playAllQueue([...sortedSharedSongs]);
       document.getElementById('deletePlaylistBtn').classList.add('hidden');
       document.getElementById('renamePlaylistBtn').classList.add('hidden');
       document.getElementById('publicPlaylistBtn').classList.add('hidden');
@@ -3501,22 +3518,84 @@ function togglePlay() {
       updateRangeBackground(progress, progress.value);
     }
 
-    function setVolume() {
+    let volumeSaveTimer = null;
+
+    function updateVolumeUI(nextVolume) {
       const volumeBar = document.getElementById('volumeBar');
-      const nextVolume = Math.max(0, Math.min(1, Number(volumeBar.value) / 100));
-      audio.volume = nextVolume;
-      if (nextVolume > 0) lastVolumeBeforeMute = nextVolume;
-      try { localStorage.setItem(VOLUME_STORAGE_KEY, String(nextVolume)); } catch (e) { console.warn('Could not save volume:', e); }
-      updateRangeBackground(volumeBar, nextVolume * 100);
+      if (!volumeBar) return;
+      const clamped = Math.max(0, Math.min(1, Number(nextVolume) || 0));
+      audio.volume = clamped;
+      volumeBar.value = Math.round(clamped * 100);
+      if (clamped > 0) lastVolumeBeforeMute = clamped;
+      updateRangeBackground(volumeBar, clamped * 100);
 
       const icon = document.getElementById('volumeIcon');
-      if (nextVolume === 0) {
+      if (!icon) return;
+      if (clamped === 0) {
         icon.className = "fa-solid fa-volume-xmark text-gray-500 text-sm";
-      } else if (nextVolume < 0.5) {
+      } else if (clamped < 0.5) {
         icon.className = "fa-solid fa-volume-low text-gray-400 text-sm";
       } else {
         icon.className = "fa-solid fa-volume-high text-gray-400 text-sm";
       }
+    }
+
+    function saveVolumePreference() {
+      const volume = Math.max(0, Math.min(1, Number(document.getElementById('volumeBar')?.value || 0) / 100));
+      // Keep a local fallback for the current account/device as well.
+      try {
+        const localKey = currentUser?.id ? `${VOLUME_STORAGE_KEY}_${currentUser.id}` : VOLUME_STORAGE_KEY;
+        localStorage.setItem(localKey, String(volume));
+      } catch (e) {}
+
+      if (!currentUser) return;
+      clearTimeout(volumeSaveTimer);
+      volumeSaveTimer = setTimeout(async () => {
+        try {
+          const { error } = await supabaseClient
+            .from('user_preferences')
+            .upsert({
+              user_id: currentUser.id,
+              volume,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
+          if (error) console.warn('Could not save account volume:', error.message);
+        } catch (e) {
+          console.warn('Account volume save skipped:', e);
+        }
+      }, 150);
+    }
+
+    async function loadVolumePreference() {
+      if (!currentUser) return;
+      let volume = null;
+      try {
+        const localKey = `${VOLUME_STORAGE_KEY}_${currentUser.id}`;
+        const saved = localStorage.getItem(localKey);
+        if (saved !== null && Number.isFinite(Number(saved))) volume = Number(saved);
+      } catch (e) {}
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('user_preferences')
+          .select('volume')
+          .eq('user_id', currentUser.id)
+          .maybeSingle();
+        if (!error && data && data.volume !== null && Number.isFinite(Number(data.volume))) {
+          volume = Number(data.volume);
+        }
+      } catch (e) {
+        console.warn('Could not load account volume:', e);
+      }
+
+      if (volume !== null) updateVolumeUI(volume);
+    }
+
+    function setVolume() {
+      const volumeBar = document.getElementById('volumeBar');
+      const nextVolume = Math.max(0, Math.min(1, Number(volumeBar.value) / 100));
+      updateVolumeUI(nextVolume);
+      saveVolumePreference();
     }
 
     function toggleMute() {
@@ -3801,10 +3880,7 @@ function togglePlay() {
       const initialVolume = savedVolume !== null && Number.isFinite(Number(savedVolume))
         ? Math.max(0, Math.min(1, Number(savedVolume)))
         : 1;
-      document.getElementById('volumeBar').value = Math.round(initialVolume * 100);
-      audio.volume = initialVolume;
-      lastVolumeBeforeMute = initialVolume > 0 ? initialVolume : 1;
-      setVolume();
+      updateVolumeUI(initialVolume);
       updateRangeBackground(document.getElementById('progressBar'), 0);
       renderQueueSidebarList();
 
