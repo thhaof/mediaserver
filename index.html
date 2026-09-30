@@ -930,7 +930,6 @@
         <input
           type="range"
           id="volumeBar"
-          value="50"
           min="0"
           max="100"
           oninput="setVolume()"
@@ -1676,7 +1675,13 @@
       document.getElementById('passwordInput').value = '';
       document.getElementById('loginError').classList.add('hidden');
       resetLoginStatus();
-      updateVolumeUI(1);
+      // Do not apply a global/default account volume on logout.
+      audio.volume = 1;
+      const volumeBar = document.getElementById('volumeBar');
+      if (volumeBar) {
+        volumeBar.value = 100;
+        updateRangeBackground(volumeBar, 100);
+      }
     }
 
     /* =========================================================
@@ -3621,7 +3626,12 @@ function togglePlay() {
         console.warn('Could not load account volume:', e);
       }
 
-      if (volume !== null) updateVolumeUI(volume);
+      if (volume !== null) {
+        // If the saved account volume is muted, do not carry the previous
+        // account's pre-mute level into this account.
+        if (volume === 0) lastVolumeBeforeMute = 1;
+        updateVolumeUI(volume);
+      }
     }
 
     function setVolume() {
@@ -3907,13 +3917,13 @@ function togglePlay() {
       resetSidebarToggles();
       updateFloatingNavControls();
       observeScrollReveals();
-      // Restore the volume saved on this device/browser. First visit defaults to 100%.
-      let savedVolume = null;
-      try { savedVolume = localStorage.getItem(VOLUME_STORAGE_KEY); } catch (e) {}
-      const initialVolume = savedVolume !== null && Number.isFinite(Number(savedVolume))
-        ? Math.max(0, Math.min(1, Number(savedVolume)))
-        : 1;
-      updateVolumeUI(initialVolume);
+      // Volume is account-specific. Do not restore a global/default volume before login.
+      audio.volume = 1;
+      const initialVolumeBar = document.getElementById('volumeBar');
+      if (initialVolumeBar) {
+        initialVolumeBar.value = 100;
+        updateRangeBackground(initialVolumeBar, 100);
+      }
       updateRangeBackground(document.getElementById('progressBar'), 0);
       renderQueueSidebarList();
 
