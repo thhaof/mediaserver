@@ -838,7 +838,7 @@
 
 
     <!-- Playback Controls & Progress -->
-    <div class="flex flex-col items-center gap-2 w-1/2 max-w-xl">
+    <div class="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 w-1/2 max-w-xl">
       <div class="flex items-center justify-center gap-6">
         <!-- Shuffle Button -->
         <button onclick="toggleShuffle()" title="SHUFFLE" id="shuffleBtn" class="text-gray-400 hover:text-white text-sm transition p-2">
@@ -888,14 +888,7 @@
       </div>
 
       <!-- Progress Bar -->
-      <div class="flex items-center gap-3 w-full">
-        <span
-          id="currentTime"
-          class="text-xs text-gray-400 w-10 text-right font-medium"
-        >
-          0:00
-        </span>
-
+      <div class="flex items-center w-full">
         <input
           type="range"
           id="progressBar"
@@ -1452,13 +1445,6 @@
     let recommendedOffset = 0;
 
     const audio = document.getElementById('audioPlayer');
-    function formatTime(seconds) {
-      if (isNaN(seconds) || seconds === Infinity) return "0:00";
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
     function usernameToEmail(username) {
       const normalized = username.trim().toLowerCase();
       if (normalized === 'howie') return 'howie@howie.xy';
@@ -1478,7 +1464,6 @@
       document.getElementById('currentUnknownIcon')?.classList.add('flex');
       document.getElementById('currentArtist').innerText = "HOWIE'S MUSIC SERVER";
       updateBrowserTabMetadata(null, false);
-      document.getElementById('currentTime').innerText = '0:00';
       document.getElementById('progressBar').value = 0;
       updateRangeBackground(document.getElementById('progressBar'), 0);
       updatePlayIconsUI();
@@ -2675,7 +2660,7 @@
             </div>
           </div>
           <h3 class="font-bold text-base text-white truncate w-full normal-case">${alb.name}</h3>
-          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.type} • ${formatCount(alb.count, 'SONG')}</p>
+          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.type} • ${alb.artist} • ${formatCount(alb.count, 'SONG')}</p>
         </div>
       `).join('');
       updateSortSelect('albums');
@@ -2686,9 +2671,9 @@
     }
 
     function formatReleaseTypeCount(count, type) {
-      if (type === 'EP') return formatCount(count, 'EP', 'EPs');
-      if (type === 'Single') return formatCount(count, 'Single', 'Singles');
-      return formatCount(count, 'Album', 'Albums');
+      if (type === 'EP') return formatCount(count, 'EP', 'EPS');
+      if (type === 'Single') return formatCount(count, 'SINGLE', 'SINGLES');
+      return formatCount(count, 'ALBUM', 'ALBUMS');
     }
 
     function getCategoryReleaseSummary(categorySongs) {
@@ -2736,7 +2721,7 @@
                 </div>
               </div>
               <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
-              <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${formatCount(alb.count, 'SONG')}</span>
+              <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.artist} • ${formatCount(alb.count, 'SONG')}</span>
             </button>`).join('')}
         </div>`;
       updateSortSelect('categoryAlbums');
@@ -2778,7 +2763,7 @@
 
       const countrySongs = getCategorySongs(categoryCountry);
       const genres = [...new Set(countrySongs.flatMap(song => getSongCategory(song).genres))].sort(compareText);
-      document.getElementById('categoryViewTitle').textContent = categoryCountry;
+      document.getElementById('categoryViewTitle').textContent = formatCountryName(categoryCountry);
       subtitle.innerHTML = categoryGenre ? '' : `<span class="text-xs text-gray-400 uppercase">${formatCount(genres.length, 'GENRE')}</span>`;
       genreList.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">${genres.map(genre => {
         const genreSongs = getCategorySongs(categoryCountry, genre);
@@ -2813,7 +2798,7 @@
         });
         const categoryAlbums = sortAlbumCollection(Object.values(albumsMap), sortStates.categoryAlbums);
         document.getElementById('categoryViewTitle').textContent = categoryGenre;
-        subtitle.textContent = `${categoryCountry} • ${genreCountText}`;
+        subtitle.textContent = `${formatCountryName(categoryCountry)} • ${genreCountText}`;
         songList.innerHTML = `<div class="artist-detail-grid">
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 min-w-0">
             <div class="flex items-center justify-between mb-4">
@@ -3010,7 +2995,7 @@
                     </div>
                   </div>
                   <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
-                  <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${formatCount(alb.count, 'SONG')}</span>
+                  <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.artist} • ${formatCount(alb.count, 'SONG')}</span>
                 </button>
               `).join('')}
             </div>
@@ -3517,7 +3502,6 @@ function togglePlay() {
         const pct = (audio.currentTime / audio.duration) * 100;
         progress.value = pct;
         updateRangeBackground(progress, pct);
-        document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
       }
     };
 
