@@ -3658,22 +3658,6 @@ function seekAudio() {
       setVolume();
     }
 
-    audio.onplay = () => {
-      isPlaying = true;
-      updateBrowserTabMetadata(currentQueue[currentSongIndex] || null, true);
-      updatePlayIconsUI();
-      updateFloatingNavControls();
-      updateQueueGoToPlayingButton();
-    };
-
-    audio.onpause = () => {
-      isPlaying = false;
-      updateBrowserTabMetadata(currentQueue[currentSongIndex] || null, false);
-      updatePlayIconsUI();
-      updateFloatingNavControls();
-      updateQueueGoToPlayingButton();
-    };
-
     audio.onended = () => {
       if (repeatMode === 2) {
         audio.currentTime = 0;
