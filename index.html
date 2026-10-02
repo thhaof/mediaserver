@@ -838,7 +838,7 @@
 
 
     <!-- Playback Controls & Progress -->
-    <div class="flex flex-col items-center gap-2 w-1/2 max-w-xl">
+    <div class="flex flex-col items-center gap-2 w-1/2 max-w-xl mx-auto">
       <div class="flex items-center justify-center gap-6">
         <!-- Shuffle Button -->
         <button onclick="toggleShuffle()" title="SHUFFLE" id="shuffleBtn" class="text-gray-400 hover:text-white text-sm transition p-2">
@@ -3500,6 +3500,31 @@ function togglePlay() {
       inputEl.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${valuePercentage}%, #374151 ${valuePercentage}%, #374151 100%)`;
     }
 
+    /* ---------- Time helpers (were missing, which broke the 0:00 timer) ---------- */
+    const songDurations = {};
+
+    function formatTime(seconds) {
+      if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+      const total = Math.floor(seconds);
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const sec = total % 60;
+      if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+      return `${m}:${String(sec).padStart(2, '0')}`;
+    }
+
+    function updateDurationUI(songId, duration) { /* optional per-song duration display (no-op) */ }
+    function updateTotalSongsDurationUI() { /* optional total duration display (no-op) */ }
+
+    function resetTimeUI() {
+      const cur = document.getElementById('currentTime');
+      const dur = document.getElementById('durationTime');
+      const bar = document.getElementById('progressBar');
+      if (cur) cur.innerText = '0:00';
+      if (dur) dur.innerText = '0:00';
+      if (bar) { bar.value = 0; updateRangeBackground(bar, 0); }
+    }
+
     audio.onloadedmetadata = () => {
       const duration = audio.duration;
       if (Number.isFinite(duration) && duration > 0) {
@@ -3524,8 +3549,17 @@ function togglePlay() {
       }
     };
 
+    audio.addEventListener('loadstart', resetTimeUI);
+    audio.addEventListener('emptied', resetTimeUI);
+    audio.addEventListener('durationchange', () => {
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        document.getElementById('durationTime').innerText = formatTime(audio.duration);
+      }
+    });
+
     function seekAudio() {
       const progress = document.getElementById('progressBar');
+      if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
       const seekTo = (progress.value / 100) * audio.duration;
       audio.currentTime = seekTo;
       updateRangeBackground(progress, progress.value);
