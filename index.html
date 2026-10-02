@@ -644,7 +644,7 @@
               </button>
             </div>
             <div class="flex items-center gap-3 flex-wrap justify-end">
-              <span id="totalSongsDuration" class="text-xs font-medium text-gray-500 align-middle">TOTAL DURATION: 0:00</span>
+              
               <select data-sort-kind="songs" onchange="handleSortSelectChange('songs', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="artist">ARTIST</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
             </div>
           </div>
@@ -749,7 +749,7 @@
           </div>
           <div class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 backdrop-blur-md">
             <div class="flex items-center justify-end gap-3 mb-4">
-              <span id="playlistSongsDuration" class="text-xs font-medium text-gray-500 align-middle">TOTAL DURATION: 0:00</span>
+              
               <select data-sort-kind="playlist" onchange="handleSortSelectChange('playlist', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="playlist">PLAYLIST ORDER</option><option value="title">TITLE</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
             </div>
             <div id="playlistSongsList" class="flex flex-col gap-2"></div>
@@ -907,12 +907,6 @@
           class="w-full h-1.5 rounded-lg appearance-none cursor-pointer"
         >
 
-        <span
-          id="durationTime"
-          class="text-xs text-gray-400 w-10 font-medium"
-        >
-          0:00
-        </span>
       </div>
     </div>
 
@@ -1458,9 +1452,6 @@
     let recommendedOffset = 0;
 
     const audio = document.getElementById('audioPlayer');
-    const songDurations = {}; // Store duration cache
-
-    // Helper: format time in mm:ss
     function formatTime(seconds) {
       if (isNaN(seconds) || seconds === Infinity) return "0:00";
       const mins = Math.floor(seconds / 60);
@@ -1468,124 +1459,6 @@
       return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
-    // Helper: format total album seconds to human readable string
-    function formatFullDuration(totalSecs) {
-      if (!totalSecs || isNaN(totalSecs)) return "0:00";
-      const hours = Math.floor(totalSecs / 3600);
-      const mins = Math.floor((totalSecs % 3600) / 60);
-      const secs = Math.floor(totalSecs % 60);
-      if (hours > 0) {
-        return `${hours} HR ${mins} MIN`;
-      }
-      return `${mins} MIN ${secs} SEC`;
-    }
-
-    // Load metadata in small parallel batches so durations become available quickly
-    // after login without creating an unbounded number of Audio elements.
-    let durationLoaderStarted = false;
-    async function preloadDurations() {
-      if (durationLoaderStarted) return;
-      durationLoaderStarted = true;
-
-      const pending = songs.filter(song => !songDurations[song.id]);
-      const concurrency = 8;
-      let cursor = 0;
-
-      async function worker() {
-        while (cursor < pending.length) {
-          const song = pending[cursor++];
-          try {
-            const duration = await new Promise((resolve, reject) => {
-              const metadataAudio = new Audio();
-              metadataAudio.preload = 'metadata';
-              let settled = false;
-              const finish = (ok, value) => {
-                if (settled) return;
-                settled = true;
-                metadataAudio.onloadedmetadata = null;
-                metadataAudio.onerror = null;
-                metadataAudio.onabort = null;
-                metadataAudio.removeAttribute('src');
-                metadataAudio.load();
-                ok ? resolve(value) : reject(value);
-              };
-              metadataAudio.onloadedmetadata = () => finish(true, metadataAudio.duration);
-              metadataAudio.onerror = () => finish(false, new Error('Metadata load failed'));
-              metadataAudio.onabort = () => finish(false, new Error('Metadata load aborted'));
-              metadataAudio.src = song.src;
-              metadataAudio.load();
-            });
-
-            if (Number.isFinite(duration) && duration > 0) {
-              songDurations[song.id] = duration;
-              updateDurationUI(song.id, duration);
-              updateTotalSongsDurationUI();
-            }
-          } catch (err) {
-            console.warn('Could not load duration for:', song.title, err);
-          }
-        }
-      }
-
-      await Promise.all(Array.from({ length: Math.min(concurrency, pending.length) }, worker));
-      updateTotalSongsDurationUI();
-    }
-
-    function updateTotalSongsDurationUI() {
-      const durationEl = document.getElementById('totalSongsDuration');
-      const countEl = document.getElementById('totalSongsCount');
-      const total = songs.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0);
-      if (durationEl) durationEl.innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
-      if (countEl) countEl.innerText = `${songs.length}`;
-
-      const categoryDurationEl = document.getElementById('categorySongsDuration');
-      if (categoryDurationEl && categoryCountry && categoryGenre) {
-        const categorySongs = getCategorySongs(categoryCountry, categoryGenre);
-        categoryDurationEl.innerText = `TOTAL DURATION: ${formatFullDuration(categorySongs.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}`;
-      }
-
-      const artistDurationEl = document.getElementById('artistSongsDuration');
-      if (artistDurationEl && currentGroupDetailType === 'artist') {
-        const artistSongs = queueContexts.groupBase || queueContexts.group || [];
-        artistDurationEl.innerText = `TOTAL DURATION: ${formatFullDuration(artistSongs.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}`;
-      }
-
-      const playlistCountEl = document.getElementById('playlistDetailCount');
-      if (playlistCountEl && currentViewName === 'playlist') {
-        let playlistSongs = [];
-        if (currentActivePublicPlaylistId != null && currentActivePlaylistId == null) {
-          playlistSongs = queueContexts.shared || [];
-        } else if (currentActivePlaylistId != null) {
-          const pl = playlists.find(p => p.id === currentActivePlaylistId);
-          playlistSongs = getPlaylistSongsInOrder(pl);
-        }
-        if (playlistSongs.length || playlistCountEl.innerText.includes('SONGS')) {
-          const playlistTotal = playlistSongs.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0);
-          playlistCountEl.innerText = `${playlistSongs.length} SONGS`;
-          const playlistDurationEl = document.getElementById('playlistSongsDuration');
-          if (playlistDurationEl) playlistDurationEl.innerText = `TOTAL DURATION: ${formatFullDuration(playlistTotal)}`;
-        }
-      }
-
-      const searchResultEl = document.getElementById('searchResultCount');
-      const searchInput = document.getElementById('searchInput');
-      const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-      if (searchResultEl && query) {
-        const filtered = songs.filter(s => s.title.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query) || s.album.toLowerCase().includes(query));
-        searchResultEl.innerText = `${filtered.length} RESULTS FOR "${query}" TOTAL DURATION: ${formatFullDuration(filtered.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}`;
-      }
-    }
-
-    function updateDurationUI(songId, durationSec) {
-      const formatted = formatTime(durationSec);
-      document.querySelectorAll(`.duration-song-${songId}`).forEach(el => {
-        el.innerText = formatted;
-      });
-    }
-
-    /* =========================================================
-       AUTHENTICATION LOGIC
-    ========================================================== */
     function usernameToEmail(username) {
       const normalized = username.trim().toLowerCase();
       if (normalized === 'howie') return 'howie@howie.xy';
@@ -1606,7 +1479,6 @@
       document.getElementById('currentArtist').innerText = "HOWIE'S MUSIC SERVER";
       updateBrowserTabMetadata(null, false);
       document.getElementById('currentTime').innerText = '0:00';
-      document.getElementById('durationTime').innerText = '0:00';
       document.getElementById('progressBar').value = 0;
       updateRangeBackground(document.getElementById('progressBar'), 0);
       updatePlayIconsUI();
@@ -1880,8 +1752,7 @@
       publicType?.classList.remove('playlist-accent-private');
       publicType?.classList.add('playlist-accent-public');
       document.getElementById('playlistDetailType').innerText = 'PUBLIC PLAYLIST';
-      document.getElementById('playlistDetailCount').innerText = `${playlistSongs.length} SONGS`;
-      document.getElementById('playlistSongsDuration').innerText = `TOTAL DURATION: ${formatFullDuration(playlistSongs.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0))}`;
+      document.getElementById('playlistDetailCount').innerText = `${formatCount(playlistSongs.length, 'SONG')}`;
       const sortedPublicSongs = sortPlaylistSongs(playlistSongs, sortStates.publicPlaylist);
       queueContexts.shared = [...sortedPublicSongs];
       document.getElementById('playAllBtn').onclick = () => playAllQueue([...sortedPublicSongs]);
@@ -2355,7 +2226,6 @@
     function generateSongRowHTML(song, index, queueSource) {
       const currentPlayingSong = currentQueue[currentSongIndex];
       const isThisPlaying = currentPlayingSong && currentPlayingSong.id === song.id;
-      const durationText = songDurations[song.id] ? formatTime(songDurations[song.id]) : "0:00";
 
       return `
         <div data-song-id="${song.id}" onclick="if ('${queueSource}' === 'queue') event.stopPropagation(); playSongFromList(${song.id}, '${queueSource}')" class="song-item-card scroll-reveal flex items-center justify-between p-3 rounded-xl hover:bg-gray-800/50 border border-transparent transition duration-200 group ${isThisPlaying ? 'playing-item' : ''}">
@@ -2379,9 +2249,6 @@
           </div>
 
           <div class="flex items-center gap-2 flex-shrink-0">
-            <!-- Duration -->
-            <span class="text-xs font-semibold text-gray-400 duration-song-${song.id}">${durationText}</span>
-
             ${queueSource !== 'queue' ? `
             <!-- Add to Playlist Button -->
             <button onclick="event.stopPropagation(); openAddToPlaylistModal(${song.id})" title="ADD TO PLAYLIST" class="text-gray-500 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-700/50 transition">
@@ -2746,8 +2613,6 @@
       const container = document.getElementById('songList');
       const sortedSongs = sortSongsArray(songArray, sortStates.songs);
       document.getElementById('totalSongsCount').innerText = `${sortedSongs.length}`;
-      const total = sortedSongs.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0);
-      document.getElementById('totalSongsDuration').innerText = `TOTAL DURATION: ${formatFullDuration(total)}`;
       queueContexts.all = [...sortedSongs];
       container.innerHTML = sortedSongs.map((s, idx) => generateSongRowHTML(s, idx, 'all')).join('');
       updateSortSelect('songs');
@@ -2810,10 +2675,20 @@
             </div>
           </div>
           <h3 class="font-bold text-base text-white truncate w-full normal-case">${alb.name}</h3>
-          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.type} • ${alb.artist} • ${alb.count} SONGS</p>
+          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${alb.type} • ${formatCount(alb.count, 'SONG')}</p>
         </div>
       `).join('');
       updateSortSelect('albums');
+    }
+
+    function formatCount(count, singular, plural = `${singular}s`) {
+      return `${count} ${count === 1 ? singular : plural}`;
+    }
+
+    function formatReleaseTypeCount(count, type) {
+      if (type === 'EP') return formatCount(count, 'EP', 'EPs');
+      if (type === 'Single') return formatCount(count, 'Single', 'Singles');
+      return formatCount(count, 'Album', 'Albums');
     }
 
     function getCategoryReleaseSummary(categorySongs) {
@@ -2826,9 +2701,9 @@
         return acc;
       }, { Album: 0, EP: 0, Single: 0 });
       const parts = [];
-      if (counts.Album) parts.push(`${counts.Album} ALBUMS`);
-      if (counts.EP) parts.push(`${counts.EP} EPS`);
-      if (counts.Single) parts.push(`${counts.Single} SINGLES`);
+      if (counts.Album) parts.push(formatReleaseTypeCount(counts.Album, 'Album'));
+      if (counts.EP) parts.push(formatReleaseTypeCount(counts.EP, 'EP'));
+      if (counts.Single) parts.push(formatReleaseTypeCount(counts.Single, 'Single'));
       return { ...counts, total: names.length, text: parts.join(' • ') };
     }
 
@@ -2848,7 +2723,7 @@
       const categoryAlbums = sortAlbumCollection(Object.values(albumsMap), sortStates.categoryAlbums);
       section.innerHTML = `
         <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-500 uppercase">${categoryAlbums.length}</span></div>
+          <div class="flex items-center gap-2 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-500 uppercase">${categoryAlbums.length}</span></div>
           <select data-sort-kind="categoryAlbums" onchange="handleSortSelectChange('categoryAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="release">RELEASE DATE</option></select>
         </div>
         <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -2861,7 +2736,7 @@
                 </div>
               </div>
               <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
-              <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS • TOTAL DURATION: ${formatFullDuration(songs.filter(song => song.album === alb.name).reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}</span>
+              <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${formatCount(alb.count, 'SONG')}</span>
             </button>`).join('')}
         </div>`;
       updateSortSelect('categoryAlbums');
@@ -2883,18 +2758,18 @@
 
       if (!categoryCountry) {
         document.getElementById('categoryViewTitle').textContent = 'CATEGORIES';
-        subtitle.innerHTML = `<span class="text-xs text-gray-400 uppercase">${countries.length} COUNTRIES</span>`;
+        subtitle.innerHTML = `<span class="text-xs text-gray-400 uppercase">${formatCount(countries.length, 'COUNTRY')}</span>`;
         countryList.innerHTML = countries.map(country => {
           const countrySongs = getCategorySongs(country);
           const genres = [...new Set(countrySongs.flatMap(song => getSongCategory(song).genres))].sort(compareText);
           const releaseSummary = getCategoryReleaseSummary(countrySongs);
-          const countryTotalDuration = countrySongs.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0);
-          const countryStats = [`${countrySongs.length} SONGS • TOTAL DURATION: ${formatFullDuration(countryTotalDuration)}`];
-          if (genres.length) countryStats.push(`${genres.length} GENRES`);
+
+          const countryStats = [formatCount(countrySongs.length, 'SONG')];
+          if (genres.length) countryStats.push(`${formatCount(genres.length, 'GENRE')}`);
           if (releaseSummary.text) countryStats.push(releaseSummary.text);
           return `<button type="button" onclick='openCategoryCountry(${JSON.stringify(country)})' class="glass-card p-5 rounded-2xl cursor-pointer group text-left w-full">
             <div class="w-full h-28 rounded-xl bg-gradient-to-br from-emerald-600/25 via-blue-600/10 to-purple-600/10 border border-white/5 flex items-center justify-center mb-4 group-hover:border-emerald-400/30 transition"><i class="fa-solid fa-earth-americas text-4xl text-emerald-400/80 group-hover:text-emerald-300 transition"></i></div>
-            <h3 class="font-bold text-base text-white normal-case">${formatCountryName(country)}</h3>
+            <h3 class="font-bold text-base text-white uppercase">${formatCountryName(country)}</h3>
             <p class="text-xs text-gray-400 mt-1">${countryStats.join(' • ')}</p>
           </button>`;
         }).join('');
@@ -2904,13 +2779,13 @@
       const countrySongs = getCategorySongs(categoryCountry);
       const genres = [...new Set(countrySongs.flatMap(song => getSongCategory(song).genres))].sort(compareText);
       document.getElementById('categoryViewTitle').textContent = categoryCountry;
-      subtitle.innerHTML = categoryGenre ? '' : `<span class="text-xs text-gray-400 uppercase">${genres.length} GENRES</span>`;
+      subtitle.innerHTML = categoryGenre ? '' : `<span class="text-xs text-gray-400 uppercase">${formatCount(genres.length, 'GENRE')}</span>`;
       genreList.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">${genres.map(genre => {
         const genreSongs = getCategorySongs(categoryCountry, genre);
         const count = genreSongs.length;
         const releaseSummary = getCategoryReleaseSummary(genreSongs);
-        const genreTotalDuration = genreSongs.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0);
-        const genreStats = [`${count} SONGS • TOTAL DURATION: ${formatFullDuration(genreTotalDuration)}`];
+
+        const genreStats = [`${formatCount(count, 'SONG')}`];
         if (releaseSummary.text) genreStats.push(releaseSummary.text);
         return `<div onclick='openCategoryGenre(${JSON.stringify(genre)})' class="glass-card p-5 rounded-2xl cursor-pointer group"><div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-400/10 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition"><i class="fa-solid fa-music text-blue-400"></i></div><h3 class="font-bold text-base text-white">${genre}</h3><p class="text-xs text-gray-400 mt-1">${genreStats.join(' • ')}</p></div>`;
       }).join('')}</div>`;
@@ -2925,11 +2800,11 @@
           return acc;
         }, { Album: 0, EP: 0, Single: 0 });
         const genreAlbumTotal = genreAlbumNames.length;
-        const genreTotalDuration = filtered.reduce((sum, song) => sum + (songDurations[song.id] || 0), 0);
-        const genreCountParts = [`${filtered.length} SONGS`, `TOTAL DURATION: ${formatFullDuration(genreTotalDuration)}`];
-        if (genreReleaseCounts.Album) genreCountParts.push(`${genreReleaseCounts.Album} ALBUMS`);
-        if (genreReleaseCounts.EP) genreCountParts.push(`${genreReleaseCounts.EP} EPS`);
-        if (genreReleaseCounts.Single) genreCountParts.push(`${genreReleaseCounts.Single} SINGLES`);
+
+        const genreCountParts = [formatCount(filtered.length, 'SONG')];
+        if (genreReleaseCounts.Album) genreCountParts.push(formatReleaseTypeCount(genreReleaseCounts.Album, 'Album'));
+        if (genreReleaseCounts.EP) genreCountParts.push(formatReleaseTypeCount(genreReleaseCounts.EP, 'EP'));
+        if (genreReleaseCounts.Single) genreCountParts.push(formatReleaseTypeCount(genreReleaseCounts.Single, 'Single'));
         const genreCountText = genreCountParts.join(' • ');
         const albumsMap = {};
         filtered.forEach(s => {
@@ -2942,7 +2817,7 @@
         songList.innerHTML = `<div class="artist-detail-grid">
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60 min-w-0">
             <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-3 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-500 uppercase">${categoryAlbums.length}</span></div>
+              <div class="flex items-center gap-2 min-w-0"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-500 uppercase">${categoryAlbums.length}</span></div>
               <select data-sort-kind="categoryAlbums" onchange="handleSortSelectChange('categoryAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="release">RELEASE DATE</option></select>
             </div>
             <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -2955,7 +2830,7 @@
                     </div>
                   </div>
                   <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
-                  <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS • TOTAL DURATION: ${formatFullDuration(songs.filter(song => song.album === alb.name).reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}</span>
+                  <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${formatCount(alb.count, 'SONG')}</span>
                 </button>`).join('')}
             </div>
           </section>
@@ -2965,7 +2840,6 @@
                 <button type="button" onclick="playAllQueue([...sortSongsArray(getCategorySongs(categoryCountry, categoryGenre), sortStates.category)])" class="bg-blue-600/90 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-[10px] font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition active:scale-95 uppercase flex-shrink-0" title="PLAY ALL SONGS"><i class="fa-solid fa-play"></i> PLAY ALL</button>
               </div>
               <div class="flex items-center gap-3">
-                <span id="categorySongsDuration" class="text-xs font-medium text-gray-500 align-middle">TOTAL DURATION: ${formatFullDuration(filtered.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0))}</span>
                 <select data-sort-kind="category" onchange="handleSortSelectChange('category', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
               </div>
             </div>
@@ -3014,7 +2888,7 @@
             </div>
           </div>
           <h3 class="font-bold text-base text-white truncate w-full uppercase">${art.name}</h3>
-          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${art.count} TRACKS${(() => { const rs = getCategoryReleaseSummary(songs.filter(s => s.artist === art.name)); return rs.text ? ' • ' + rs.text : ''; })()}</p>
+          <p class="text-xs text-gray-400 truncate w-full mt-1 uppercase font-semibold">${formatCount(art.count, 'SONG')}${(() => { const rs = getCategoryReleaseSummary(songs.filter(s => s.artist === art.name)); return rs.text ? ' • ' + rs.text : ''; })()}</p>
         </div>
       `).join('');
       updateSortSelect('artists');
@@ -3035,7 +2909,7 @@
       const artistAlbums = sortAlbumCollection(Object.values(artistAlbumsMap), sortStates.artistAlbums);
       section.innerHTML = `
         <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-500 uppercase">${artistAlbums.length}</span></div>
+          <div class="flex items-center gap-2"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-500 uppercase">${artistAlbums.length}</span></div>
           <select data-sort-kind="artistAlbums" onchange="handleSortSelectChange('artistAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="release">RELEASE DATE</option></select>
         </div>
         <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -3048,7 +2922,7 @@
                 </div>
               </div>
               <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
-              <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS • TOTAL DURATION: ${formatFullDuration(songs.filter(song => song.album === alb.name).reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}</span>
+              <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${formatCount(alb.count, 'SONG')}</span>
             </button>`).join('')}
         </div>`;
       updateSortSelect('artistAlbums');
@@ -3094,9 +2968,12 @@
 
       const filteredSongs = type === 'album' ? songs.filter(s=>s.album===key) : songs.filter(s=>s.artist===key);
       document.getElementById('groupDetailType').innerText = type === 'album' ? `${albumType(key)} BY ${filteredSongs[0]?.artist || ''}` : 'ARTIST';
-      const totalSecs = filteredSongs.reduce((acc,s)=>acc+(songDurations[s.id]||0),0);
+
       document.getElementById('groupDetailTitle').innerText = key;
-      document.getElementById('groupDetailCount').innerText = `${filteredSongs.length} SONGS • TOTAL DURATION: ${formatFullDuration(totalSecs)}`;
+      const groupReleaseSummary = type === 'artist' ? getCategoryReleaseSummary(filteredSongs) : null;
+      document.getElementById('groupDetailCount').innerText = type === 'artist'
+        ? [formatCount(filteredSongs.length, 'SONG'), groupReleaseSummary?.text].filter(Boolean).join(' • ')
+        : formatCount(filteredSongs.length, 'SONG');
       document.getElementById('groupDetailCover').src = filteredSongs[0]?.cover || '';
       queueContexts.group = [...filteredSongs];
       queueContexts.groupBase = [...filteredSongs];
@@ -3118,7 +2995,7 @@
         groupList.innerHTML = `
           <section class="bg-[#151620]/70 rounded-2xl p-5 border border-gray-800/60">
             <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-3"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-500 uppercase">${artistAlbums.length}</span></div>
+              <div class="flex items-center gap-2"><h2 class="text-lg font-extrabold text-white uppercase">ALBUMS</h2><span class="text-xs text-gray-500 uppercase">${artistAlbums.length}</span></div>
               <select data-sort-kind="artistAlbums" onchange="handleSortSelectChange('artistAlbums', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="release">RELEASE DATE</option></select>
             </div>
             <div class="artist-albums-grid grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -3133,7 +3010,7 @@
                     </div>
                   </div>
                   <span class="block text-base font-bold text-white truncate normal-case">${alb.name}</span>
-                  <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${alb.count} SONGS • TOTAL DURATION: ${formatFullDuration(songs.filter(song => song.album === alb.name).reduce((sum, song) => sum + (songDurations[song.id] || 0), 0))}</span>
+                  <span class="block text-xs text-gray-400 mt-1 uppercase font-semibold">${alb.type} • ${formatCount(alb.count, 'SONG')}</span>
                 </button>
               `).join('')}
             </div>
@@ -3144,7 +3021,6 @@
                 <button type="button" onclick="playAllQueue([...sortSongsArray(queueContexts.groupBase || [], sortStates.artistSongs)])" class="bg-blue-600/90 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-[10px] font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition active:scale-95 uppercase flex-shrink-0" title="PLAY ALL SONGS"><i class="fa-solid fa-play"></i> PLAY ALL</button>
               </div>
               <div class="flex items-center gap-3">
-                <span id="artistSongsDuration" class="text-xs font-medium text-gray-500 align-middle">TOTAL DURATION: ${formatFullDuration(filteredSongs.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0))}</span>
                 <select data-sort-kind="artistSongs" onchange="handleSortSelectChange('artistSongs', this)" class="bg-[#1f202e] border border-gray-700/50 text-xs text-gray-300 rounded-xl px-3 py-2 uppercase focus:outline-none focus:border-blue-500"><option value="">SORT BY</option><option value="title">TITLE</option><option value="album">ALBUM</option><option value="release">RELEASE DATE</option></select>
                 </div>
             </div>
@@ -3186,8 +3062,8 @@
       playlistType?.classList.toggle('playlist-accent-private', !pl.isPublic);
       document.getElementById('playlistDetailType').innerText = pl.isPublic ? 'PUBLIC PLAYLIST' : 'PRIVATE PLAYLIST';
       const playlistSongs=getPlaylistSongsInOrder(pl);
-      document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
-      document.getElementById('playlistSongsDuration').innerText=`TOTAL DURATION: ${formatFullDuration(playlistSongs.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0))}`;
+      document.getElementById('playlistDetailCount').innerText=`${formatCount(playlistSongs.length, 'SONG')}`;
+
       const sortedPlaylistSongs = sortPlaylistSongs(playlistSongs, sortStates.playlist);
       queueContexts.playlist = [...sortedPlaylistSongs];
       document.getElementById('playAllBtn').onclick=()=>playAllQueue([...sortedPlaylistSongs]);
@@ -3287,8 +3163,8 @@
       sharedType?.classList.remove('playlist-accent-private');
       sharedType?.classList.add('playlist-accent-public');
       document.getElementById('playlistDetailType').innerText = 'PUBLIC PLAYLIST';
-      document.getElementById('playlistDetailCount').innerText=`${playlistSongs.length} SONGS`;
-      document.getElementById('playlistSongsDuration').innerText=`TOTAL DURATION: ${formatFullDuration(playlistSongs.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0))}`;
+      document.getElementById('playlistDetailCount').innerText=`${formatCount(playlistSongs.length, 'SONG')}`;
+
       const sortedSharedSongs = sortPlaylistSongs(playlistSongs, sortStates.publicPlaylist);
       queueContexts.shared = [...sortedSharedSongs];
       document.getElementById('playlistSongsList').innerHTML=sortedSharedSongs.length ? sortedSharedSongs.map((s,idx)=>generateSongRowHTML(s,idx,'shared')).join('') : `<p class="text-xs text-gray-500 text-center py-8">NO SONGS IN THIS PLAYLIST</p>`;
@@ -3364,7 +3240,6 @@
       if (container) {
         queueContexts.search = [...filtered];
         container.innerHTML = filtered.map((s, idx) => generateSongRowHTML(s, idx, 'search')).join('');
-        document.getElementById('searchResultCount').innerText = query ? `${filtered.length} RESULTS FOR "${query}" TOTAL DURATION: ${formatFullDuration(filtered.reduce((sum, s) => sum + (songDurations[s.id] || 0), 0))}` : 'TYPE TO SEARCH YOUR MUSIC';
         document.getElementById('searchEmpty').classList.toggle('hidden', filtered.length !== 0 || !query);
         updateFloatingNavControls();
       }
@@ -3632,11 +3507,7 @@ function togglePlay() {
       if (Number.isFinite(duration) && duration > 0) {
         const activeSong = currentQueue[currentSongIndex];
         if (activeSong) {
-          songDurations[activeSong.id] = duration;
-          updateDurationUI(activeSong.id, duration);
-          updateTotalSongsDurationUI();
-        }
-        document.getElementById('durationTime').innerText = formatTime(duration);
+            }
       }
     };
 
@@ -3647,7 +3518,6 @@ function togglePlay() {
         progress.value = pct;
         updateRangeBackground(progress, pct);
         document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
-        document.getElementById('durationTime').innerText = formatTime(audio.duration);
       }
     };
 
@@ -4013,7 +3883,6 @@ function togglePlay() {
        INITIALIZATION
     ========================================================== */
     window.addEventListener('DOMContentLoaded', async () => {
-      preloadDurations();
       updateLibraryCounts();
       updateBrowserTabMetadata(null, false);
       resetSidebarToggles();
