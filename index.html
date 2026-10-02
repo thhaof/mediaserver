@@ -3496,68 +3496,40 @@ function togglePlay() {
     /* =========================================================
        DYNAMIC PROGRESS & VOLUME BARS WITH GLOW TRAIL
     ========================================================== */
-function updateProgressUI() {
-  const progress = document.getElementById('progressBar');
-  const current = document.getElementById('currentTime');
-  const duration = document.getElementById('durationTime');
-
-  if (!progress || !current || !duration) return;
-
-  const total = audio.duration;
-  const now = audio.currentTime;
-
-  if (Number.isFinite(total) && total > 0) {
-    const pct = Math.max(0, Math.min(100, (now / total) * 100));
-    progress.value = pct;
-    updateRangeBackground(progress, pct);
-    current.innerText = formatTime(now);
-    duration.innerText = formatTime(total);
-  } else {
-    current.innerText = '0:00';
-    duration.innerText = '0:00';
-    progress.value = 0;
-    updateRangeBackground(progress, 0);
-  }
-}
-
-function startProgressUpdater() {
-  if (progressAnimationFrame !== null) return;
-
-  const tick = () => {
-    updateProgressUI();
-
-    if (!audio.paused && !audio.ended) {
-      progressAnimationFrame = requestAnimationFrame(tick);
-    } else {
-      progressAnimationFrame = null;
+    function updateRangeBackground(inputEl, valuePercentage) {
+      inputEl.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${valuePercentage}%, #374151 ${valuePercentage}%, #374151 100%)`;
     }
-  };
 
-  progressAnimationFrame = requestAnimationFrame(tick);
-}
+    audio.onloadedmetadata = () => {
+      const duration = audio.duration;
+      if (Number.isFinite(duration) && duration > 0) {
+        const activeSong = currentQueue[currentSongIndex];
+        if (activeSong) {
+          songDurations[activeSong.id] = duration;
+          updateDurationUI(activeSong.id, duration);
+          updateTotalSongsDurationUI();
+        }
+        document.getElementById('durationTime').innerText = formatTime(duration);
+      }
+    };
 
-function stopProgressUpdater() {
-  if (progressAnimationFrame !== null) {
-    cancelAnimationFrame(progressAnimationFrame);
-    progressAnimationFrame = null;
-  }
+    audio.ontimeupdate = () => {
+      const progress = document.getElementById('progressBar');
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        progress.value = pct;
+        updateRangeBackground(progress, pct);
+        document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+        document.getElementById('durationTime').innerText = formatTime(audio.duration);
+      }
+    };
 
-  updateProgressUI();
-}
-
-audio.ontimeupdate = updateProgressUI;
-
-function seekAudio() {
-  const progress = document.getElementById('progressBar');
-  const total = audio.duration;
-
-  if (!progress || !Number.isFinite(total) || total <= 0) return;
-
-  const seekTo = (Number(progress.value) / 100) * total;
-
-  audio.currentTime = seekTo;
-  updateProgressUI();
-}
+    function seekAudio() {
+      const progress = document.getElementById('progressBar');
+      const seekTo = (progress.value / 100) * audio.duration;
+      audio.currentTime = seekTo;
+      updateRangeBackground(progress, progress.value);
+    }
 
     let volumeSaveTimer = null;
 
@@ -3657,6 +3629,22 @@ function seekAudio() {
       }
       setVolume();
     }
+
+    audio.onplay = () => {
+      isPlaying = true;
+      updateBrowserTabMetadata(currentQueue[currentSongIndex] || null, true);
+      updatePlayIconsUI();
+      updateFloatingNavControls();
+      updateQueueGoToPlayingButton();
+    };
+
+    audio.onpause = () => {
+      isPlaying = false;
+      updateBrowserTabMetadata(currentQueue[currentSongIndex] || null, false);
+      updatePlayIconsUI();
+      updateFloatingNavControls();
+      updateQueueGoToPlayingButton();
+    };
 
     audio.onended = () => {
       if (repeatMode === 2) {
